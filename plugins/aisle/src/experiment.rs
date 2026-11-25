@@ -8,6 +8,9 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
+mod preview;
+use preview::LayoutPreview;
+
 script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
@@ -22,13 +25,21 @@ script_mod! {
         Line{exp_configs := DropDown{width:Fill} exp_load := Tool{text:"Open configuration"} exp_save := Tool{text:"Save configuration"} exp_start := mod.widgets.ux.PrimaryButton{text:"Start batch"}}
         View{width:Fill height:Fill flow:Right spacing:12
             View{width:Fill height:Fill flow:Down spacing:6
-                Label{text:"Batch history"}
+              Line{exp_history_title := Text{text:"Batch history"} exp_preview := Tool{text:"Preview layout"}}
+              exp_batch_history := View{width:Fill height:Fill flow:Down spacing:6
                 Line{exp_batches := DropDown{width:Fill} exp_refresh := Tool{text:"Refresh batches"}}
                 exp_summary := Text{text:"No batch selected"}
                 exp_rows_scroll := ScrollYView{width:Fill height:Fill flow:Down
                     exp_rows := Label{width:Fill max_lines:0 text:"Start a batch to see its repetitions."}}
                 Line{exp_prev := Tool{text:"Previous trial"} exp_next := Tool{text:"Next trial"} exp_cancel := Tool{text:"Cancel trial"} exp_retry := Tool{text:"Retry trial"}}
                 exp_detail := Text{}
+              }
+              exp_preview_panel := View{visible:false width:Fill height:Fill flow:Down spacing:5
+                exp_preview_status := Text{}
+                exp_preview_image := VideoPlayer{width:Fill height:Fill}
+                exp_preview_values := Text{}
+                Line{exp_preview_prev := Tool{text:"Previous layout"} exp_preview_next := Tool{text:"Next layout"}}
+              }
             }
             exp_form := ScrollYView{width:354 height:Fill flow:Down spacing:7
                 Label{text:"Run configuration"}
@@ -82,6 +93,8 @@ pub struct ExperimentPane {
     last: Option<Instant>,
     #[rust]
     children: Vec<Child>,
+    #[rust]
+    preview: LayoutPreview,
 }
 fn root() -> PathBuf {
     runtime::user_data().join("aisle")
@@ -182,7 +195,10 @@ impl ExperimentPane {
     fn context(&mut self, cx: &mut Cx, w: &Workbench) {
         let opening = !self.loaded;
         self.initialize(cx);
-        if self.controller != w.prepared {
+        if self.controller != w.prepared
+            || self.controller_sha != w.prepared_digest().unwrap_or_default()
+        {
+            self.close_preview(cx);
             self.controller = w.prepared.clone();
             self.controller_sha = w.prepared_digest().unwrap_or_default().to_string();
             self.task = self
@@ -245,6 +261,10 @@ impl ExperimentPane {
         self.view
             .button(cx, ids!(exp_start))
             .set_enabled(cx, self.task.is_some());
+        self.view
+            .button(cx, ids!(exp_preview))
+            .set_enabled(cx, self.task.is_some());
+        self.poll_preview(cx);
         self.children
             .retain_mut(|p| p.try_wait().ok().flatten().is_none());
         if self
@@ -734,6 +754,47 @@ impl ExperimentPane {
             ($id:expr) => {
                 self.view.button(cx, $id).clicked(a)
             };
+        }
+        if clicked!(ids!(exp_preview)) {
+            if self.preview.repetition == 0 {
+                self.request_preview(cx, 1)?;
+            } else {
+                self.close_preview(cx);
+            }
+            return Ok(());
+        }
+        if clicked!(ids!(exp_preview_prev)) || clicked!(ids!(exp_preview_next)) {
+            let i = self.preview.repetition;
+            let next = if clicked!(ids!(exp_preview_next)) {
+                i + 1
+            } else {
+                i.saturating_sub(1)
+            };
+            self.request_preview(cx, next)?;
+            return Ok(());
+        }
+        if self.preview.repetition > 0
+            && (self
+                .view
+                .text_input(cx, ids!(exp_seed))
+                .changed(a)
+                .is_some()
+                || self
+                    .view
+                    .text_input(cx, ids!(exp_count))
+                    .changed(a)
+                    .is_some()
+                || self
+                    .view
+                    .drop_down(cx, ids!(exp_seed_mode))
+                    .selected(a)
+                    .is_some()
+                || clicked!(ids!(exp_feature_save))
+                || clicked!(ids!(exp_feature_delete))
+                || clicked!(ids!(exp_load))
+                || clicked!(ids!(exp_start)))
+        {
+            self.close_preview(cx);
         }
         if clicked!(ids!(exp_refresh)) {
             self.archives(cx).map_err(|e| e.to_string())?;

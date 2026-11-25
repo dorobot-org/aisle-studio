@@ -16,7 +16,7 @@ import time
 from uuid import UUID, uuid4
 
 from authored_scene import load as compile_task
-from experiment import encode, sample, schedule, sha
+from experiment import encode, recordings, sample, schedule, seeds, sha
 from experiment_recording import now
 from worker import describe, digest, matches_bound
 
@@ -71,17 +71,39 @@ def freeze_controller(source, target, plan, checksum, task_digest):
         raise ValueError("Inputs changed while freezing the experiment")
 
 
-def create(root, config, source, expected=None, *, parent=None):
-
-    plan = read(source)
-    checksum = digest(source)
+def selected_inputs(source, expected):
+    raw = source.read_bytes()
+    plan = json.loads(raw)
+    checksum = sha(raw)
     if expected and expected != checksum:
         raise ValueError("The selected controller has changed")
     bound = compile_task(source.with_name("bound-task.json"), plan["bound_task_sha256"])
     meta = describe(plan["robot"])
     if meta["model_hash"] != plan["model_hash"] or not matches_bound(bound, plan):
         raise ValueError("Controller, task and selected robot differ")
-    job = schedule(config, bound.document, bound.sha256, checksum, meta["model_hash"])
+    return plan, checksum, bound
+
+
+def preview(config, source, expected, repetition):
+    _, _, bound = selected_inputs(source, expected)
+    ordered = seeds(config)
+    if not 1 <= repetition <= len(ordered):
+        raise ValueError("Choose a repetition in this experiment")
+    recordings(config, repetition)
+    seed = ordered[repetition - 1]
+    layout = sample(bound.document, config, seed)
+    compile_task(source.with_name("bound-task.json"), bound.sha256, layout)
+    return dict(
+        seed=seed,
+        scene=layout["scene"],
+        values=layout["values"],
+        sample_sha256=sha(encode(layout)),
+    )
+
+
+def create(root, config, source, expected=None, *, parent=None):
+    plan, checksum, bound = selected_inputs(source, expected)
+    job = schedule(config, bound.document, bound.sha256, checksum, plan["model_hash"])
     root.mkdir(parents=True, exist_ok=True)
     dest = root / job["batch_id"]
     with tempfile.TemporaryDirectory(dir=root, prefix=".new-") as tmp:
@@ -376,6 +398,10 @@ def main():
     new.add_argument("config", type=Path)
     new.add_argument("controller", type=Path)
     new.add_argument("--controller-sha256")
+    view = opts.add_parser("preview", help="Validate a sampled repetition without creating a batch")
+    view.add_argument("controller", type=Path)
+    view.add_argument("repetition", type=int)
+    view.add_argument("--controller-sha256", required=True)
     for name in ("run", "cancel", "retry"):
         parser = opts.add_parser(name)
         parser.add_argument("batch", type=Path)
@@ -391,6 +417,9 @@ def main():
                 a.controller_sha256,
             )
         )
+    elif a.operation == "preview":
+        result = preview(json.load(sys.stdin), a.controller.resolve(), a.controller_sha256, a.repetition)
+        print(json.dumps(result))
     elif a.operation == "run":
         run(a.batch.resolve())
     elif a.operation == "cancel":

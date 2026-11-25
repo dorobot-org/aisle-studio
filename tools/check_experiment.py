@@ -271,12 +271,43 @@ def main():
         list_("b", 4, "Right chair")
         target("feature_save")
         show(prefix + "feedback", "Updated runtime features")
+        # Check an invalid draw through the same geometry preflight used to admit a trial.
+        textfield("default", "0.1")
+        textfield("low", "0.1")
+        textfield("high", "0.1")
+        target("feature_save")
+        target("preview")
+        show(prefix + "preview_status", "Sampled colliders intersect")
+        target("preview")
+        for key, val in [("default", "2.4"), ("low", "1.9"), ("high", "2.8")]:
+            textfield(key, val)
+        target("feature_save")
+        target("preview")
+        previews = []
+        for index in range(4):
+            if index:
+                target("preview_next")
+            label = show(prefix + "preview_status", f"Seed {42 + index} ·")["controls"]
+            digest = label[prefix + "preview_status"]["text"].rsplit(" · ", 1)[1]
+            assert len(digest) == 16, digest
+            desc = label[prefix + "preview_values"]["text"]
+            assert "Chair spacing" in desc and "5 objects" in desc, desc
+            previews.append(dict(seed=42 + index, digest_prefix=digest, description=desc))
+            if index == 1:
+                grab("sampled-layout")
+        target("preview_prev")
+        show(prefix + "preview_status", previews[2]["digest_prefix"])
+        assert not list((folder / "state/aisle/experiments").glob("*/batch.json"))
+        target("preview")
         target("save")
         show(prefix + "feedback", "Configuration saved")
         target("start")
         show(prefix + "feedback", "Batch started")
         path = next((folder / "state/aisle/experiments").glob("*/batch.json"))
         job = json.loads(path.read_bytes())
+        for expected, row in zip(previews, job["repetitions"]):
+            assert row["seed"] == expected["seed"]
+            assert row["sample_sha256"].startswith(expected["digest_prefix"])
         assert job["configuration"]["overrides"] == {
             "2": {"robot_trace": True},
             "3": {"agent_history": True},
@@ -301,6 +332,7 @@ def main():
         )
         job = json.loads(path.read_bytes())
         receipt = verify(folder, job)
+        receipt["previews"] = previews
         target("next")
         show(prefix + "detail", job["repetitions"][1]["run_id"])
         grab("batch-results")
