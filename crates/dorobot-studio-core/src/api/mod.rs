@@ -21,6 +21,7 @@ pub mod live;
 pub mod mock;
 pub mod nexus;
 pub mod aisle;
+pub mod experiment_replay;
 pub mod scene;
 pub mod supported;
 pub mod telemetry;

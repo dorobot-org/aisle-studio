@@ -183,6 +183,13 @@ def sample(task, config, seed):
         else:
             raise ValueError(f"Parameter {name} is missing a runtime binding")
         values[name] = dict(value=value, type=p["type"], unit=unit, binding=binding)
+    for identifier, edits in config.get("pose_edits", {}).items():
+        obj = object_(identifier)
+        for axis, value in edits.items():
+            finite(value, f"{identifier} {axis}")
+            if axis not in ("x", "y", "z"):
+                raise ValueError("Position edits need an x, y or z axis")
+            obj["position_m"]["xyz".index(axis)] = value
     return dict(
         seed=seed,
         scene=effective["scene"],

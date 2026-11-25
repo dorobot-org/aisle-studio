@@ -16,6 +16,8 @@ use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
 mod experiment;
+mod trial_evidence;
+use trial_evidence::TrialEvidenceWidgetRefExt;
 use experiment::ExperimentPaneWidgetRefExt;
 mod survey;
 pub mod scene_editor;
@@ -58,6 +60,7 @@ impl StudioPlugin for AislePlugin {
         scene_editor::script_mod(vm);
         task_binding::script_mod(vm);
         experiment::script_mod(vm);
+        trial_evidence::script_mod(vm);
         script_mod(vm);
     }
     fn create(&self, panel: &str, vm: &mut ScriptVm) -> Result<Box<dyn PluginPanel>, String> {
@@ -83,6 +86,7 @@ impl StudioPlugin for AislePlugin {
             survey_open: false,
             composer_open: false,
             experiment_open:false,
+            trial_catalog_open:false,
         }))
     }
     fn can_disable(&self, b: &dyn Backend) -> Result<(), String> {
@@ -222,7 +226,10 @@ script_mod! {
     }
     }
     mod.widgets.AisleEvidence=Page{
-        Title{text:"Run evidence"} context_label := Section{}
+        Bar{ev_heading := Title{width:Fill text:"Run evidence"} ev_mode := mod.widgets.ux.ToolButton{text:"Experiment trials"}}
+        ev_catalog := TrialEvidence{visible:false}
+        standard_evidence := View{width:Fill height:Fill flow:Down spacing:6
+        context_label := Section{}
         Bar{trial_mode := mod.widgets.ux.ToolButton{text:"Trial"} evaluation_mode := mod.widgets.ux.ToolButton{text:"Batch evaluation"} device_mode := mod.widgets.ux.ToolButton{text:"Device preflight"} room_baseline := mod.widgets.ux.ToolButton{text:"Use as room baseline"} room_details := mod.widgets.ux.ToolButton{text:"Trial details"}}
         device := Card{width:Fill height:Fill
             device_title := Title{}
@@ -257,6 +264,7 @@ script_mod! {
             folder := mod.widgets.ux.ToolButton{text:"Open run folder"}
             export := mod.widgets.ux.PrimaryButton{text:"Export episode"} replay := mod.widgets.ux.PrimaryButton{text:"Open in Replay"} train_reach := mod.widgets.ux.ToolButton{text:"Train shoulder correction"} train_grasp := mod.widgets.ux.ToolButton{text:"Train grasp detector"}}
         status := Body{}
+        }
     }
 }
 struct Panel {
@@ -274,6 +282,7 @@ struct Panel {
     survey_open: bool,
     composer_open: bool,
     experiment_open:bool,
+    trial_catalog_open:bool,
 }
 impl Panel {
     fn label(&self, cx: &mut Cx, id: &[LiveId], s: &str) {
@@ -602,6 +611,13 @@ impl PluginPanel for Panel {
             );
             return;
         };
+        if self.page=="aisle_evidence" {
+            self.root.widget(cx,ids!(standard_evidence)).set_visible(cx,!self.trial_catalog_open);
+            self.root.widget(cx,ids!(ev_catalog)).set_visible(cx,self.trial_catalog_open);
+            self.root.button(cx,ids!(ev_mode)).set_text(cx,if self.trial_catalog_open {"Run evidence"}else{"Experiment trials"});
+            self.label(cx,ids!(ev_heading),if self.trial_catalog_open {"Experiment trials"}else{"Run evidence"});
+            if self.trial_catalog_open {self.root.trial_evidence(cx,ids!(ev_catalog)).update(cx,w);return;}
+        }
         let light = frame::light_mode();
         if self.light != Some(light) {
             frame::apply_light(
@@ -1880,6 +1896,7 @@ impl PluginPanel for Panel {
         }
     }
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
+        if self.page=="aisle_evidence" && self.root.button(cx,ids!(ev_mode)).clicked(actions){self.trial_catalog_open=!self.trial_catalog_open;return true;}
         if self.page=="aisle_run" && self.root.button(cx,ids!(experiment_mode)).clicked(actions){self.experiment_open=!self.experiment_open;return true;}
         if self.page == "aisle_scene" {
             if self.root.button(cx, ids!(composer_mode)).clicked(actions) {

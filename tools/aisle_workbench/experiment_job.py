@@ -48,8 +48,30 @@ def trial_path(folder, row):
     return folder / "trials" / uid(row["run_id"])
 
 
-def create(root, config, source, expected=None):
+def freeze_controller(source, target, plan, checksum, task_digest):
     from fleet_worker import companion_names
+
+    keep = companion_names(plan) | {"controller.json"}
+    keep.update(
+        name
+        for name in [
+            "controller-request.json",
+            "provider-response.json",
+            "reply.json",
+            "provider-metrics.json",
+        ]
+        if source.with_name(name).is_file()
+    )
+    for name in keep:
+        shutil.copy2(source.with_name(name), target / name)
+    if (
+        digest(target / "controller.json") != checksum
+        or digest(target / "bound-task.json") != task_digest
+    ):
+        raise ValueError("Inputs changed while freezing the experiment")
+
+
+def create(root, config, source, expected=None, *, parent=None):
 
     plan = read(source)
     checksum = digest(source)
@@ -70,25 +92,16 @@ def create(root, config, source, expected=None):
         stage.mkdir()
         for name in ["controller", "requests", "trials"]:
             (stage / name).mkdir()
-        keep = companion_names(plan) | {"controller.json"}
-        keep.update(
-            name
-            for name in [
-                "controller-request.json",
-                "provider-response.json",
-                "reply.json",
-                "provider-metrics.json",
-            ]
-            if source.with_name(name).is_file()
-        )
-        for name in keep:
-            shutil.copy2(source.with_name(name), stage / "controller" / name)
-        if (
-            digest(stage / "controller/controller.json") != checksum
-            or digest(stage / "controller/bound-task.json") != bound.sha256
-        ):
-            raise ValueError("Inputs changed while freezing the experiment")
+        freeze_controller(source, stage / "controller", plan, checksum, bound.sha256)
+        if parent:
+            job["parent"] = parent
         for row in job["repetitions"]:
+            if parent:
+                row.update(
+                    parent_run_id=parent["run_id"],
+                    parent_batch_id=parent["batch_id"],
+                    variant_id=parent["variant_id"],
+                )
             row.update(
                 created=now(),
                 started=None,

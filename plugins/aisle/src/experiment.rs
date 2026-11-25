@@ -22,6 +22,7 @@ script_mod! {
         Line{exp_configs := DropDown{width:Fill} exp_load := Tool{text:"Open configuration"} exp_save := Tool{text:"Save configuration"} exp_start := mod.widgets.ux.PrimaryButton{text:"Start batch"}}
         View{width:Fill height:Fill flow:Right spacing:12
             View{width:Fill height:Fill flow:Down spacing:6
+                Label{text:"Batch history"}
                 Line{exp_batches := DropDown{width:Fill} exp_refresh := Tool{text:"Refresh batches"}}
                 exp_summary := Text{text:"No batch selected"}
                 exp_rows_scroll := ScrollYView{width:Fill height:Fill flow:Down
@@ -30,6 +31,7 @@ script_mod! {
                 exp_detail := Text{}
             }
             exp_form := ScrollYView{width:354 height:Fill flow:Down spacing:7
+                Label{text:"Run configuration"}
                 Line{Label{text:"Name"} exp_name := Field{empty_text:"Experiment name"}}
                 Line{Label{text:"Repeats"} exp_count := Field{text:"4"} exp_seed_mode := DropDown{width:175}}
                 Line{Label{text:"Seeds"} exp_seed := Field{text:"42" empty_text:"Base seed or comma-separated seeds"}}
@@ -178,6 +180,7 @@ impl ExperimentPane {
         Ok(())
     }
     fn context(&mut self, cx: &mut Cx, w: &Workbench) {
+        let opening = !self.loaded;
         self.initialize(cx);
         if self.controller != w.prepared {
             self.controller = w.prepared.clone();
@@ -200,6 +203,24 @@ impl ExperimentPane {
                 .unwrap_or_default();
             for id in [ids!(exp_a) as &[LiveId], ids!(exp_b)] {
                 self.view.drop_down(cx, id).set_labels(cx, rows.clone());
+            }
+        }
+        if opening && !self.controller_sha.is_empty() {
+            if let Some((i, cfg)) = self
+                .configs
+                .iter()
+                .enumerate()
+                .rev()
+                .filter_map(|(i, p)| json_file(p).ok().map(|v| (i, v)))
+                .find(|(_, v)| {
+                    v["controller_sha256"].as_str() == Some(self.controller_sha.as_str())
+                })
+            {
+                self.config = cfg;
+                self.form(cx);
+                self.view
+                    .drop_down(cx, ids!(exp_configs))
+                    .set_selected_item(cx, i);
             }
         }
         let text = self
@@ -470,7 +491,13 @@ impl ExperimentPane {
             .as_object()
             .into_iter()
             .flatten()
-            .map(|(k, v)| format!("{k} {} {}", v["value"], v["unit"].as_str().unwrap_or("")))
+            .map(|(k, v)| {
+                let value = v["value"]
+                    .as_f64()
+                    .map(|n| format!("{n:.4}"))
+                    .unwrap_or_else(|| v["value"].to_string());
+                format!("{k} {value} {}", v["unit"].as_str().unwrap_or(""))
+            })
             .collect::<Vec<_>>()
             .join(" · ");
         self.view.label(cx, ids!(exp_detail)).set_text(
