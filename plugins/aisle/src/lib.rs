@@ -15,6 +15,7 @@ use dorobot_ux::kit::SparkWidgetRefExt;
 use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
+mod skills;
 mod experiment;
 mod trial_evidence;
 use trial_evidence::TrialEvidenceWidgetRefExt;
@@ -87,6 +88,7 @@ impl StudioPlugin for AislePlugin {
             composer_open: false,
             experiment_open:false,
             trial_catalog_open:false,
+            skills:Default::default(),
         }))
     }
     fn can_disable(&self, b: &dyn Backend) -> Result<(), String> {
@@ -107,9 +109,13 @@ script_mod! {
     let Bar=View{width:Fill height:Fit flow:Right spacing:8.0 align:Align{y:0.5}}
     let Page=View{width:Fill height:Fill flow:Down padding:16.0 spacing:12.0}
     mod.widgets.AisleTask=Page{
-        Bar{task_heading := Title{width:Fill text:"Robot task"} select_scene := mod.widgets.ux.ToolButton{text:"Select scene"}}
+        Bar{task_heading := Title{width:Fill text:"Robot task"} select_scene := mod.widgets.ux.ToolButton{text:"Select scene"} skill_mode := mod.widgets.ux.ToolButton{text:"Skill library"}}
         context_label := Section{}
         binding_status := Body{visible:false max_lines:2}
+        skill_panel := View{visible:false width:Fill height:Fit flow:Down spacing:4
+            Bar{skill_sources := DropDown{width:Fill} skill_use := mod.widgets.ux.ToolButton{text:"Use selected skill"} skill_clear := mod.widgets.ux.ToolButton{text:"Use direct AISLE"} skill_refresh := mod.widgets.ux.ToolButton{text:"Refresh"}}
+            skill_contract := Body{max_lines:2} skill_status := Body{max_lines:2}}
+        skill_applied := Body{visible:false max_lines:1}
         project_task := TaskBinding{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             editor := Card{width:Fill height:Fill
@@ -283,6 +289,7 @@ struct Panel {
     composer_open: bool,
     experiment_open:bool,
     trial_catalog_open:bool,
+    skills:skills::Skills,
 }
 impl Panel {
     fn label(&self, cx: &mut Cx, id: &[LiveId], s: &str) {
@@ -674,6 +681,7 @@ impl PluginPanel for Panel {
         self.label(cx, ids!(status), &w.status);
         match self.page.as_str() {
             "aisle_task" => {
+                self.skill_sync(cx,w);
                 let stance = self.root.button(cx, ids!(turned_stance));
                 stance.set_visible(cx, w.robot == Robot::G1);
                 stance.set_enabled(cx, !w.busy());
@@ -1325,6 +1333,9 @@ impl PluginPanel for Panel {
                         Some(state) => format!("{state}\n{}", v["reason"].as_str().unwrap_or("")),
                         None => String::new(),
                     };
+                    let summary = if let Some(pin)=v["spec_simulation"]["package"]["package_sha256"].as_str(){
+                        format!("{summary}\nSimulation skill verified · {} · {pin}",v["spec_simulation"]["package"]["source"].as_str().unwrap_or(""))
+                    } else {summary};
                     self.label(cx, ids!(device_result), &summary);
                     self.root
                         .button(cx, ids!(device_folder))
@@ -1795,6 +1806,10 @@ impl PluginPanel for Panel {
                     format!(
                         "Compared with previous matching trial: {diff:+.6} rad. Open the run folder for controller.json, trajectory.json and frame.png."
                     )
+                } else if let Some(request)=w.evidence["spec_request_id"].as_str() {
+                    format!("SPEC request {request} · {} · package {}. Open the run folder for the bridge receipt.",
+                        w.evidence["spec_skill"]["package"]["source"].as_str().unwrap_or(""),
+                        w.evidence["spec_skill"]["package"]["package_sha256"].as_str().unwrap_or(""))
                 } else if w.evidence["task_success"].is_boolean() {
                     "Open the run folder for controller.json, trajectory.json and frame.png."
                         .to_owned()
@@ -1904,6 +1919,7 @@ impl PluginPanel for Panel {
         }
     }
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
+        if self.page=="aisle_task" && b.aisle().is_some_and(|w|self.skill_actions(cx,actions,w)){return true;}
         if self.page=="aisle_evidence" && self.root.button(cx,ids!(ev_mode)).clicked(actions){self.trial_catalog_open=!self.trial_catalog_open;return true;}
         if self.page=="aisle_run" && self.root.button(cx,ids!(experiment_mode)).clicked(actions){self.experiment_open=!self.experiment_open;return true;}
         if self.page == "aisle_scene" {

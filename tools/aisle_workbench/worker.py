@@ -1587,9 +1587,21 @@ def main():
         meta = describe(args.robot)
         save(args.out / "scene.json", meta)
         if args.operation == "prepare":
-            save(args.out / "controller.json", prepare(args, meta))
+            plan = prepare(args, meta)
+            from spec_catalog import selected
+            pin = selected(args.out.parent / "spec-skills", args.robot)
+            if pin:
+                from spec_runtime import lock_selection
+                plan["spec_skill"] = lock_selection(pin, args.robot)
+            save(args.out / "controller.json", plan)
         elif args.operation == "run":
-            save(args.out / "result.json", simulate(args, meta))
+            plan = json.loads(args.controller.read_bytes())
+            if "spec_skill" in plan:
+                from spec_runtime import run_skill
+                result = run_skill(args, plan)
+            else:
+                result = simulate(args, meta)
+            save(args.out / "result.json", result)
     except Exception as error:
         save(args.out / "error.json", {"message": str(error)})
         raise

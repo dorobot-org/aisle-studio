@@ -60,6 +60,7 @@ def main():
             "g1-revision",
             "scene-ranges",
             "scene-agents",
+            "spec-skills",
             "experiment-worker",
         ],
         default="pages",
@@ -150,6 +151,9 @@ def main():
                 out / "survey/state/aisle/survey",
                 python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable),
             )
+    elif args.suite == "spec-skills":
+        for robot in ("G1", "Nano"):
+            run(robot.lower(), "check_spec_skills.py", "--robot", robot)
     elif args.suite == "scene-agents":
         for provider in ("codex", "octos-deepseek"):
             run(provider, "check_scene_proposals.py", "--provider", provider)

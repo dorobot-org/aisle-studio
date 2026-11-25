@@ -1,0 +1,65 @@
+{
+  "name": "aisle-nexus-task",
+  "version": "1.0.0",
+  "description": "Execute a prepared AISLE controller on its pinned Nexus robot.",
+  "timeout_secs": 600,
+  "requires_network": true,
+  "tools": [
+    {
+      "name": "run_task",
+      "description": "Run the controller selected in Studio and return the measured simulation verdict.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "controller_sha256": {
+            "type": "string"
+          },
+          "package_sha256": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "observation_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "controller_sha256",
+          "package_sha256",
+          "run_id",
+          "observation_inputs"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "aisle": {
+    "verb": "vendor.dorobot.aisle.task.run",
+    "profiles": {
+      "Nano": {
+        "sensors": [
+          "joint_encoders",
+          "onboard_rgb"
+        ],
+        "action_units": [
+          "rad",
+          "m/s",
+          "rad/s"
+        ]
+      },
+      "G1": {
+        "sensors": [
+          "joint_encoders",
+          "imu"
+        ],
+        "action_units": [
+          "rad"
+        ]
+      }
+    }
+  }
+}

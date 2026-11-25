@@ -165,6 +165,9 @@ def run(args):
         motor_commands_sent=0,
         physical_qualification=False,
     )
+    if "spec_skill" in plan:
+        from spec_runtime import verify_trial
+        receipt["spec_simulation"] = verify_trial(trial, result, plan)
     (out / "controller.json").write_bytes((trial / "controller.json").read_bytes())
     if args.robot == "Nano":
         profile_path = ROOT / "robots/adora_nano_feetech/profile.json"
