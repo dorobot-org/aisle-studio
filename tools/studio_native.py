@@ -19,6 +19,10 @@ class NativeStudio:
 
     @contextmanager
     def launch(self):
+        if self.proc is not None and self.proc.poll() is None:
+            raise RuntimeError(
+                "The prior Studio instance is still running in this test session"
+            )
         self.report.unlink(missing_ok=True)
         env = os.environ | dict(
             MAKEPAD_HAL_BACKEND=self.args.backend,
@@ -86,8 +90,8 @@ class NativeStudio:
                 "mouse",
                 "k=scroll",
                 "w=0",
-                f"x={fx+fw*.7}",
-                f"y={fy+fh*.65}",
+                f"x={fx + fw * 0.7}",
+                f"y={fy + fh * 0.65}",
                 "dx=0",
                 f"dy={delta}",
                 "wait=1",
@@ -99,4 +103,6 @@ class NativeStudio:
         self.control(key)
         time.sleep(0.15)
         x, y, w, h = self.control(key)["rect"]
-        return self.act(command, "w=0", f"x={x+w/2}", f"y={y+h/2}", *fields, "wait=1")
+        return self.act(
+            command, "w=0", f"x={x + w / 2}", f"y={y + h / 2}", *fields, "wait=1"
+        )

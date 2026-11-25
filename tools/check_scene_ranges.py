@@ -74,8 +74,7 @@ def main():
     ]
     active_lease = None
     incompatible_rejected = False
-    with ExitStack() as application:
-        application.enter_context(app.launch())
+    with app.launch():
         click("tabs.plugin_tab_aisle_scene")
         click("aisle_scene.composer_mode")
         click(editor + "open_scene")
@@ -108,7 +107,8 @@ def main():
         "chair-left",
         "chair-left",
     ]
-    with app.launch():
+    with ExitStack() as application:
+        application.enter_context(app.launch())
         click("aisle_task." + args.robot.lower())
         click("aisle_task.select_scene")
         if args.robot == "Nano":
@@ -209,8 +209,13 @@ def main():
                     owned.append(int(pid))
             assert len(owned) == 1, "Expected the test Studio's own batch supervisor"
             os.kill(owned[0], signal.SIGTERM)
+            initial_app = app.proc
             application.close()
+            assert initial_app.poll() is not None, (
+                "The original Studio process must exit before reconnect"
+            )
             application.enter_context(app.launch())
+            assert app.proc.pid != initial_app.pid
             click("aisle_task." + args.robot.lower())
             click("tabs.plugin_tab_aisle_run")
             click("aisle_run.experiment_mode")
