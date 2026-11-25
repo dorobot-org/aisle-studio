@@ -236,14 +236,14 @@ script_mod! {
     mod.widgets.AisleEvidence=Page{
         Bar{ev_heading := Title{width:Fill text:"Run evidence"} ev_mode := mod.widgets.ux.ToolButton{text:"Experiment trials"} qa_mode := mod.widgets.ux.ToolButton{text:"Skill qualification"}}
         qa_panel := ScrollYView{width:Fill height:Fill flow:Down spacing:10 visible:false
-            qa_cohort_card := Card{width:Fill height:Fit
+            qa_cohort_card := Card{width:Fill height:Fit spacing:7
                 Bar{Title{width:Fill text:"Registered simulation cohort"} qa_refresh := mod.widgets.ux.ToolButton{text:"Refresh"}}
                 qa_scope := Body{}
                 Bar{Section{width:100 text:"Registration"} qa_selector := DropDown{width:Fill labels:["No registrations"]}}
                 qa_identity := Body{}
                 Bar{qa_register := mod.widgets.ux.ToolButton{text:"Register current controller"} qa_run := mod.widgets.ux.PrimaryButton{text:"Run remaining cases"} qa_verify := mod.widgets.ux.ToolButton{text:"Verify measurements"}}
             }
-            qa_review_card := Card{width:Fill height:Fit
+            qa_review_card := Card{width:Fill height:Fit spacing:7
                 qa_result := Title{}
                 qa_failure_scroll := ScrollYView{width:Fill height:72 flow:Down qa_failures := Body{max_lines:180}}
                 Section{text:"Reviewer decision"} qa_decision := Body{}

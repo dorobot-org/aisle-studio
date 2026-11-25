@@ -5,7 +5,9 @@ import json
 import os
 from pathlib import Path
 import shutil
+import struct
 import subprocess
+from tempfile import TemporaryDirectory
 
 from studio_native import NativeStudio, ROOT
 
@@ -57,7 +59,8 @@ def main():
             ),
         )
     # Independent ephemeral acceptance identity. This has no trust on an operator's installation.
-    key = folder / "acceptance-key"
+    signing_dir = TemporaryDirectory(prefix="aisle-review-test-key-")
+    key = Path(signing_dir.name) / "acceptance-key"
     subprocess.run(
         ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)], check=True
     )
@@ -119,7 +122,32 @@ def main():
         assert len(rows) == report["cases"] and all(r["verified"] for r in rows), report
         assert len({r["spec"]["request_id"] for r in rows}) == len(rows)
         if args.backend == "offscreen":
-            app.act("grab", "w=0", "out=" + str(folder / "skill-review.png"))
+            sizes = []
+            for width, height in [(1024, 768), (1440, 900)]:
+                app.act("resize", "window=0", f"w={width}", f"h={height}")
+                image = folder / f"skill-review-{width}.png"
+                app.act("grab", "w=0", "out=" + str(image))
+                assert struct.unpack(">II", image.read_bytes()[16:24]) == (
+                    width,
+                    height,
+                )
+                rects = {}
+                for name in ["selector", "result", "reviewer", "reason", "reject"]:
+                    rect = app.control(prefix + name)["rect"]
+                    x, y, w, h = rect
+                    assert (
+                        -1 <= x
+                        and -1 <= y
+                        and x + w <= width + 1
+                        and y + h <= height + 1
+                    ), (name, rect)
+                    rects[name] = rect
+                sizes.append(
+                    {"size": [width, height], "image": image.name, "controls": rects}
+                )
+            (folder / "window-sizes.json").write_text(
+                json.dumps(sizes, indent=2) + "\n"
+            )
         if not report["qualified"]:
             assert not read(app.report)["controls"][prefix + "approve"]["enabled"]
         action = "approve" if report["qualified"] else "reject"
@@ -165,6 +193,7 @@ def main():
         assert not read(app.report)["controls"][prefix + "export"]["enabled"]
         decisions = read(directory / "reviews.json")
         assert len(decisions) == 2 and decisions[1]["decision"]["previous"]
+    signing_dir.cleanup()
     artifact = dict(
         robot=args.robot,
         backend=args.backend,

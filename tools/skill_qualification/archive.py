@@ -1,6 +1,8 @@
 """Export or reopen the evidence needed to replay a complete skill qualification."""
 
 import argparse
+import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -58,6 +60,14 @@ def allowed(path, robot, count):
     )
 
 
+def archive_sha256(path):
+    with path.open("rb") as stream:
+        checksum = hashlib.sha256()
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            checksum.update(block)
+    return checksum.hexdigest()
+
+
 def export(directory, target):
     with cohort.exclusive(directory / "operation.lock"):
         report = review.verify(directory)
@@ -69,7 +79,7 @@ def export(directory, target):
                         z.write(p, rel)
             # Do not replace a previously published archive.
             os.link(temp.name, target)
-    return cohort.sha(target)
+    return archive_sha256(target)
 
 
 def restore(archive, state, identity, archive_digest):
@@ -78,7 +88,7 @@ def restore(archive, state, identity, archive_digest):
         raise ValueError(
             "This registration already exists in the selected Studio project"
         )
-    if cohort.sha(archive) != archive_digest:
+    if archive_sha256(archive) != archive_digest:
         raise ValueError("The archive differs from the published evidence digest")
     state.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=state) as temp:
@@ -96,7 +106,6 @@ def restore(archive, state, identity, archive_digest):
                 )
             ):
                 raise ValueError("Unexpected archive size or entries")
-            import json
 
             reg = json.loads(z.read("registration.json"))
             if cohort.digest(cohort.encode(reg)) != identity:
@@ -124,8 +133,6 @@ def restore(archive, state, identity, archive_digest):
 
 
 if __name__ == "__main__":
-    import json
-
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["export", "restore"])
     parser.add_argument("--state", required=True, type=Path)

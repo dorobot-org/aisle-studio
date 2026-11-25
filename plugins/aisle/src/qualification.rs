@@ -154,11 +154,26 @@ impl Panel {
         self.label(cx, ids!(qa_scope), scope);
         let pin = &v["package"];
         let ident = if reg {
+            let inputs = v["sensors"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(|value| match value {
+                    "onboard_rgb" => "onboard RGB",
+                    "imu" => "IMU",
+                    "joint_encoders" => "joint encoders",
+                    v => v,
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
             format!(
-                "{} {} · {}\nController {}\nRegistration {}",
+                "{} {} · {} · Nexus · {}\nPackage {}\nController {}\nRegistration {}",
                 s(pin, "name"),
                 s(pin, "version"),
                 s(pin, "source"),
+                inputs,
+                s(pin, "package_sha256"),
                 s(v, "controller_sha256"),
                 selected
             )
