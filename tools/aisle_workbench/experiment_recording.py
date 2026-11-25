@@ -114,6 +114,10 @@ def history(source, target, manifest, plan):
             {
                 "new_model_calls": 0,
                 "source": "prepared controller",
-                "runtime": "onboard visual policy",
+                "runtime": (
+                    "standing controller with joint encoders and IMU"
+                    if plan.get("kind") == "standing-inspection"
+                    else "onboard visual policy"
+                ),
             },
         )

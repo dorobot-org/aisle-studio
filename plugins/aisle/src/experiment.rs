@@ -205,6 +205,10 @@ impl ExperimentPane {
                 self.view.drop_down(cx, id).set_labels(cx, rows.clone());
             }
         }
+        if opening && self.task.as_ref().is_some_and(|t| t.robot == "G1") {
+            self.config["name"] = json!("G1 standing experiment");
+            self.form(cx);
+        }
         if opening && !self.controller_sha.is_empty() {
             if let Some((i, cfg)) = self
                 .configs

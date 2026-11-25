@@ -22,6 +22,7 @@ from worker import MODELS, ROOT, describe, digest, save, validate
 HERE = Path(__file__).resolve().parent
 FILES = (
     "impact.json",
+    "bound-task.json",
     "source.json",
     "result.json",
     "controller.json",
@@ -105,6 +106,14 @@ def prepare(directory, controller, match=None):
         from g1_reach_checkpoint import load
 
         load(controller.parent, plan)
+    bound = None
+    if "bound_task_sha256" in plan:
+        from authored_scene import load
+        from worker import matches_bound
+
+        bound = load(controller.with_name("bound-task.json"), plan["bound_task_sha256"])
+        if not matches_bound(bound, plan):
+            raise ValueError("Controller and authored G1 reach differ")
     if match:
         old = read(match / "suite.json")
         referenced = digest(match / "suite.json")
@@ -125,6 +134,10 @@ def prepare(directory, controller, match=None):
     save(private, openings)
     private.chmod(0o600)
     (directory / "controller.json").write_bytes(controller.read_bytes())
+    if bound:
+        (directory / "bound-task.json").write_bytes(
+            controller.with_name("bound-task.json").read_bytes()
+        )
     if "reach_checkpoint" in plan:
         for name in ("reach-checkpoint.json", "training.json"):
             (directory / name).write_bytes((controller.parent / name).read_bytes())
@@ -138,6 +151,21 @@ def prepare(directory, controller, match=None):
             **({"matched_manifest_sha256": referenced} if match else {}),
             cases=20,
             required=20,
+            **(
+                dict(
+                    authored_scene=dict(
+                        task_sha256=bound.sha256,
+                        scene=bound.document["scene"]["id"],
+                        revision=bound.document["scene"]["revision"],
+                        compiler_sha256=digest(HERE / "authored_scene.py"),
+                        physics_materials_sha256=digest(
+                            ROOT / "tools/aisle-validation/nexus_box.py"
+                        ),
+                    )
+                )
+                if bound
+                else {}
+            ),
             boundary_cases=8,
             interior_cases=12,
             inputs=inputs(),
@@ -171,6 +199,11 @@ def manifest(directory, expected):
         or digest(directory / "controller.json") != m["controller_sha256"]
     ):
         raise ValueError("G1 manifest or controller differs from the preregistration")
+    if (
+        "authored_scene" in m
+        and digest(directory / "bound-task.json") != m["authored_scene"]["task_sha256"]
+    ):
+        raise ValueError("Authored scene changed after registration")
     return m
 
 
@@ -390,6 +423,43 @@ def score(case, m, opening):
         <= 0.005,
         "Actuator target exceeded position or rate limit": bypasses == 0,
     }
+    if "authored_scene" in m:
+        from authored_scene import load, FLOOR_Z
+
+        bound = load(case / "bound-task.json", m["authored_scene"]["task_sha256"])
+        seen = result["scene_execution"]
+        if (
+            seen["task_sha256"] != bound.sha256
+            or plan["bound_task_sha256"] != bound.sha256
+            or seen["scene"]["id"] != m["authored_scene"]["scene"]
+            or seen["scene"]["revision"] != m["authored_scene"]["revision"]
+            or len(seen["bodies"]) != len(bound.specs)
+        ):
+            raise ValueError(
+                "G1 measured scene or frozen task differs from preregistration"
+            )
+        for measured, spec in zip(seen["bodies"], bound.specs, strict=True):
+            if (
+                measured["name"] != spec["name"]
+                or measured["instance"] != spec.get("instance")
+                or measured["asset"] != spec.get("asset")
+            ):
+                raise ValueError("G1 scene body or asset differs from preregistration")
+            if spec["fixed"]:
+                position = np.array(spec["position"]) + [
+                    0,
+                    0,
+                    src["floor_z_m"] - FLOOR_Z,
+                ]
+                if not np.allclose(
+                    measured["measured_center_m"], position, rtol=0, atol=1e-5
+                ):
+                    raise ValueError(
+                        "G1 fixed room geometry differs from preregistration"
+                    )
+        conditions["Robot contacted authored room bodies"] = not result[
+            "scene_contacts"
+        ]
     if m.get("impact_aim", "pelvis-v1") != "pelvis-v1":
         conditions["Calibrated impact missed the torso link"] = any(
             c["link"] == "torso_link" for c in contacts
@@ -446,6 +516,12 @@ def summarize(directory, expected, openings):
 def run(directory, expected, jobs):
     m = manifest(directory, expected)
     openings = read(directory / "openings.json")
+    if "authored_scene" in m and (
+        m["authored_scene"]["compiler_sha256"] != digest(HERE / "authored_scene.py")
+        or m["authored_scene"]["physics_materials_sha256"]
+        != digest(ROOT / "tools/aisle-validation/nexus_box.py")
+    ):
+        raise ValueError("Authored scene compiler changed after preregistration")
     if m["inputs"] != inputs() or [commitment(x) for x in openings] != m["commitments"]:
         raise ValueError("G1 environment or sealed cases differ")
     with (directory / "run.lock").open("x"):
@@ -492,6 +568,8 @@ def pack(directory, archive):
     with ZipFile(archive, "x", ZIP_DEFLATED) as z:
         for n in ("suite.json", "controller.json", "report.json"):
             z.write(directory / n, n)
+        if (directory / "bound-task.json").is_file():
+            z.write(directory / "bound-task.json", "bound-task.json")
         for i in range(report["cases"]):
             for n in FILES:
                 p = directory / f"case-{i:03}" / n
@@ -503,9 +581,12 @@ def verify(archive, expected, *, include_rows=False):
     with TemporaryDirectory() as scratch, ZipFile(archive) as z:
         directory = Path(scratch)
         names = z.namelist()
-        allowed = {"suite.json", "controller.json", "report.json"} | {
-            f"case-{i:03}/{n}" for i in range(20) for n in FILES
-        }
+        allowed = {
+            "suite.json",
+            "controller.json",
+            "report.json",
+            "bound-task.json",
+        } | {f"case-{i:03}/{n}" for i in range(20) for n in FILES}
         if (
             len(set(names)) != len(names)
             or not set(names) <= allowed
@@ -535,7 +616,11 @@ def verify(archive, expected, *, include_rows=False):
                     stored[field] = value
             if stored != computed:
                 field = next(
-                    (k for k in computed if k not in stored or stored[k] != computed[k]),
+                    (
+                        k
+                        for k in computed
+                        if k not in stored or stored[k] != computed[k]
+                    ),
                     "unexpected report field",
                 )
                 raise ValueError(

@@ -19,6 +19,7 @@ class TrialRevisionTests(unittest.TestCase):
         self.root = Path(temp.name)
         self.task, cfg = experiment_fixture(self.root / "survey")
         self.plan = dict(
+            kind="table-transfer",
             robot="Nano",
             model_hash=describe("Nano")["model_hash"],
             color_order="red",

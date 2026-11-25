@@ -122,6 +122,8 @@ pub struct Replay {
     dir: PathBuf,
     pub steps: Vec<u64>,
     pub camera_frames: usize,
+    pub tick_ns: u64,
+    pub interval_ms: u64,
     pub phases: Vec<Value>,
     pub events: Vec<Value>,
     pub cameras: Vec<String>,
@@ -131,6 +133,8 @@ pub struct Replay {
 impl Replay {
     pub fn open(entry: &Entry) -> Result<Self> {
         let dir = entry.trial();
+        let g1 = entry.row["robot"] == "G1";
+        let tick_ns = if g1 { 5_000_000 } else { 10_000_000 };
         let record = dir.join("recording.json");
         let rec = if record.is_file() {
             read(&record)?
@@ -148,7 +152,13 @@ impl Replay {
             .into_iter()
             .flatten()
             .filter_map(Value::as_str)
-            .filter(|s| ["head", "left_wrist", "right_wrist"].contains(s))
+            .filter(|s| {
+                if g1 {
+                    *s == "operator"
+                } else {
+                    ["head", "left_wrist", "right_wrist"].contains(s)
+                }
+            })
             .map(String::from)
             .collect();
         let phases = if dir.join("phases.json").is_file() {
@@ -156,6 +166,20 @@ impl Replay {
                 .as_array()
                 .cloned()
                 .unwrap_or_default()
+        } else if g1 && dir.join("result.json").is_file() {
+            let mut marks = vec![json!({"name":"standing reach","tick":1})];
+            let contacts = dir.join("impact-contacts.json");
+            if contacts.is_file() {
+                if let Some(t) = read(&contacts)?.get(0).and_then(|r| r["step"].as_u64()) {
+                    marks.push(json!({"name":"block contact","tick":t}));
+                }
+            }
+            if let Some(t) =
+                read(&dir.join("result.json"))?["disturbance"]["recovered_step"].as_u64()
+            {
+                marks.push(json!({"name":"stable recovery","tick":t}));
+            }
+            marks
         } else {
             vec![]
         };
@@ -188,7 +212,9 @@ impl Replay {
         let camera_frames = steps.len();
         if steps.is_empty() && !offsets.is_empty() {
             // Recorded traces use a 100 Hz clock. Show five points per second in the player.
-            steps = (1..=offsets.len() as u64).step_by(20).collect();
+            steps = (1..=offsets.len() as u64)
+                .step_by(if g1 { 40 } else { 20 })
+                .collect();
             if steps.last() != Some(&(offsets.len() as u64)) {
                 steps.push(offsets.len() as u64);
             }
@@ -196,6 +222,11 @@ impl Replay {
         Ok(Self {
             dir,
             camera_frames,
+            tick_ns,
+            interval_ms: rec["fps"]
+                .as_u64()
+                .filter(|n| *n > 0)
+                .map_or(200, |fps| (1000 / fps).max(1)),
             steps,
             cameras,
             phases,
@@ -214,13 +245,13 @@ impl Replay {
             self.cameras.iter().any(|s| s == camera) && index < self.steps.len(),
             "No recorded RGB at this position"
         );
-        Ok(image::open(
-            self.dir
-                .join("camera")
-                .join(camera)
-                .join(format!("{index:04}.png")),
-        )?
-        .into_rgb8())
+        let root = self.dir.join("camera");
+        let root = if camera == "operator" {
+            root
+        } else {
+            root.join(camera)
+        };
+        Ok(image::open(root.join(format!("{index:04}.png")))?.into_rgb8())
     }
     pub fn trace_at(&mut self, tick: u64) -> Result<Option<Value>> {
         let Some(file) = &mut self.trace else {

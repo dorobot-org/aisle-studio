@@ -56,7 +56,7 @@ The scene library supports **New**, **Open**, **Rename**, **Save** and **Save As
 
 From either **Scene → Create task** or **Task → Select scene**, choose a saved scene revision and robot profile. For “Pick up the cube and put it on the coffee table,” highlight the cube instance and the table’s placement surface in the viewport. Let the operator resolve “the cube” when several cubes exist. Store the task text, bindings, controller revision, required observations and measurable success criteria. Renaming a bound object preserves its identity. Deleting it or removing its placement surface identifies the broken reference when the operator chooses the revised scene.
 
-For the Nano reference task, the judge checks grasp, release and settled support on the selected tabletop, plus wheel support, joint limits and collision criteria. Authored geometry and exact object poses are available to the simulator and evaluator. The Nano controller locates objects using its allowed onboard observations. G1 tasks use the selected G1 profile and its standing-reach criteria.
+For the Nano reference task, the judge checks grasp, release and settled support on the selected tabletop, plus wheel support, joint limits and collision criteria. Authored geometry and exact object poses are available to the simulator and evaluator. The Nano controller locates objects using its allowed onboard observations. G1 can bind a signed shoulder target and a bounded impact to the selected room. The baseline on this authored room passed 17/20 preregistered cases. All three failures are retained. [Native G1 workflow, physics measurements and complete qualification archive](environment/g1-standing.md)
 
 ### Run configuration, randomization and recording
 

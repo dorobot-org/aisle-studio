@@ -22,27 +22,33 @@ PALETTE = {
 class Compiled:
     document: dict
     specs: list
-    color: str
-    cube: str
-    tabletop: str
-    surface: dict
+    color: str | None
+    cube: str | None
+    tabletop: str | None
+    surface: dict | None
     sha256: str
 
-    def readback(self, sim):
+    def readback(self, scene, specs, bodies):
         return {
             "task_sha256": self.sha256,
             "scene": {k: self.document["scene"][k] for k in ("id", "revision", "name")},
-            "pickup_instance": self.document["pickup"],
-            "placement": self.document["placement"],
-            "cube_body": self.cube,
-            "support_body": self.tabletop,
+            **(
+                dict(
+                    pickup_instance=self.document["pickup"],
+                    placement=self.document["placement"],
+                    cube_body=self.cube,
+                    support_body=self.tabletop,
+                )
+                if self.cube
+                else dict(standing=self.document["standing"])
+            ),
             "bodies": [
                 dict(
                     name=s["name"],
                     instance=s.get("instance"),
                     asset=s.get("asset"),
                     collider=s.get("collider"),
-                    physics_body=int(sim.scene.gpu_index(0, b.handles[0])),
+                    physics_body=int(scene.gpu_index(0, b.handles[0])),
                     measured_center_m=b.get_pos().tolist(),
                     measured_quat_wxyz=b.get_quat().tolist(),
                     size_m=s["size"],
@@ -51,7 +57,7 @@ class Compiled:
                     mass_kg=s.get("mass_kg"),
                     restitution=s["restitution"],
                 )
-                for s, b in zip(sim.specs, sim.bodies, strict=True)
+                for s, b in zip(specs, bodies, strict=True)
             ],
         }
 
@@ -98,8 +104,28 @@ def load(path, expected=None, sampled=None):
     if expected and digest != expected:
         raise ValueError("Saved task contents differ from the selected revision")
     doc = json.loads(raw)
-    if doc.get("schema") != "aisle-studio-nano-pickup-v1" or doc.get("robot") != "Nano":
-        raise ValueError("Select a saved Nano pickup task")
+    standing = (
+        doc.get("schema") == "aisle-studio-g1-standing-v1" and doc.get("robot") == "G1"
+    )
+    if standing:
+        from g1_stand import impact_parameters
+
+        if (sampled or {}).get("controller"):
+            raise ValueError("Choose a scene or material variation for G1 standing")
+        reach = doc["standing"]
+        impact_parameters(reach["impact"])
+        if (
+            reach["joint"]
+            not in ("left_shoulder_pitch_joint", "right_shoulder_pitch_joint")
+            or not 0.03 <= abs(reach["delta_rad"]) <= 0.15
+        ):
+            raise ValueError(
+                "Choose a bounded shoulder reach between 0.03 and 0.15 radians"
+            )
+    elif (
+        doc.get("schema") != "aisle-studio-nano-pickup-v1" or doc.get("robot") != "Nano"
+    ):
+        raise ValueError("Choose a saved Nano pickup or G1 standing-reach task")
     scene = sampled["scene"] if sampled else doc["scene"]
     room = vec(scene["room_m"], 2)
     if min(room) <= 0:
@@ -180,7 +206,7 @@ def load(path, expected=None, sampled=None):
             raise ValueError("Invalid contact material")
         if geom["surfaces"]:
             support_cues[color] = support_cues.get(color, 0) + 1
-        support = item["id"] == doc["placement"]["instance"]
+        support = not standing and item["id"] == doc["placement"]["instance"]
         surface = (
             next(
                 (
@@ -217,9 +243,11 @@ def load(path, expected=None, sampled=None):
             if (
                 abs(center[0]) < ext[0] / 2 + 0.29
                 and abs(center[1]) < ext[1] / 2 + 0.31
-                and center[2] - size[2] / 2 < FLOOR_Z + 0.40
+                and center[2] - size[2] / 2 < FLOOR_Z + (1.55 if standing else 0.40)
             ):
-                raise ValueError(f"{item['name']} obstructs the Nano start pose")
+                raise ValueError(
+                    f"{item['name']} obstructs the {doc['robot']} start pose"
+                )
             specs.append(
                 dict(
                     name=key,
@@ -236,7 +264,7 @@ def load(path, expected=None, sampled=None):
                     color=[*PALETTE[color], 1.0],
                 )
             )
-            if iid == doc["pickup"]:
+            if not standing and iid == doc["pickup"]:
                 if (
                     not movable
                     or not p["graspable"]["value"]
@@ -273,6 +301,8 @@ def load(path, expected=None, sampled=None):
                     raise ValueError(
                         f"Sampled colliders intersect: {body['instance']} and {other['instance']}"
                     )
+    if standing:
+        return Compiled(doc, specs, None, None, None, None, digest)
     if not cube or not tabletop:
         raise ValueError(
             "Bound pickup or placement surface is missing from this scene revision"

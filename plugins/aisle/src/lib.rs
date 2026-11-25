@@ -2104,7 +2104,7 @@ impl PluginPanel for Panel {
         if reference || revise || octos || self.root.button(cx, ids!(codex)).clicked(actions) {
             let input = self.root.text_input(cx, ids!(instruction));
             if reference {
-                let text=active_nano_instruction(b).unwrap_or_else(||REFERENCE.to_string());
+                let text=active_scene_instruction(b).unwrap_or_else(||REFERENCE.to_string());
                 input.set_text(cx, &text);
             }
             b.dispatch(Intent::Aisle(Action::Prepare {
@@ -2125,11 +2125,10 @@ impl PluginPanel for Panel {
 }
 
 
-fn active_nano_instruction(b:&dyn Backend)->Option<String> {
+fn active_scene_instruction(b:&dyn Backend)->Option<String> {
     let w=b.aisle()?;
-    if w.robot!=Robot::Nano{return None;}
     let store=dorobot_studio_core::survey::Survey::new(dorobot_studio_core::runtime::user_data().join("aisle/survey"));
-    let (_,path)=store.active_task().ok()??;
+    let (_,path)=store.active_task_for(w.robot.name()).ok()??;
     let t:dorobot_studio_core::survey::task::BoundTask=serde_json::from_slice(&std::fs::read(path).ok()?).ok()?;
     Some(t.instruction)
 }

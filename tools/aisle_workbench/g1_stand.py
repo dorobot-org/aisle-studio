@@ -109,6 +109,9 @@ def simulate(
     observations_only=False,
     observation_period_s=1,
     observation_clock="simulation",
+    authored=None,
+    trace_manifest=None,
+    sampled=None,
 ):
     from aisle.kinematics import load_urdf_chain
     from aisle.sim import nexus_backend as nx
@@ -128,11 +131,35 @@ def simulate(
     dt = 0.005
     engine = nx._ensure_nexus()
     scene = nx._new_scene(
-        engine, {"sim": {"dt": dt, "gravity": [0, 0, -9.81]}}, 1, [0.65] * 3
+        engine,
+        {"sim": {"dt": dt, "gravity": [0, 0, -9.81]}},
+        1,
+        (sampled or {}).get("environment", {}).get("ambient_rgb", [0.65] * 3),
     )
-    floor = scene.add_box(
-        "floor", [5, 5, 0.10], [0, 0, floor_z - 0.05], fixed=True, friction=0.8
-    )
+    specs, bodies = [], []
+    if authored:
+        from worker import ROOT
+        from authored_scene import FLOOR_Z
+        import sys
+
+        sys.path.insert(0, str(ROOT / "tools/aisle-validation"))
+        from nexus_box import add_scene_box
+
+        for spec in authored.specs:
+            position = list(spec["position"])
+            position[2] += float(floor_z) - FLOOR_Z
+            spec = spec | {"position": position}
+            if spec["name"] == "floor":
+                spec["friction"] = 0.8
+            specs.append(spec)
+            bodies.append(add_scene_box(scene, spec, {}))
+        floor = next(
+            b for b, spec in zip(bodies, specs, strict=True) if spec["name"] == "floor"
+        )
+    else:
+        floor = scene.add_box(
+            "floor", [5, 5, 0.10], [0, 0, floor_z - 0.05], fixed=True, friction=0.8
+        )
     # Batch archives retain the full-rate numerical traces, while operator trials
     # additionally save the camera and joint/action samples for native Replay.
     record_episode = parameters is None and not observations_only
@@ -140,6 +167,8 @@ def simulate(
     samples = []
     if record_episode:
         (out / "camera").mkdir()
+    if authored and parameters is None:
+        parameters = authored.document["standing"]["impact"]
     parameters = impact_parameters(
         parameters
         if parameters is not None
@@ -248,137 +277,175 @@ def simulate(
         plan, names, lo, hi, speed, dt, warmup, reach_weights
     )
     controller_inputs = []
-    for i in range(warmup + scored):
-        before = robot.get_qpos()[dofs].astype(float)
-        orientation = robot.get_quat().copy()
-        targets = controller.advance(before, orientation)
-        if i == warmup:
-            initial_angle = controller.initial_angle
-            # The evaluator freezes a world-frame goal against the warmed-up pose.
-            chain_q = robot.get_qpos()[chain_dofs].copy()
-            relative_start = chain.forward(chain_q)[0]
-            chain_q[chain.joint_names.index(plan["joint"])] += plan["delta_rad"]
-            relative_delta = chain.forward(chain_q)[0] - relative_start
-            wrist_start = wrist.get_pos().astype(float).copy()
-            initial_root_quat = robot.get_quat().copy()
-            wrist_goal = (
-                wrist_start + nx.quat_wxyz_to_matrix(initial_root_quat) @ relative_delta
-            )
-        if block is not None and i == warmup + launch_at:
-            # Only the independent fixture body receives an initial pose and velocity.
-            scene.set_body_pose(0, block.handles[0], launch_pos, [1, 0, 0, 0])
-            scene.set_body_velocity(0, block.handles[0], launch_velocity)
-        velocity = robot.get_dofs_velocity()[dofs].astype(float)
-        if record_episode:
-            controller_inputs.append((before, orientation, velocity, targets.copy()))
-        robot.control_dofs_position(targets.tolist(), dofs)
-        scene.step()
-        q = robot.get_qpos()[dofs]
-        pos = robot.get_pos()
-        rotation = nx.quat_wxyz_to_matrix(robot.get_quat())
-        if not all(np.isfinite(v).all() for v in (q, pos, rotation)):
-            raise ValueError("Nonfinite G1 sensor measurement")
-        excursion = max(excursion, float(np.maximum(lo - q, q - hi).max()))
-        if i < warmup:
-            continue
-        # Nexus exposes joint states and configured PD gains through this API.
-        # Estimate joint work from capped PD demand and measured travel per step.
-        torque = np.clip(kp * (targets - before) - kd * velocity, -effort, effort)
-        work = torque * (q - before)
-        if not np.isfinite(work).all():
-            raise ValueError("Nonfinite estimated G1 motor work")
-        positive_work += float(np.maximum(work, 0).sum())
-        negative_work += float(np.minimum(work, 0).sum())
-        energy_rows.append((before, velocity, targets.copy(), q.copy()))
-        tilt = float(np.arccos(np.clip(rotation[2, 2], -1, 1)))
-        peak_tilt = max(peak_tilt, tilt)
-        drift = max(drift, float(np.linalg.norm(pos[:2] - initial_xy)))
-        impulses = scene.state.debug_multibody_contact_impulses(engine.viewer)
-        loaded = {
-            robot.links[c["link"]].name
-            for c in impulses
-            if c["kind"] == "normal"
-            and c["impulse"] > 1e-6
-            and c["free_body"] == floor_id
-        }
-        both += int(feet.issubset(loaded))
-        other_links.update(loaded - feet)
-        step = i - warmup + 1
-        wrist_xyz = wrist.get_pos().astype(float)
-        wrist_error = float(np.linalg.norm(wrist_xyz - wrist_goal))
-        if not np.isfinite(wrist_error):
-            raise ValueError("Invalid G1 wrist position")
-        wrist_rows.append(wrist_xyz.copy())
-        balance_rows.append(
-            (
-                feet.issubset(loaded),
-                bool(loaded - feet),
-                tilt,
-                np.linalg.norm(pos[:2] - initial_xy),
-                q[shoulder] - initial_angle,
-            )
-        )
-        if block is not None and step > launch_at:
-            hits = [
-                c
+    room_ids = {
+        scene.gpu_index(0, b.handles[0]): spec["name"]
+        for b, spec in zip(bodies, specs, strict=True)
+        if spec["name"] != "floor"
+    }
+    room_contacts = {}
+    from contextlib import nullcontext
+    from experiment_recording import line
+
+    with (
+        (out / "robot-trace.jsonl").open("x") if trace_manifest else nullcontext()
+    ) as trace:
+        for i in range(warmup + scored):
+            before = robot.get_qpos()[dofs].astype(float)
+            orientation = robot.get_quat().copy()
+            targets = controller.advance(before, orientation)
+            if i == warmup:
+                initial_angle = controller.initial_angle
+                # The evaluator freezes a world-frame goal against the warmed-up pose.
+                chain_q = robot.get_qpos()[chain_dofs].copy()
+                relative_start = chain.forward(chain_q)[0]
+                chain_q[chain.joint_names.index(plan["joint"])] += plan["delta_rad"]
+                relative_delta = chain.forward(chain_q)[0] - relative_start
+                wrist_start = wrist.get_pos().astype(float).copy()
+                initial_root_quat = robot.get_quat().copy()
+                wrist_goal = (
+                    wrist_start
+                    + nx.quat_wxyz_to_matrix(initial_root_quat) @ relative_delta
+                )
+            if block is not None and i == warmup + launch_at:
+                # Only the independent fixture body receives an initial pose and velocity.
+                scene.set_body_pose(0, block.handles[0], launch_pos, [1, 0, 0, 0])
+                scene.set_body_velocity(0, block.handles[0], launch_velocity)
+            velocity = robot.get_dofs_velocity()[dofs].astype(float)
+            if record_episode:
+                controller_inputs.append(
+                    (before, orientation, velocity, targets.copy())
+                )
+            robot.control_dofs_position(targets.tolist(), dofs)
+            scene.step()
+            q = robot.get_qpos()[dofs]
+            pos = robot.get_pos()
+            rotation = nx.quat_wxyz_to_matrix(robot.get_quat())
+            if not all(np.isfinite(v).all() for v in (q, pos, rotation)):
+                raise ValueError("Nonfinite G1 sensor measurement")
+            excursion = max(excursion, float(np.maximum(lo - q, q - hi).max()))
+            if i < warmup:
+                continue
+            # Nexus exposes joint states and configured PD gains through this API.
+            # Estimate joint work from capped PD demand and measured travel per step.
+            torque = np.clip(kp * (targets - before) - kd * velocity, -effort, effort)
+            work = torque * (q - before)
+            if not np.isfinite(work).all():
+                raise ValueError("Nonfinite estimated G1 motor work")
+            positive_work += float(np.maximum(work, 0).sum())
+            negative_work += float(np.minimum(work, 0).sum())
+            energy_rows.append((before, velocity, targets.copy(), q.copy()))
+            tilt = float(np.arccos(np.clip(rotation[2, 2], -1, 1)))
+            peak_tilt = max(peak_tilt, tilt)
+            drift = max(drift, float(np.linalg.norm(pos[:2] - initial_xy)))
+            impulses = scene.state.debug_multibody_contact_impulses(engine.viewer)
+            loaded = {
+                robot.links[c["link"]].name
                 for c in impulses
                 if c["kind"] == "normal"
                 and c["impulse"] > 1e-6
-                and c["free_body"] == block_id
-            ]
-            if hits:
-                last_contact = step
-                recovery_start = recovery_step = None
-                impact_rows.extend(
+                and c["free_body"] == floor_id
+            }
+            for contact in impulses:
+                body = room_ids.get(contact.get("free_body"))
+                if body and contact["kind"] == "normal" and contact["impulse"] > 1e-6:
+                    room_contacts[body] = room_contacts.get(body, 0) + 1
+            both += int(feet.issubset(loaded))
+            other_links.update(loaded - feet)
+            step = i - warmup + 1
+            if trace is not None:
+                line(
+                    trace,
                     dict(
-                        step=step,
-                        link=robot.links[c["link"]].name,
-                        normal_impulse_ns=c["impulse"],
-                    )
-                    for c in hits
+                        run_id=trace_manifest["run_id"],
+                        physics_step=step,
+                        sim_time_ns=step * 5000000,
+                        joints=names,
+                        positions_rad=q.tolist(),
+                        commanded=targets.tolist(),
+                        both_feet_loaded=feet.issubset(loaded),
+                        loaded_links=sorted(loaded),
+                        collision_count=sum(room_contacts.values()),
+                        max_joint_excursion_rad=excursion,
+                        phase="reach" if step <= launch_at else "recovery",
+                    ),
                 )
-            elif last_contact is not None and recovery_step is None:
-                stable = (
-                    feet.issubset(loaded)
-                    and not (loaded - feet)
-                    and wrist_error <= 0.010
-                    and tilt < np.deg2rad(4)
-                    and np.linalg.norm(pos[:2] - initial_xy) < 0.03
-                    and abs(q[shoulder] - initial_angle - plan["delta_rad"]) < 0.015
+            wrist_xyz = wrist.get_pos().astype(float)
+            wrist_error = float(np.linalg.norm(wrist_xyz - wrist_goal))
+            if not np.isfinite(wrist_error):
+                raise ValueError("Invalid G1 wrist position")
+            wrist_rows.append(wrist_xyz.copy())
+            balance_rows.append(
+                (
+                    feet.issubset(loaded),
+                    bool(loaded - feet),
+                    tilt,
+                    np.linalg.norm(pos[:2] - initial_xy),
+                    q[shoulder] - initial_angle,
                 )
-                if stable:
-                    if recovery_start is None:
-                        recovery_start = step
-                    if step - recovery_start + 1 >= 100:
-                        recovery_step = step
-                else:
-                    recovery_start = None
-        exposure_due = observations_only and cadence.due(step, first=step == 1)
-        if exposure_due:
-            rgb = np.asarray(camera.render()[0], dtype=np.uint8)
-            publish_background_rgb(out, step - 1, rgb)
-        if step % 20 == 0 or step == 1:
-            row = dict(
-                kind="standing-inspection",
-                step=step,
-                measured_rad=float(q[shoulder]),
-                tilt_deg=float(np.degrees(tilt)),
-                both_feet=feet.issubset(loaded),
             )
-            rows.append(row)
-            if observations_only:
-                save(out / "progress.json", row)
-                continue
-            rgb = np.asarray(camera.render()[0], dtype=np.uint8)
-            if record_episode and step % 20 == 0:
-                Image.fromarray(rgb).save(out / "camera" / f"{len(samples):04d}.png")
-                samples.append(
-                    dict(step=step, state=q.tolist(), action=targets.tolist())
+            if block is not None and step > launch_at:
+                hits = [
+                    c
+                    for c in impulses
+                    if c["kind"] == "normal"
+                    and c["impulse"] > 1e-6
+                    and c["free_body"] == block_id
+                ]
+                if hits:
+                    last_contact = step
+                    recovery_start = recovery_step = None
+                    impact_rows.extend(
+                        dict(
+                            step=step,
+                            link=robot.links[c["link"]].name,
+                            normal_impulse_ns=c["impulse"],
+                        )
+                        for c in hits
+                    )
+                elif last_contact is not None and recovery_step is None:
+                    stable = (
+                        feet.issubset(loaded)
+                        and not (loaded - feet)
+                        and wrist_error <= 0.010
+                        and tilt < np.deg2rad(4)
+                        and np.linalg.norm(pos[:2] - initial_xy) < 0.03
+                        and abs(q[shoulder] - initial_angle - plan["delta_rad"]) < 0.015
+                    )
+                    if stable:
+                        if recovery_start is None:
+                            recovery_start = step
+                        if step - recovery_start + 1 >= 100:
+                            recovery_step = step
+                    else:
+                        recovery_start = None
+            exposure_due = observations_only and cadence.due(step, first=step == 1)
+            if exposure_due:
+                rgb = np.asarray(camera.render()[0], dtype=np.uint8)
+                publish_background_rgb(out, step - 1, rgb)
+            if step % 20 == 0 or step == 1:
+                row = dict(
+                    kind="standing-inspection",
+                    step=step,
+                    measured_rad=float(q[shoulder]),
+                    tilt_deg=float(np.degrees(tilt)),
+                    both_feet=feet.issubset(loaded),
                 )
-            tmp = out / "preview.tmp"
-            tmp.write_bytes((step - 1).to_bytes(4, "big") + rgb.tobytes())
-            tmp.replace(out / "preview.rgb")
-            save(out / "progress.json", row)
+                rows.append(row)
+                if observations_only:
+                    save(out / "progress.json", row)
+                    continue
+                rgb = np.asarray(camera.render()[0], dtype=np.uint8)
+                if record_episode and step % 20 == 0:
+                    Image.fromarray(rgb).save(
+                        out / "camera" / f"{len(samples):04d}.png"
+                    )
+                    samples.append(
+                        dict(step=step, state=q.tolist(), action=targets.tolist())
+                    )
+                tmp = out / "preview.tmp"
+                tmp.write_bytes((step - 1).to_bytes(4, "big") + rgb.tobytes())
+                tmp.replace(out / "preview.rgb")
+                save(out / "progress.json", row)
     Image.fromarray(rgb).save(out / "frame.png")
     save(out / "trajectory.json", rows)
     if record_episode:
@@ -468,6 +535,7 @@ def simulate(
         (not impact or (disturbance["passed"] and reach["passed"]))
         and both == scored
         and not other_links
+        and not room_contacts
         and drift < 0.10
         and peak_tilt < np.deg2rad(12)
         and excursion <= 0.005
@@ -476,6 +544,15 @@ def simulate(
     )
     return dict(
         kind="standing-inspection",
+        **(
+            dict(
+                scene_execution=authored.readback(scene, specs, bodies),
+                scene_contacts=room_contacts,
+                physics_ticks=scored,
+            )
+            if authored
+            else {}
+        ),
         task_success=bool(passed),
         fixture="standing-impact-development" if impact else "standing-development",
         disturbance=disturbance,

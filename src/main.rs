@@ -2,7 +2,7 @@ use dorobot_plugin_aisle::{
     scene_editor::SceneEditorPaneWidgetRefExt, task_binding::TaskBindingWidgetRefExt, AislePlugin,
 };
 use dorobot_studio_core::{
-    api::{files::FileBackend, Backend, Intent, Screen},
+    api::{aisle::Robot, files::FileBackend, Backend, Intent, Screen},
     playback_controls::PlaybackAction,
     ui::{frame, play::PlayScreenWidgetRefExt},
     widgets::timeline::TimelineAction,
@@ -67,6 +67,8 @@ struct App {
     #[rust]
     binding_open: bool,
     #[rust]
+    bound_robot: Option<Robot>,
+    #[rust]
     bound_status: Option<(String, String)>,
 }
 
@@ -75,7 +77,9 @@ impl App {
         let p = dorobot_studio_core::survey::Survey::new(
             dorobot_studio_core::runtime::user_data().join("aisle/survey"),
         );
-        self.bound_status = match p.active_task() {
+        let robot = self.backend.aisle().map_or(Robot::Nano, |w| w.robot);
+        self.bound_robot = Some(robot);
+        self.bound_status = match p.active_task_for(robot.name()) {
             Ok(Some((_, f))) => std::fs::read(f)
                 .ok()
                 .and_then(|d| {
@@ -119,6 +123,9 @@ impl App {
                 },
             );
         }
+        if self.bound_robot != self.backend.aisle().map(|w| w.robot) {
+            self.update_bound_status();
+        }
         if self.pages.selected() == Some("aisle_task") {
             self.ui
                 .widget(cx, ids!(aisle_task.project_task))
@@ -134,7 +141,11 @@ impl App {
             if self.binding_open {
                 self.ui.label(cx, ids!(aisle_task.context_label)).set_text(
                     cx,
-                    "Adora Nano   /   AISLE · Nexus   /   Mobile manipulation",
+                    if self.bound_robot == Some(Robot::G1) {
+                        "Unitree G1   /   AISLE · Nexus   /   Standing reach"
+                    } else {
+                        "Adora Nano   /   AISLE · Nexus   /   Mobile manipulation"
+                    },
                 );
             }
             self.ui
@@ -148,17 +159,13 @@ impl App {
                     "Select scene"
                 },
             );
-            let nano = self
-                .backend
-                .aisle()
-                .is_some_and(|w| w.robot == dorobot_studio_core::api::aisle::Robot::Nano);
-            let active = self.bound_status.as_ref().filter(|_| nano);
+            let active = self.bound_status.as_ref();
             self.ui
                 .widget(cx, ids!(aisle_task.binding_status))
                 .set_visible(cx, !self.binding_open && active.is_some());
             self.ui
                 .button(cx, ids!(aisle_task.select_scene))
-                .set_enabled(cx, nano);
+                .set_enabled(cx, self.backend.aisle().is_some());
             if let Some((label, _)) = active {
                 self.ui
                     .label(cx, ids!(aisle_task.binding_status))
@@ -195,6 +202,12 @@ impl App {
                         "aisle_task.project_task.later_scene",
                         "aisle_task.project_task.scene_label",
                         "aisle_task.project_task.bound_instruction",
+                        "aisle_task.project_task.binding_inspector",
+                        "aisle_task.project_task.g1_joint",
+                        "aisle_task.project_task.g1_delta",
+                        "aisle_task.project_task.g1_mass",
+                        "aisle_task.project_task.g1_speed",
+                        "aisle_task.project_task.g1_offset",
                         "aisle_task.project_task.pickup",
                         "aisle_task.project_task.placement",
                         "aisle_task.project_task.selection",
@@ -385,7 +398,6 @@ impl App {
                         "aisle_evidence.ev_catalog.ev_logs",
                         "aisle_evidence.ev_catalog.ev_capture",
                         "aisle_evidence.ev_catalog.ev_params",
-
                         "aisle_evidence.ev_catalog.ev_save_variant",
                         "aisle_evidence.ev_catalog.ev_variants",
                         "aisle_evidence.ev_catalog.ev_diff",
@@ -449,17 +461,12 @@ impl MatchEvent for App {
                 .scene_editor_pane(cx, ids!(aisle_scene.composer))
                 .task_scene(cx)
             {
-                self.backend.dispatch(Intent::Aisle(
-                    dorobot_studio_core::api::aisle::Action::Select(
-                        dorobot_studio_core::api::aisle::Robot::Nano,
-                    ),
-                ));
                 self.pages.select("aisle_task").expect("Task page");
                 self.binding_open = true;
                 self.sync(cx);
                 self.ui
                     .task_binding(cx, ids!(aisle_task.project_task))
-                    .browse(cx, Some(pin));
+                    .browse(cx, Some(pin), self.bound_robot.unwrap_or(Robot::Nano));
             }
         } else if self
             .ui
@@ -470,7 +477,7 @@ impl MatchEvent for App {
             if self.binding_open {
                 self.ui
                     .task_binding(cx, ids!(aisle_task.project_task))
-                    .browse(cx, None);
+                    .browse(cx, None, self.bound_robot.unwrap_or(Robot::Nano));
             } else {
                 self.update_bound_status();
                 if let Some((_, task)) = &self.bound_status {

@@ -332,6 +332,7 @@ impl TrialEvidence {
                 .iter()
                 .map(|id| {
                     match id.as_str() {
+                        "operator" => "Operator camera",
                         "head" => "Head",
                         "left_wrist" => "Left wrist",
                         "right_wrist" => "Right wrist",
@@ -351,7 +352,7 @@ impl TrialEvidence {
                     format!(
                         "{} · {} ms",
                         p["name"].as_str().unwrap_or(""),
-                        p["tick"].as_u64().unwrap_or(0) * 10
+                        p["tick"].as_u64().unwrap_or(0) * (clip.tick_ns / 1_000_000)
                     )
                 })
                 .collect(),
@@ -583,6 +584,7 @@ impl TrialEvidence {
         let n = clip.steps.len();
         self.cursor = self.cursor.min(n - 1);
         let tick = clip.steps[self.cursor];
+        let sim_seconds = tick as f64 * clip.tick_ns as f64 / 1e9;
         if let Some(camera) = clip.cameras.get(ci) {
             let rgb = clip.rgb(self.cursor, camera).map_err(msg)?;
             VideoPlayerWidgetRefExt::as_video_player(&self.view.widget(cx, ids!(ev_image)))
@@ -610,6 +612,9 @@ impl TrialEvidence {
         }
         let trace=trace.map(|t|{
             let joints=t["joints"].as_array();
+            if t["both_feet_loaded"].is_boolean(){
+                return format!("Trace · step {tick} · {} joints · both feet loaded {} · room collisions {} · joint excursion {:.5} rad",joints.map_or(0,Vec::len),t["both_feet_loaded"],t["collision_count"],t["max_joint_excursion_rad"].as_f64().unwrap_or_default());
+            }
             let shoulder=joints.and_then(|j|j.iter().position(|name|name=="left_j2_pitch")).and_then(|i|Some((t["positions_rad"][i].as_f64()?,t["commanded"][i].as_f64()?)));
             let shoulder=shoulder.map(|(measured,target)|format!(" · left shoulder {measured:.3} / {target:.3} rad measured / commanded")).unwrap_or_default();
             format!("Trace · step {tick} · {} joints · wheels {} · tabletop {} · guard rejections {} · collisions {}{shoulder}",
@@ -621,7 +626,7 @@ impl TrialEvidence {
             ids!(ev_clock),
             &format!(
                 "{:.2} s   ·   {unit} {} / {n}",
-                tick as f64 / 100.,
+                sim_seconds,
                 self.cursor + 1
             ),
         );
@@ -845,7 +850,8 @@ impl TrialEvidence {
         self.children
             .retain_mut(|c| c.try_wait().ok().flatten().is_none());
         if let Some(at) = self.playing {
-            let elapsed = at.elapsed().as_millis() / 200;
+            let elapsed = at.elapsed().as_millis()
+                / self.clip.as_ref().map_or(200, |c| c.interval_ms as u128);
             if elapsed > 0 {
                 self.cursor += elapsed as usize;
                 let n = self.clip.as_ref().map_or(0, |c| c.steps.len());

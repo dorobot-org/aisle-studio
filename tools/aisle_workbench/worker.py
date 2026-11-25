@@ -549,15 +549,24 @@ def room_for_mobile(args, meta):
     return revision["obstacles"], revision.get("settings")
 
 
+def matches_bound(bound, plan):
+    if bound.document["robot"]=="G1":
+        reach=bound.document["standing"]
+        return plan.get("kind")=="standing-inspection" and plan.get("joint")==reach["joint"] and abs(plan.get("delta_rad",0)-reach["delta_rad"])<1e-7
+    return plan.get("kind")=="table-transfer" and plan.get("color_order")==bound.color
+
+
 def prepare(args, meta):
     bound = None
     path = getattr(args, "bound_task", None)
     if path is not None:
         from authored_scene import load
 
-        if args.robot != "Nano" or getattr(args, "room_revision", None):
-            raise ValueError("Choose the Nano profile and one scene for this task")
+        if getattr(args, "room_revision", None):
+            raise ValueError("Choose one scene for this task")
         bound = load(path, getattr(args, "bound_task_sha256", None))
+        if bound.document["robot"]!=args.robot:
+            raise ValueError("Select the robot pinned by this scene task")
         args.task = bound.document["instruction"]
         raw = path.read_bytes()
         if hashlib.sha256(raw).hexdigest() != bound.sha256:
@@ -571,7 +580,10 @@ def prepare(args, meta):
     required_tracking = None
     moving_color = None
     if args.provider == "reference":
-        if bound:
+        if bound and args.robot=="G1":
+            target=bound.document["standing"]
+            plan=dict(kind="standing-inspection",joint=target["joint"],delta_rad=target["delta_rad"])
+        elif bound:
             plan = dict(kind="table-transfer", color_order=bound.color)
         elif args.task.strip() != REFERENCE:
             raise ValueError(
@@ -746,7 +758,10 @@ def prepare(args, meta):
                 "and actuator checks. Choose inherit to retain the measured rule, or for a different capability. "
                 "Explain your choice from the listed base-frame positions."
             )
-        if bound:
+        if bound and args.robot=="G1":
+            target=bound.document["standing"]
+            prompt+=f"\nThe selected standing test uses a separately simulated bounded impact fixture. Choose standing-inspection with joint {target['joint']} and delta_rad {target['delta_rad']}. The local controller receives encoders and an IMU."
+        elif bound:
             prompt += (
                 "\nThe operator selected one "
                 + bound.color
@@ -814,11 +829,8 @@ def prepare(args, meta):
                 "Only a tracked Nano pickup can change its RGB association method"
             )
     validated = validate(plan | {"task": args.task}, meta)
-    if bound and (
-        validated.get("kind") != "table-transfer"
-        or validated.get("color_order") != bound.color
-    ):
-        raise ValueError("Controller does not target the selected scene object")
+    if bound and not matches_bound(bound,validated):
+        raise ValueError("Controller does not match the selected scene task")
     if observation and validated.get("kind") in ("visual-approach", "table-transfer"):
         selected = (
             [validated["color"]]
@@ -896,11 +908,7 @@ def simulate(args, meta):
             if manifest["recording"]["agent_history"]:history(args.controller.parent,args.out/"agent-history.jsonl",manifest,plan)
             if manifest["recording"]["robot_trace"]:trace_manifest=manifest
         bound = load(path, bound_sha,realized)
-        if (
-            args.robot != "Nano"
-            or control.get("kind") != "table-transfer"
-            or control.get("color_order") != bound.color
-        ):
+        if args.robot!=bound.document["robot"] or not matches_bound(bound,control):
             raise ValueError("Saved controller and task bindings differ")
         raw = path.read_bytes()
         if hashlib.sha256(raw).hexdigest() != bound_sha:
@@ -943,7 +951,7 @@ def simulate(args, meta):
         else "fixed-base, zero-gravity inspection"
     )
     standing = control.get("kind") == "standing-inspection"
-    impact = args.fixture == "impact"
+    impact = args.fixture == "impact" or (standing and bound is not None)
     impact_recipe = getattr(args, "impact_recipe", None)
     if impact_recipe is not None and not (standing and impact):
         raise ValueError("A bounded impact recipe requires a standing G1 impact trial")
@@ -1014,6 +1022,7 @@ def simulate(args, meta):
             observation_period_s=getattr(args, "observation_period_s", 1),
             observation_clock=getattr(args, "observation_clock", "simulation"),
             parameters=json.loads(impact_recipe.read_text()) if impact_recipe else None,
+            authored=bound, trace_manifest=trace_manifest, sampled=realized,
         ) | dict(
             **(
                 {
@@ -1024,6 +1033,7 @@ def simulate(args, meta):
                 else {}
             ),
             robot=args.robot,
+            **({"bound_task_sha256":bound.sha256} if bound else {}),
             controller_hash=hashlib.sha256(original).hexdigest(),
             model_hash=meta["model_hash"],
         )

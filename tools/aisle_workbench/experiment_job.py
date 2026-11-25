@@ -18,7 +18,7 @@ from uuid import UUID, uuid4
 from authored_scene import load as compile_task
 from experiment import encode, sample, schedule, sha
 from experiment_recording import now
-from worker import describe, digest
+from worker import describe, digest, matches_bound
 
 HERE = Path(__file__).resolve().parent
 TERMINAL = {"completed", "failed", "cancelled", "skipped"}
@@ -79,10 +79,7 @@ def create(root, config, source, expected=None, *, parent=None):
         raise ValueError("The selected controller has changed")
     bound = compile_task(source.with_name("bound-task.json"), plan["bound_task_sha256"])
     meta = describe(plan["robot"])
-    if (
-        meta["model_hash"] != plan["model_hash"]
-        or plan.get("color_order") != bound.color
-    ):
+    if meta["model_hash"] != plan["model_hash"] or not matches_bound(bound, plan):
         raise ValueError("Controller, task and selected robot differ")
     job = schedule(config, bound.document, bound.sha256, checksum, meta["model_hash"])
     root.mkdir(parents=True, exist_ok=True)

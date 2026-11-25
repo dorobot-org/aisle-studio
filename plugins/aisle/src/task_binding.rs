@@ -1,4 +1,5 @@
 use dorobot_studio_core::{
+    api::aisle::Robot,
     runtime,
     survey::{
         asset::Asset,
@@ -7,7 +8,7 @@ use dorobot_studio_core::{
             viewport::{Camera, Viewport, HEIGHT, WIDTH},
             Revision, Scene,
         },
-        task::BoundTask,
+        task::{BoundTask, Impact, SceneGoal, StandingReach},
         Survey,
     },
     widgets::video_player::VideoPlayerWidgetRefExt,
@@ -28,16 +29,26 @@ script_mod! {
         scene_label := LabelLine{}
         View{width:Fill height:Fill flow:Right spacing:12
             viewport := VideoPlayer{width:Fill height:Fill}
-            ScrollYView{width:330 height:Fill flow:Down spacing:7
-                LabelLine{text:"Nano pickup instruction"}
+            binding_inspector := ScrollYView{width:330 height:Fill flow:Down spacing:7
+                instruction_label := LabelLine{text:"Nano pickup instruction"}
                 bound_instruction := TextInput{width:Fill height:68 is_multiline:true}
+                pickup_fields := View{width:Fill height:Fit flow:Down spacing:7
                 LabelLine{text:"Object to grasp"}
                 pickup := DropDown{width:Fill}
                 LabelLine{text:"Placement surface"}
                 placement := DropDown{width:Fill}
-                selection := LabelLine{}
                 LabelLine{text:"Controller inputs · onboard RGB and encoders"}
-                LabelLine{text:"Success · physical grasp, release and settled contact on the selected surface"}
+                LabelLine{text:"Success · physical grasp, release and settled contact on the selected surface"}}
+                standing_fields := View{visible:false width:Fill height:Fit flow:Down spacing:6
+                    LabelLine{text:"Standing shoulder reach"} g1_joint := DropDown{width:Fill}
+                    Row{Label{text:"Target (rad)"} g1_delta := TextInput{width:Fill height:32}}
+                    LabelLine{text:"Bounded torso impact"}
+                    Row{Label{text:"Mass (kg)"} g1_mass := TextInput{width:Fill height:32}}
+                    Row{Label{text:"Speed (m/s)"} g1_speed := TextInput{width:Fill height:32}}
+                    Row{Label{text:"Lateral (m)"} g1_offset := TextInput{width:Fill height:32}}
+                    LabelLine{text:"Inputs · joint encoders and IMU. The operator camera records evidence."}
+                }
+                selection := LabelLine{}
             }
         }
         result := LabelLine{}
@@ -64,6 +75,8 @@ pub struct TaskBinding {
     supports: Vec<(String, Support)>,
     #[rust]
     loaded: bool,
+    #[rust]
+    robot: Option<Robot>,
 }
 fn project() -> Survey {
     Survey::new(runtime::user_data().join("aisle/survey"))
@@ -79,7 +92,7 @@ impl TaskBinding {
             .drop_down(cx, ids!(library))
             .set_labels(cx, self.saved.iter().map(|s| s.name.clone()).collect());
         let active = p
-            .active_task()
+            .active_task_for(self.robot.unwrap_or(Robot::Nano).name())
             .map_err(|e| e.to_string())?
             .map(|(_, f)| {
                 std::fs::read(f).map_err(|e| e.to_string()).and_then(|b| {
@@ -101,17 +114,48 @@ impl TaskBinding {
         if !self.loaded {
             self.view.text_input(cx, ids!(bound_instruction)).set_text(
                 cx,
-                active
-                    .as_ref()
-                    .map(|a| a.instruction.as_str())
-                    .unwrap_or("Pick up the cube and put it on the coffee table."),
+                active.as_ref().map(|a| a.instruction.as_str()).unwrap_or(
+                    if self.robot == Some(Robot::G1) {
+                        "Stand and track a positive left shoulder displacement of 0.10 radians."
+                    } else {
+                        "Pick up the cube and put it on the coffee table."
+                    },
+                ),
             );
             if let Some(t) = active
                 .as_ref()
                 .filter(|t| Some(&t.scene.id) == preferred.as_ref().map(|p| &p.id))
             {
-                self.pickup = Some(t.pickup.clone());
-                self.placement = Some(t.placement.clone());
+                if let SceneGoal::Pickup { pickup, placement } = &t.goal {
+                    self.pickup = Some(pickup.clone());
+                    self.placement = Some(placement.clone());
+                }
+            }
+        }
+        if !self.loaded && self.robot == Some(Robot::G1) {
+            let target = active
+                .as_ref()
+                .and_then(|t| match &t.goal {
+                    SceneGoal::Standing { standing } => Some(standing.clone()),
+                    _ => None,
+                })
+                .unwrap_or_default();
+            self.view.drop_down(cx, ids!(g1_joint)).set_labels(
+                cx,
+                vec!["Left shoulder pitch".into(), "Right shoulder pitch".into()],
+            );
+            self.view
+                .drop_down(cx, ids!(g1_joint))
+                .set_selected_item(cx, usize::from(target.joint.starts_with("right")));
+            for (id, value) in [
+                (ids!(g1_delta) as &[LiveId], target.delta_rad),
+                (ids!(g1_mass), target.impact.mass_kg),
+                (ids!(g1_speed), target.impact.speed_m_s),
+                (ids!(g1_offset), target.impact.lateral_m),
+            ] {
+                self.view
+                    .text_input(cx, id)
+                    .set_text(cx, &value.to_string());
             }
         }
         self.loaded = true;
@@ -184,6 +228,39 @@ impl TaskBinding {
     }
     fn sync(&self, cx: &mut Cx) {
         let Some(s) = &self.scene else { return };
+        let standing = self.robot == Some(Robot::G1);
+        self.view
+            .widget(cx, ids!(standing_fields))
+            .set_visible(cx, standing);
+        self.view
+            .widget(cx, ids!(pickup_fields))
+            .set_visible(cx, !standing);
+        self.view.label(cx, ids!(instruction_label)).set_text(
+            cx,
+            if standing {
+                "G1 standing instruction"
+            } else {
+                "Nano pickup instruction"
+            },
+        );
+        if standing {
+            self.view.button(cx, ids!(activate)).set_enabled(cx, true);
+            self.view.label(cx,ids!(selection)).set_text(cx,"Judge · foot support, wrist error, measured torso impact, recovery and furniture contacts");
+            self.note(
+                cx,
+                "G1 stands at the room origin. The floor follows its measured neutral sole height.",
+            );
+            let frame = Viewport::render_bindings(
+                s,
+                &self.assets,
+                Camera::new(s.room_m, false),
+                None,
+                None,
+            );
+            VideoPlayerWidgetRefExt::as_video_player(&self.view.widget(cx, ids!(viewport)))
+                .set_frame(cx, WIDTH as usize, HEIGHT as usize, frame.image.as_raw());
+            return;
+        }
         let pick = self
             .pickup_choices
             .iter()
@@ -270,8 +347,14 @@ impl TaskBinding {
     }
 }
 impl TaskBindingRef {
-    pub fn browse(&self, cx: &mut Cx, pin: Option<Revision>) {
+    pub fn browse(&self, cx: &mut Cx, pin: Option<Revision>, robot: Robot) {
         if let Some(mut w) = self.borrow_mut() {
+            if w.robot != Some(robot) {
+                w.robot = Some(robot);
+                w.loaded = false;
+                w.pickup = None;
+                w.placement = None;
+            }
             if let Err(e) = w.refresh(cx, pin) {
                 w.note(cx, &e);
             }
@@ -290,7 +373,9 @@ impl Widget for TaskBinding {
                 return self.refresh(cx, None);
             }
             if click(ids!(clear)) {
-                project().clear_active_task().map_err(|e| e.to_string())?;
+                project()
+                    .clear_active_task_for(self.robot.unwrap_or(Robot::Nano).name())
+                    .map_err(|e| e.to_string())?;
                 self.note(cx, "Built-in scene selected");
                 return Ok(());
             }
@@ -325,14 +410,40 @@ impl Widget for TaskBinding {
                     .as_ref()
                     .and_then(Scene::reference)
                     .ok_or("Choose a saved scene")?;
-                let task = project()
-                    .bind_pickup(
+                let instruction = self.view.text_input(cx, ids!(bound_instruction)).text();
+                let task = if self.robot == Some(Robot::G1) {
+                    let number = |id: &[LiveId]| {
+                        self.view
+                            .text_input(cx, id)
+                            .text()
+                            .trim()
+                            .parse::<f64>()
+                            .map_err(|_| "Enter numeric reach and impact values")
+                    };
+                    let reach = StandingReach {
+                        joint: if self.view.drop_down(cx, ids!(g1_joint)).selected_item() == 0 {
+                            "left_shoulder_pitch_joint"
+                        } else {
+                            "right_shoulder_pitch_joint"
+                        }
+                        .into(),
+                        delta_rad: number(ids!(g1_delta))?,
+                        impact: Impact {
+                            mass_kg: number(ids!(g1_mass))?,
+                            speed_m_s: number(ids!(g1_speed))?,
+                            lateral_m: number(ids!(g1_offset))?,
+                        },
+                    };
+                    project().bind_standing(&pin, &instruction, reach)
+                } else {
+                    project().bind_pickup(
                         &pin,
-                        &self.view.text_input(cx, ids!(bound_instruction)).text(),
+                        &instruction,
                         self.pickup.as_deref().ok_or("Choose a pickup")?,
                         self.placement.as_ref().ok_or("Choose a surface")?,
                     )
-                    .map_err(|e| e.to_string())?;
+                }
+                .map_err(|e| e.to_string())?;
                 let sha = project().activate_task(&task).map_err(|e| e.to_string())?;
                 self.note(
                     cx,

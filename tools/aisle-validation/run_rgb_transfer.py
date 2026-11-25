@@ -904,7 +904,7 @@ def _execute(
         wrist_timing=wrist.result(),
         wrist_clearance=config["wrist_clearance"],
         measured_room_bodies=sim.room_readback(),
-        **({"scene_execution": authored.readback(sim)} if authored else {}),
+        **({"scene_execution": authored.readback(sim.scene, sim.specs, sim.bodies)} if authored else {}),
         actuator_audit=audit,
         rejected_motor_writes=motors.rejected,
         frames=len(samples),

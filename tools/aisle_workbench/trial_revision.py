@@ -19,7 +19,7 @@ from experiment_job import (
     write,
 )
 from experiment_recording import now
-from worker import digest
+from worker import digest, matches_bound
 
 
 def source(folder, run_id):
@@ -131,10 +131,7 @@ def save_variant(folder, run_id, data):
         raise ValueError("Selected controller changed while preparing the variant")
     plan = read(source_path)
     bound = load(source_path.with_name("bound-task.json"), plan["bound_task_sha256"])
-    if (
-        plan["robot"] != bound.document["robot"]
-        or plan.get("color_order") != bound.color
-    ):
+    if plan["robot"] != bound.document["robot"] or not matches_bound(bound, plan):
         raise ValueError("The selected controller and task have different bindings")
     cfg["scene"] = {
         "id": bound.document["scene"]["id"],

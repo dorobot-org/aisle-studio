@@ -1273,8 +1273,8 @@ impl Workbench {
                 }
             }
         }
-        let active_bound=if self.robot==Robot::Nano && (op=="prepare" || op=="run" || submitting) {
-            crate::survey::Survey::new(self.root.join("survey")).active_task().map_err(io::Error::other)?
+        let active_bound=if op=="prepare" || op=="run" || submitting {
+            crate::survey::Survey::new(self.root.join("survey")).active_task_for(self.robot.name()).map_err(io::Error::other)?
         }else{None};
         if let Some((sha,path))=&active_bound {
             if op!="prepare" && self.plan["bound_task_sha256"].as_str()!=Some(sha.as_str()){
