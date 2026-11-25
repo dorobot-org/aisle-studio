@@ -61,6 +61,7 @@ def main():
             "scene-ranges",
             "scene-agents",
             "spec-skills",
+            "skill-qualification",
             "experiment-worker",
         ],
         default="pages",
@@ -86,7 +87,10 @@ def main():
     parser.add_argument(
         "--incompatible-worker", help="Earlier worker used for the admission check"
     )
+    parser.add_argument("--qualification-robot", choices=["G1", "Nano"], help="Limit the skill qualification lease to one profile")
     args = parser.parse_args()
+    if args.qualification_robot and args.suite != "skill-qualification":
+        parser.error("--qualification-robot requires --suite skill-qualification")
     if args.suite == "experiment-worker" and not (
         args.worker and args.incompatible_worker
     ):
@@ -151,6 +155,11 @@ def main():
                 out / "survey/state/aisle/survey",
                 python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable),
             )
+    elif args.suite == "skill-qualification":
+        for robot in [args.qualification_robot] if args.qualification_robot else ["G1", "Nano"]:
+            source = os.environ.get("DOROBOT_QUALIFICATION_SOURCE_" + robot.upper())
+            extra = ["--source", source] if source else []
+            run(robot.lower(), "check_skill_qualification.py", "--robot", robot, *extra)
     elif args.suite == "spec-skills":
         for robot in ("G1", "Nano"):
             run(robot.lower(), "check_spec_skills.py", "--robot", robot)

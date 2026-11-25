@@ -16,6 +16,7 @@ use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
 mod skills;
+mod qualification;
 mod experiment;
 mod trial_evidence;
 use trial_evidence::TrialEvidenceWidgetRefExt;
@@ -89,6 +90,7 @@ impl StudioPlugin for AislePlugin {
             experiment_open:false,
             trial_catalog_open:false,
             skills:Default::default(),
+            qualification:Default::default(),
         }))
     }
     fn can_disable(&self, b: &dyn Backend) -> Result<(), String> {
@@ -232,7 +234,19 @@ script_mod! {
     }
     }
     mod.widgets.AisleEvidence=Page{
-        Bar{ev_heading := Title{width:Fill text:"Run evidence"} ev_mode := mod.widgets.ux.ToolButton{text:"Experiment trials"}}
+        Bar{ev_heading := Title{width:Fill text:"Run evidence"} ev_mode := mod.widgets.ux.ToolButton{text:"Experiment trials"} qa_mode := mod.widgets.ux.ToolButton{text:"Skill qualification"}}
+        qa_panel := Card{width:Fill height:Fill visible:false
+            Section{text:"Registered simulation cohort"}
+            Bar{qa_selector := DropDown{width:Fill labels:["No registrations"]} qa_refresh := mod.widgets.ux.ToolButton{text:"Refresh"}}
+            qa_scope := Body{} qa_identity := Body{}
+            Bar{qa_register := mod.widgets.ux.ToolButton{text:"Register current controller"} qa_run := mod.widgets.ux.PrimaryButton{text:"Run remaining cases"} qa_verify := mod.widgets.ux.ToolButton{text:"Verify measurements"}}
+            qa_result := Body{}
+            qa_failure_scroll := ScrollYView{width:Fill height:72 flow:Down qa_failures := Body{max_lines:180}}
+            Section{text:"Reviewer decision"}
+            Bar{qa_reviewer := TextInput{width:Fill height:36 empty_text:"Trusted signer identity"} qa_reason := TextInput{width:Fill height:36 empty_text:"Reason for this decision"}}
+            Bar{qa_approve := mod.widgets.ux.ToolButton{text:"Approve simulation"} qa_reject := mod.widgets.ux.ToolButton{text:"Reject simulation"} qa_export := mod.widgets.ux.ToolButton{text:"Export signed handoff"}}
+            qa_decision := Body{} qa_status := Body{}
+        }
         ev_catalog := TrialEvidence{visible:false}
         standard_evidence := View{width:Fill height:Fill flow:Down spacing:6
         context_label := Section{}
@@ -290,6 +304,7 @@ struct Panel {
     experiment_open:bool,
     trial_catalog_open:bool,
     skills:skills::Skills,
+    qualification:qualification::Qualification,
 }
 impl Panel {
     fn label(&self, cx: &mut Cx, id: &[LiveId], s: &str) {
@@ -619,10 +634,17 @@ impl PluginPanel for Panel {
             return;
         };
         if self.page=="aisle_evidence" {
-            self.root.widget(cx,ids!(standard_evidence)).set_visible(cx,!self.trial_catalog_open);
+            self.root.widget(cx,ids!(qa_panel)).set_visible(cx,self.qualification.open);
+            self.root.widget(cx,ids!(standard_evidence)).set_visible(cx,!self.trial_catalog_open && !self.qualification.open);
             self.root.widget(cx,ids!(ev_catalog)).set_visible(cx,self.trial_catalog_open);
             self.root.button(cx,ids!(ev_mode)).set_text(cx,if self.trial_catalog_open {"Run evidence"}else{"Experiment trials"});
             self.label(cx,ids!(ev_heading),if self.trial_catalog_open {"Experiment trials"}else{"Run evidence"});
+            self.root.button(cx,ids!(qa_mode)).set_text(cx,if self.qualification.open {"Run evidence"}else{"Skill qualification"});
+            if self.qualification.open {
+                self.label(cx,ids!(ev_heading),"Skill qualification");
+                self.qualification_sync(cx,w);
+                return;
+            }
             if self.trial_catalog_open {self.root.trial_evidence(cx,ids!(ev_catalog)).update(cx,w);return;}
         }
         let light = frame::light_mode();
@@ -1920,7 +1942,8 @@ impl PluginPanel for Panel {
     }
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
         if self.page=="aisle_task" && b.aisle().is_some_and(|w|self.skill_actions(cx,actions,w)){return true;}
-        if self.page=="aisle_evidence" && self.root.button(cx,ids!(ev_mode)).clicked(actions){self.trial_catalog_open=!self.trial_catalog_open;return true;}
+        if self.page=="aisle_evidence" && b.aisle().is_some_and(|w|self.qualification_actions(cx,actions,w)){return true;}
+        if self.page=="aisle_evidence" && self.root.button(cx,ids!(ev_mode)).clicked(actions){self.qualification.open=false;self.trial_catalog_open=!self.trial_catalog_open;return true;}
         if self.page=="aisle_run" && self.root.button(cx,ids!(experiment_mode)).clicked(actions){self.experiment_open=!self.experiment_open;return true;}
         if self.page == "aisle_scene" {
             if self.root.button(cx, ids!(composer_mode)).clicked(actions) {
