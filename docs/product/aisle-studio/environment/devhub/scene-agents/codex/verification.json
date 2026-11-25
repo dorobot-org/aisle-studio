@@ -1,0 +1,78 @@
+{
+  "backend": "headless",
+  "agent_source": {
+    "provider": "codex",
+    "model": "gpt-6.2-astra",
+    "instruction": "Shift the chair 20 cm north and turn it 30 degrees counterclockwise. Keep everything else where it is.",
+    "request_sha256": "6ff94f892f494c223bcf1da942501206c79b96cd5f25cf5290926e8df3a17a0b",
+    "reply_sha256": "7acdc0e0ba405905a8a1b61deef89eba4c8f6e4aa018aeb2ab34ea9e1d7828d2",
+    "bindings": [
+      [
+        "the chair",
+        "chair-right"
+      ]
+    ],
+    "proposed_operations": [
+      {
+        "action": "translate",
+        "subject": 0,
+        "anchor": -1,
+        "xyz_m": [
+          0.0,
+          0.2,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "surface": ""
+      },
+      {
+        "action": "rotate",
+        "subject": 0,
+        "anchor": -1,
+        "xyz_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 30.0,
+        "surface": ""
+      }
+    ],
+    "affected": [
+      "chair-right"
+    ],
+    "operator_adjusted": [
+      "chair-right"
+    ]
+  },
+  "original_sha256": "ed8be63f99ae03f15f7cf6959aa54da5929ef95bb02f5814982a733af21843fc",
+  "saved_revision_sha256": "946d93e1b960a92ba55e8062f2ad2bd56ab8cc8124a17d207de8a0f3f74b0a7c",
+  "task_sha256": "717af86c8ec5861e6383708020fa4d01a56a45a6a15dc38cd6562a667e9db182",
+  "result_sha256": "b1ed8abfe4ffb10eafc5b3142d8fac123d814b16157faee112a10d0836521fd5",
+  "nexus_chairs": {
+    "chair-left": {
+      "center_m": [
+        -1.2000000476837158,
+        -1.7000000476837158,
+        -0.3938637375831604
+      ],
+      "yaw_deg": 0.0
+    },
+    "chair-right": {
+      "center_m": [
+        1.2000000476837158,
+        -1.5,
+        -0.3938637375831604
+      ],
+      "yaw_deg": 37.00000113483147
+    }
+  },
+  "robot": "G1",
+  "both_feet_loaded_steps": 2000,
+  "reached": true,
+  "bounded_impact_passed": true,
+  "unchanged_instances": 4,
+  "original_preserved": true,
+  "undo_redo_verified": true,
+  "discard_verified": true
+}

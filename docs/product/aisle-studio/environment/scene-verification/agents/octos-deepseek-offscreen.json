@@ -1,0 +1,78 @@
+{
+  "backend": "offscreen",
+  "agent_source": {
+    "provider": "octos-deepseek",
+    "model": "deepseek-v4-flash",
+    "instruction": "Shift the chair 20 cm north and turn it 30 degrees counterclockwise. Keep everything else where it is.",
+    "request_sha256": "7e85f65b536b56e64243a77ec00c765019a411a0b51a9f1cb4dd53125c7dde9c",
+    "reply_sha256": "1c4bc2864fdf1934f6765e7e76d0445e3e1963aa392549dff5c4c74e26c17c62",
+    "bindings": [
+      [
+        "the chair",
+        "chair-right"
+      ]
+    ],
+    "proposed_operations": [
+      {
+        "action": "translate",
+        "subject": 0,
+        "anchor": -1,
+        "xyz_m": [
+          0.0,
+          0.2,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "surface": ""
+      },
+      {
+        "action": "rotate",
+        "subject": 0,
+        "anchor": -1,
+        "xyz_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 30.0,
+        "surface": ""
+      }
+    ],
+    "affected": [
+      "chair-right"
+    ],
+    "operator_adjusted": [
+      "chair-right"
+    ]
+  },
+  "original_sha256": "ed8be63f99ae03f15f7cf6959aa54da5929ef95bb02f5814982a733af21843fc",
+  "saved_revision_sha256": "db6b6d0a5ccfa22eff629fdb1208f655871270680ee0252da2c43b32ea8a42c6",
+  "task_sha256": "a6a314d81e684bc99799da4ba2b4459ffc7dae16a20026a3b6c8754a3c88d384",
+  "result_sha256": "8c128c3f6646c594747cecd47c6a7c2fc8a07c8ffbccbb39c425d1fe27912e83",
+  "nexus_chairs": {
+    "chair-left": {
+      "center_m": [
+        -1.2000000476837158,
+        -1.7000000476837158,
+        -0.3938637375831604
+      ],
+      "yaw_deg": 0.0
+    },
+    "chair-right": {
+      "center_m": [
+        1.2000000476837158,
+        -1.5,
+        -0.3938637375831604
+      ],
+      "yaw_deg": 37.00000113483147
+    }
+  },
+  "robot": "G1",
+  "both_feet_loaded_steps": 2000,
+  "reached": true,
+  "bounded_impact_passed": true,
+  "unchanged_instances": 4,
+  "original_preserved": true,
+  "undo_redo_verified": true,
+  "discard_verified": true
+}

@@ -1,0 +1,18 @@
+{
+  "studio_commit": "7442f2c55952dc0e7dca54fa7f23fefb07b0b252",
+  "studio_binary_sha256": "dca7ba457535898f5cfe5b1a53924b01542b32bc0cbaf757933a833b72b902eb",
+  "backend": "headless",
+  "checks": {
+    "codex": {
+      "receipt": "codex/verification.json",
+      "sha256": "cdbee59223f3404c57ae8bdaa43d58a31df94ddeac35e0c652177c1dfd3d12aa",
+      "wall_seconds": 36.81
+    },
+    "octos-deepseek": {
+      "receipt": "octos-deepseek/verification.json",
+      "sha256": "d01c1cdfcf108c9548bebaff41641e25243d135e635cb5477e8d76417b83b2dd",
+      "wall_seconds": 32.79
+    }
+  },
+  "binary_verified_after_checks": true
+}
