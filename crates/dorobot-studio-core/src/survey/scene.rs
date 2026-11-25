@@ -48,6 +48,78 @@ pub struct StartArea {
     pub bounds_m: Option<[[f64; 2]; 2]>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RuleProperty {
+    X,
+    Y,
+    Z,
+    Yaw,
+    Friction,
+    Ambient,
+}
+
+impl RuleProperty {
+    pub const ALL: [Self; 6] = [
+        Self::X,
+        Self::Y,
+        Self::Z,
+        Self::Yaw,
+        Self::Friction,
+        Self::Ambient,
+    ];
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::X => "World X (m)",
+            Self::Y => "World Y (m)",
+            Self::Z => "World Z (m)",
+            Self::Yaw => "Yaw (°)",
+            Self::Friction => "Surface friction",
+            Self::Ambient => "Room ambient light",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct SceneRule {
+    pub name: String,
+    pub property: RuleProperty,
+    pub instance: Option<String>,
+    pub range: [f64; 2],
+}
+impl SceneRule {
+    pub fn check(&self, scene: &Scene) -> Result<()> {
+        ensure!(
+            !self.name.trim().is_empty() && self.name == self.name.trim(),
+            "Enter a rule name"
+        );
+        let [lo, hi] = self.range;
+        ensure!(
+            lo.is_finite() && hi.is_finite() && lo <= hi,
+            "Minimum must be at or below maximum"
+        );
+        if self.property == RuleProperty::Ambient {
+            ensure!(
+                self.instance.is_none() && lo >= 0. && hi <= 1.,
+                "Ambient light needs a room range from 0 to 1"
+            );
+        } else {
+            ensure!(
+                scene
+                    .instances
+                    .iter()
+                    .any(|i| self.instance.as_ref() == Some(&i.id)),
+                "Choose an existing object for the rule"
+            );
+            ensure!(
+                self.property != RuleProperty::Friction || lo >= 0.,
+                "Friction must be nonnegative"
+            );
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scene {
     pub id: String,
@@ -56,6 +128,8 @@ pub struct Scene {
     pub name: String,
     pub room_m: [f64; 2],
     pub instances: Vec<Instance>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rules: Vec<SceneRule>,
 }
 
 impl Default for Scene {
@@ -67,6 +141,7 @@ impl Default for Scene {
             name: "Untitled room".into(),
             room_m: [6., 4.],
             instances: vec![],
+            rules: vec![],
         }
     }
 }
@@ -123,6 +198,11 @@ impl Scene {
                 "Invalid object pose"
             );
             item.asset.check()?;
+        }
+        let mut names = HashSet::new();
+        for rule in &self.rules {
+            rule.check(self)?;
+            ensure!(names.insert(&rule.name), "Scene rule names must be unique");
         }
         Ok(())
     }
@@ -296,6 +376,34 @@ impl Survey {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn empty_ranges_preserve_legacy_scene_bytes_and_invalid_ranges_cannot_be_saved() -> Result<()> {
+        let mut scene = Scene::default();
+        let original = serde_json::to_string(&scene)?;
+        assert!(!original.contains("\"rules\""));
+        assert_eq!(
+            serde_json::to_string(&serde_json::from_str::<Scene>(&original)?)?,
+            original
+        );
+        let rule = SceneRule {
+            name: "Daylight".into(),
+            property: RuleProperty::Ambient,
+            instance: None,
+            range: [0.2, 0.8],
+        };
+        scene.rules.push(rule.clone());
+        scene.check()?;
+        scene.rules.push(rule);
+        assert!(scene.check().is_err());
+        scene.rules.pop();
+        scene.rules[0].range = [0.2, 1.2];
+        assert!(scene.check().is_err());
+        scene.rules[0].property = RuleProperty::Friction;
+        scene.rules[0].instance = Some("missing-table".into());
+        assert!(scene.check().is_err());
+        Ok(())
+    }
 
     #[test]
     fn two_chairs_keep_independent_poses_and_revision_pins_across_undo_and_save_as() -> Result<()> {

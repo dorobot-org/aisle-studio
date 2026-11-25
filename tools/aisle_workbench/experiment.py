@@ -93,6 +93,56 @@ def draw(parameter, seed):
     return value
 
 
+def selected_scene_parameters(scene, config):
+    active = config.get("active_scene_rules", [])
+    if (
+        not isinstance(active, list)
+        or not all(isinstance(n, str) and n for n in active)
+        or len(set(active)) != len(active)
+    ):
+        raise ValueError("Select each named scene rule once")
+    if not active:
+        return
+    definitions = scene.get("rules", [])
+    rules = {rule["name"]: rule for rule in definitions}
+    if len(rules) != len(definitions):
+        raise ValueError("Scene rule names must be unique")
+    for name in active:
+        if name not in rules:
+            raise ValueError(f"Scene rule {name} is absent from this revision")
+        rule = rules[name]
+        prop = rule["property"]
+        obj = rule.get("instance")
+        lo, hi = rule["range"]
+        finite(lo, name)
+        finite(hi, name)
+        if lo > hi:
+            raise ValueError(f"{name} minimum exceeds maximum")
+        if prop == "ambient":
+            if obj is not None or lo < 0 or hi > 1:
+                raise ValueError(f"{name} needs a room light range within [0, 1]")
+            binding, unit = {"kind": "ambient"}, "1"
+        elif prop in ("x", "y", "z"):
+            binding, unit = {"kind": "position", "axis": prop, "instance": obj}, "m"
+        elif prop in ("yaw", "friction"):
+            if prop == "friction" and lo < 0:
+                raise ValueError(f"{name} needs nonnegative friction")
+            binding, unit = (
+                {"kind": prop, "instance": obj},
+                "deg" if prop == "yaw" else "1",
+            )
+        else:
+            raise ValueError(f"{name} has an unknown scene rule property")
+        yield dict(
+            name=name,
+            type="number",
+            unit=unit,
+            default=lo / 2 + hi / 2,
+            range=[lo, hi],
+            binding=binding,
+        )
+
+
 def sample(task, config, seed):
     """The bound task stays immutable. Each realized execution gets its own layout and overrides."""
     effective = copy.deepcopy(task)
@@ -113,7 +163,8 @@ def sample(task, config, seed):
             raise ValueError(f"Missing bound instance {identifier}")
         return items[identifier]
 
-    for p in config.get("parameters", []):
+    scene_parameters = list(selected_scene_parameters(effective["scene"], config))
+    for p in [*config.get("parameters", []), *scene_parameters]:
         name = p["name"].strip()
         if not name or name in values:
             raise ValueError("Parameters need unique names")
@@ -183,6 +234,8 @@ def sample(task, config, seed):
         else:
             raise ValueError(f"Parameter {name} is missing a runtime binding")
         values[name] = dict(value=value, type=p["type"], unit=unit, binding=binding)
+    for p in scene_parameters:
+        values[p["name"]]["source"] = "scene_rule"
     for identifier, edits in config.get("pose_edits", {}).items():
         obj = object_(identifier)
         for axis, value in edits.items():

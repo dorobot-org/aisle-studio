@@ -13,6 +13,7 @@ use dorobot_studio_core::{
 };
 use dorobot_studio_plugin::*;
 use std::collections::HashMap;
+mod rules;
 
 script_mod! {
     use mod.prelude.widgets.*
@@ -59,6 +60,13 @@ script_mod! {
                 Row{area_y_min := Field{empty_text:"Min Y"} area_y_max := Field{empty_text:"Max Y"}}
                 Row{area_save := Tool{text:"Set start area"} area_clear := Tool{text:"Remove area"}}
                 area_status := Caption{}
+                Caption{text:"Experiment ranges"}
+                rule_list := DropDown{width:Fill}
+                Row{Label{text:"Name"} rule_name := Field{empty_text:"Range name"}}
+                Row{Label{text:"Property"} rule_property := DropDown{width:Fill}}
+                rule_target_row := Row{Label{text:"Object"} rule_target := DropDown{width:Fill}}
+                Row{Label{text:"Min"} rule_min := Field{} Label{text:"Max"} rule_max := Field{}}
+                Row{rule_apply := Tool{text:"Save range"} rule_delete := Tool{text:"Remove range"}}
             }
         }
         feedback := Caption{}
@@ -83,6 +91,8 @@ pub struct SceneEditorPane {
     saved: Vec<Scene>,
     #[rust]
     selected: Option<String>,
+    #[rust]
+    rule_selected: Option<String>,
     #[rust]
     top: bool,
     #[rust]
@@ -148,6 +158,7 @@ impl SceneEditorPane {
         Ok(())
     }
     fn open(&mut self, cx: &mut Cx, scene: Scene) {
+        self.rule_selected = None;
         for obj in &scene.instances {
             if !self.pinned.contains_key(&obj.asset) {
                 match project().asset_revision(&obj.asset) {
@@ -378,6 +389,7 @@ impl SceneEditorPane {
                 .set_enabled(cx, !pending && item.is_some());
         }
         self.selected = item.map(|i| i.id.clone());
+        self.rule_fields(cx);
         self.draw_frame(cx);
     }
     fn supports(&self) -> Vec<(String, Support)> {
@@ -496,6 +508,10 @@ impl SceneEditorPane {
         if self.candidate.is_some() {
             return Ok(());
         }
+        if self.rule_actions(cx, a)? {
+            return Ok(());
+        }
+        let click = |id: &[LiveId]| self.view.button(cx, id).clicked(a);
         if click(ids!(new_scene)) || click(ids!(open_scene)) || click(ids!(discard)) {
             if !click(ids!(discard)) && self.editor.scene != self.baseline {
                 return Err("Save changes or reopen the saved layout first".into());
@@ -654,7 +670,8 @@ impl SceneEditorPane {
             obj.position_m = p;
             obj.yaw_deg = self.number(cx, ids!(yaw), "rotation in degrees")?;
         } else if click(ids!(remove)) {
-            s.instances.remove(index);
+            let removed = s.instances.remove(index);
+            s.rules.retain(|r| r.instance.as_ref() != Some(&removed.id));
         } else if click(ids!(duplicate)) {
             let original = s.instances[index].clone();
             let a = self

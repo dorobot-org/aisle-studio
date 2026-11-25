@@ -50,6 +50,11 @@ script_mod! {
                     Text{text:"Scene start areas"}
                     Line{exp_area := DropDown{width:Fill} exp_area_toggle := Tool{text:"Enable area"}}
                 }
+                exp_rules := View{visible:false width:Fill height:Fit flow:Down spacing:5
+                    Text{text:"Scene experiment ranges"}
+                    Line{exp_rule := DropDown{width:Fill} exp_rule_toggle := Tool{text:"Enable range"}}
+                    exp_rule_info := Text{}
+                }
                 Text{text:"Recording channels"}
                 exp_scope := DropDown{width:Fill}
                 Line{exp_trace := Tool{text:"Robot trace · off"} exp_history := Tool{text:"Agent history · off"}}
@@ -150,6 +155,16 @@ impl ExperimentPane {
     fn sel(&self, cx: &Cx, id: &[LiveId]) -> usize {
         self.view.drop_down(cx, id).selected_item()
     }
+    fn toggle_scene_option(&mut self, cx: &mut Cx, setting: &str, choice: Value) {
+        let mut active = self.config[setting].as_array().cloned().unwrap_or_default();
+        if let Some(index) = active.iter().position(|v| v == &choice) {
+            active.remove(index);
+        } else {
+            active.push(choice);
+        }
+        self.config[setting] = Value::Array(active);
+        self.close_preview(cx);
+    }
     fn initialize(&mut self, cx: &mut Cx) {
         if self.loaded {
             return;
@@ -228,8 +243,10 @@ impl ExperimentPane {
                 .and_then(|d| serde_json::from_slice(&d).ok());
             if let Some(config) = self.config.as_object_mut() {
                 config.remove("active_start_areas");
+                config.remove("active_scene_rules");
             }
             self.area_choices(cx);
+            self.rule_choices(cx);
             let rows = self
                 .task
                 .as_ref()
@@ -326,6 +343,57 @@ impl ExperimentPane {
         self.channels(cx);
         self.feature_names(cx);
         self.area_choices(cx);
+        self.rule_choices(cx);
+    }
+    fn rule_choices(&self, cx: &mut Cx) {
+        let rules = self
+            .task
+            .as_ref()
+            .map(|t| t.scene.rules.as_slice())
+            .unwrap_or_default();
+        self.view
+            .widget(cx, ids!(exp_rules))
+            .set_visible(cx, !rules.is_empty());
+        let choices = self.view.drop_down(cx, ids!(exp_rule));
+        choices.set_labels(cx, rules.iter().map(|r| r.name.clone()).collect());
+        if choices.selected_item() >= rules.len() {
+            choices.set_selected_item(cx, 0);
+        }
+        self.rule_button(cx);
+    }
+    fn rule_button(&self, cx: &mut Cx) {
+        let Some(task) = &self.task else {
+            return;
+        };
+        let Some(rule) = task.scene.rules.get(self.sel(cx, ids!(exp_rule))) else {
+            return;
+        };
+        let enabled = self.config["active_scene_rules"]
+            .as_array()
+            .is_some_and(|rules| rules.iter().any(|n| n.as_str() == Some(&rule.name)));
+        self.view.button(cx, ids!(exp_rule_toggle)).set_text(
+            cx,
+            if enabled {
+                "Disable range"
+            } else {
+                "Enable range"
+            },
+        );
+        let target = rule
+            .instance
+            .as_ref()
+            .and_then(|id| task.scene.instances.iter().find(|i| &i.id == id))
+            .map_or("Room", |i| &i.name);
+        self.view.label(cx, ids!(exp_rule_info)).set_text(
+            cx,
+            &format!(
+                "{} · {} · {} to {}",
+                target,
+                rule.property.label(),
+                rule.range[0],
+                rule.range[1]
+            ),
+        );
     }
     fn area_instances(
         &self,
@@ -834,23 +902,32 @@ impl ExperimentPane {
         {
             self.area_button(cx);
         }
+        if self
+            .view
+            .drop_down(cx, ids!(exp_rule))
+            .selected(a)
+            .is_some()
+        {
+            self.rule_button(cx);
+        }
+        if clicked!(ids!(exp_rule_toggle)) {
+            let rule = self
+                .task
+                .as_ref()
+                .and_then(|t| t.scene.rules.get(self.sel(cx, ids!(exp_rule))))
+                .ok_or("Select a scene range")?;
+            let key = json!(rule.name);
+            self.toggle_scene_option(cx, "active_scene_rules", key);
+            self.rule_button(cx);
+            return Ok(());
+        }
         if clicked!(ids!(exp_area_toggle)) {
             let id = self
                 .area_instances()
                 .nth(self.sel(cx, ids!(exp_area)))
                 .map(|i| json!(i.id))
                 .ok_or("Select a scene start area")?;
-            let mut active = self.config["active_start_areas"]
-                .as_array()
-                .cloned()
-                .unwrap_or_default();
-            if let Some(index) = active.iter().position(|v| v == &id) {
-                active.remove(index);
-            } else {
-                active.push(id);
-            }
-            self.config["active_start_areas"] = Value::Array(active);
-            self.close_preview(cx);
+            self.toggle_scene_option(cx, "active_start_areas", id);
             self.area_button(cx);
             return Ok(());
         }

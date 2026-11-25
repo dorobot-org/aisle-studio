@@ -19,6 +19,31 @@ class ExperimentTests(unittest.TestCase):
         self.root = Path(tmp.name)
         self.task, self.config = experiment_fixture(self.root)
 
+    def test_scene_ranges_are_opt_in_pinned_and_share_binding_conflict_checks(self):
+        scene = self.task["scene"]
+        scene["rules"] = [
+            dict(name="Window light", property="ambient", instance=None, range=[0.2, 0.8]),
+            dict(name="Table grip", property="friction", instance="object-oak", range=[0.3, 0.6]),
+            dict(name="Chair yaw", property="yaw", instance="chair-left", range=[-10,10]),
+        ]
+        def layout(selected):
+            return sample(self.task, self.config | {"parameters": [], "active_scene_rules": selected}, 14)
+        self.assertFalse(layout([])["values"])
+        first = layout(["Window light"])
+        full = layout([r["name"] for r in scene["rules"]])
+        self.assertEqual(first["environment"], full["environment"])
+        self.assertEqual(full["materials"]["object-oak"]["friction"], full["values"]["Table grip"]["value"])
+        self.assertEqual(full["values"]["Chair yaw"]["source"], "scene_rule")
+        self.assertEqual(scene["instances"][-2]["yaw_deg"], 0)
+        for active, message in [(["unknown"], "absent"), (["Window light"]*2, "once")]:
+            with self.assertRaisesRegex(ValueError, message): layout(active)
+        scene["rules"].append(dict(name="Other light", property="ambient",instance=None,range=[0.1,0.5]))
+        with self.assertRaisesRegex(ValueError, "Two parameters"):
+            layout(["Window light", "Other light"])
+        scene["rules"][0]["range"] = [-1, 0.5]
+        with self.assertRaisesRegex(ValueError, "room light"):
+            layout(["Window light"])
+
     def test_named_start_regions_order_conflicts_and_legacy_layouts(self):
         items = {i["id"]: i for i in self.task["scene"]["instances"]}
         floor = dict(support=None, bounds_m=[[1.8, 1.0], [4.0, 3.0]])

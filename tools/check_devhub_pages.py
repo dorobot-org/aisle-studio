@@ -53,17 +53,27 @@ def main():
     )
     focused = parser.add_mutually_exclusive_group()
     focused.add_argument(
+        "--suite",
+        choices=["pages", "photo-reviews", "g1-revision", "scene-ranges"],
+        default="pages",
+        help="Choose all pages or a focused native workflow",
+    )
+    focused.add_argument(
         "--photo-reviews",
-        action="store_true",
+        action="store_const",
+        const="photo-reviews",
+        dest="suite",
         help="Run the survey and both authenticated proposal workflows as a focused lease",
     )
     focused.add_argument(
         "--g1-revision",
-        action="store_true",
+        action="store_const",
+        const="g1-revision",
+        dest="suite",
         help="Revise a failed authored-room G1 run using the selected authenticated provider",
     )
     args = parser.parse_args()
-    if args.g1_revision and args.provider == "reference":
+    if args.suite == "g1-revision" and args.provider == "reference":
         parser.error("--g1-revision requires --provider octos or codex")
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
@@ -106,13 +116,13 @@ def main():
         (out / "verification.json").write_text(json.dumps(report, indent=2) + "\n")
         print(f"{name} passed", flush=True)
 
-    if not args.g1_revision:
+    if args.suite in ("pages", "photo-reviews"):
         run("survey", "check_survey.py", "--assets")
-    if not args.photo_reviews:
+    if args.suite != "photo-reviews":
         subprocess.run(
             [sys.executable, tools / "fetch_robot_meshes.py", "g1"], check=True
         )
-    if args.photo_reviews:
+    if args.suite == "photo-reviews":
         for provider in ["codex", "octos-deepseek"]:
             run(
                 provider,
@@ -123,12 +133,16 @@ def main():
                 out / "survey/state/aisle/survey",
                 python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable),
             )
-    elif args.g1_revision:
+    elif args.suite == "g1-revision":
         run("g1-revision", "check_g1_revision.py", "--provider", args.provider)
+    elif args.suite == "scene-ranges":
+        run("ranges", "check_scene_ranges.py")
+        run("nano-ranges", "check_scene_ranges.py", "--robot", "Nano")
     else:
         report["nano_provider"] = args.provider
         run("scene", "check_scene_editor.py")
         run("g1", "check_start_areas.py")
+        run("ranges", "check_scene_ranges.py")
         run("nano", "check_experiment.py", "--provider", args.provider)
         batch_id = json.loads((out / "nano/verification.json").read_bytes())["batch_id"]
         batch = out / "nano/state/aisle/experiments" / batch_id

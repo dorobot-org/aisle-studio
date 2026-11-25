@@ -1,0 +1,248 @@
+"""Author named lighting, friction and pose ranges, then compare the previews with Nexus."""
+
+import argparse
+import hashlib
+import json
+import math
+from pathlib import Path
+from check_experiment import experiment_fixture
+from studio_native import NativeStudio
+
+
+def read(path):
+    return json.loads(path.read_bytes())
+
+
+def main():
+    cli = argparse.ArgumentParser(description=__doc__)
+    for name in ["studio", "session", "remote"]:
+        cli.add_argument("--" + name, type=Path, required=True)
+    cli.add_argument("--backend", choices=["headless", "offscreen"], default="headless")
+    cli.add_argument("--robot", choices=["G1", "Nano"], default="G1")
+    args = cli.parse_args()
+    folder = args.session.resolve()
+    folder.mkdir(parents=True, exist_ok=False)
+    survey = folder / "state/aisle/survey"
+    initial, _ = experiment_fixture(survey)
+    revisions = survey / "scenes" / initial["scene"]["id"]
+    old = (revisions / "1.json").read_bytes()
+    app = NativeStudio(args, folder)
+    editor = "aisle_scene.composer."
+    run = "aisle_run.experiment_pane.exp_"
+    inspector = editor + "inspector"
+    form = run + "form"
+
+    def click(key, panel=None):
+        if panel:
+            app.scroll_to(key, panel)
+        app.click(key)
+
+    def field(key, value, panel):
+        click(key, panel)
+        app.act("key", "w=0", "c=KeyA", "logo=1", "wait=1")
+        app.act("text", "w=0", "t=" + str(value), "wait=1")
+
+    def choose(key, idx, panel):
+        click(key, panel)
+        for action in ["Home", *(["ArrowDown"] * idx), "ReturnKey"]:
+            app.act("key", "w=0", "c=" + action, "wait=1")
+
+    def show(key, value):
+        return app.wait(
+            lambda s: value in s["controls"].get(key, {}).get("text", ""),
+            key + " " + value,
+        )
+
+    def shot(name):
+        if args.backend == "offscreen":
+            app.act("grab", "w=0", "out=" + str(folder / (name + ".png")))
+
+    definitions = [
+        ("Window light", 5, None, 0.25, 0.75),
+        ("Table grip", 4, 0, 0.3, 0.8),
+        ("Chair position", 0, 3, -1.65, -1.05),
+        ("Chair angle", 3, 3, -18, 18),
+    ]
+    with app.launch():
+        click("tabs.plugin_tab_aisle_scene")
+        click("aisle_scene.composer_mode")
+        click(editor + "open_scene")
+        show(editor + "header", "5 objects")
+        for name, prop, target, lo, hi in definitions:
+            choose(editor + "rule_list", 0, inspector)
+            choose(editor + "rule_property", prop, inspector)
+            if target is not None:
+                choose(editor + "rule_target", target, inspector)
+            field(editor + "rule_name", name, inspector)
+            field(editor + "rule_min", lo, inspector)
+            if prop == 5:
+                field(editor + "rule_max", 1.5, inspector)
+                click(editor + "rule_apply", inspector)
+                show(editor + "feedback", "from 0 to 1")
+            field(editor + "rule_max", hi, inspector)
+            click(editor + "rule_apply", inspector)
+            show(editor + "feedback", "Save the scene revision")
+        shot("scene-ranges")
+        click(editor + "save")
+        show(editor + "feedback", "Scene revision saved")
+    scene = read(revisions / "2.json")
+    assert (revisions / "1.json").read_bytes() == old
+    assert [r["name"] for r in scene["rules"]] == [r[0] for r in definitions], scene[
+        "rules"
+    ]
+    assert [r["instance"] for r in scene["rules"]] == [
+        None,
+        "object-oak",
+        "chair-left",
+        "chair-left",
+    ]
+    with app.launch():
+        click("aisle_task." + args.robot.lower())
+        click("aisle_task.select_scene")
+        if args.robot == "Nano":
+            choose(
+                "aisle_task.project_task.pickup",
+                1,
+                "aisle_task.project_task.binding_inspector",
+            )
+        click("aisle_task.project_task.activate")
+        show("aisle_task.project_task.result", "saved")
+        task_hash = (
+            survey / ("active-task-g1" if args.robot == "G1" else "active-task")
+        ).read_text()
+        frozen = survey / "tasks" / (task_hash + ".json")
+        assert read(frozen)["scene"] == scene
+        click("aisle_task.select_scene")
+        click("aisle_task.reference")
+        app.wait(
+            lambda s: (s["state"].get("controller") or {}).get("bound_task_sha256")
+            == task_hash
+            and not s["state"]["busy"],
+            "frozen G1 task",
+        )
+        click("tabs.plugin_tab_aisle_run")
+        click("aisle_run.experiment_mode")
+        field(run + "count", 2, form)
+        click(run + "cameras", form)
+        click(run + "preview")
+        show(run + "preview_status", "Seed 42")
+        assert "Window light" not in app.control(run + "preview_values")["text"]
+        click(run + "preview")
+        for idx, (name, *_) in enumerate(definitions):
+            choose(run + "rule", idx, form)
+            click(run + "rule_toggle", form)
+            show(run + "rule_toggle", "Disable")
+        click(run + "save")
+        saved = next((folder / "state/aisle/experiment-configs").glob("*.json"))
+        assert read(saved)["active_scene_rules"] == [r[0] for r in definitions]
+        click(run + "preview")
+        previews = []
+        for idx in range(2):
+            if idx:
+                click(run + "preview_next")
+            snap = app.wait(
+                lambda s: f"Seed {42 + idx} ·"
+                in s["controls"][run + "preview_status"]["text"]
+                and "Window light" in s["controls"][run + "preview_values"]["text"],
+                "sampled ranges in preview",
+            )["controls"]
+            values = snap[run + "preview_values"]["text"]
+            assert all(r[0] in values for r in definitions), values
+            previews.append(snap[run + "preview_status"]["text"].split(" · ")[-1])
+        shot("range-preview")
+        click(run + "start")
+        show(run + "feedback", "Batch started")
+        app.wait(
+            lambda s: s["controls"][run + "rows"]["text"].count("completed") == 2,
+            "two completed " + args.robot + " simulations",
+            720,
+        )
+    with app.launch():
+        click("aisle_task." + args.robot.lower())
+        click("tabs.plugin_tab_aisle_run")
+        click("aisle_run.experiment_mode")
+        choose(run + "rule", 1, form)
+        show(run + "rule_toggle", "Disable")
+        show(run + "rule_info", "Surface friction")
+        click(run + "preview")
+        show(run + "preview_status", previews[0])
+        show(run + "preview_values", "Chair position")
+    manifest = next((folder / "state/aisle/experiments").glob("*/batch.json"))
+    job = read(manifest)
+    trials = []
+    assert job["configuration"]["active_scene_rules"] == [r[0] for r in definitions]
+    for idx, r in enumerate(job["repetitions"]):
+        trial = manifest.parent / "trials" / r["run_id"]
+        layout = read(trial / "sampled-layout.json")
+        result = read(trial / "result.json")
+        values = layout["values"]
+        measure = result["scene_execution"]
+        assert (
+            r["sample_sha256"].startswith(previews[idx])
+            and hashlib.sha256(
+                json.dumps(layout, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest()
+            == r["sample_sha256"]
+        )
+        assert result["task_success"] and result["robot"] == args.robot
+        if args.robot == "G1":
+            assert result["both_feet_loaded_steps"] == result["physics_ticks"] == 2000
+        else:
+            assert result["requested"] == ["red"] and result["cubes"]["red"]["passed"]
+        for name, _, _, lo, hi in definitions:
+            assert (
+                lo <= values[name]["value"] <= hi
+                and values[name]["source"] == "scene_rule"
+            )
+        ambient = measure["ambient_rgb"]
+        assert ambient == [values["Window light"]["value"]] * 3
+        colliders = [b for b in measure["bodies"] if b["instance"] == "object-oak"]
+        assert len(colliders) == 5 and all(
+            b["friction"] == values["Table grip"]["value"] for b in colliders
+        )
+        chair = next(b for b in measure["bodies"] if b["instance"] == "chair-left")
+        x = chair["measured_center_m"][0]
+        qw, _, _, qz = chair["measured_quat_wxyz"]
+        yaw = math.degrees(2 * math.atan2(qz, qw))
+        assert (
+            abs(x - values["Chair position"]["value"]) < 1e-5
+            and abs(yaw - values["Chair angle"]["value"]) < 1e-4
+        ), (x, yaw, values)
+        trials.append(
+            dict(
+                seed=r["seed"],
+                sample_sha256=r["sample_sha256"],
+                physics_steps=result["physics_ticks"],
+                values=values,
+                nexus_ambient_rgb=ambient,
+                table_collider_friction=colliders[0]["friction"],
+                measured_chair_x_m=x,
+                measured_chair_yaw_deg=yaw,
+            )
+        )
+    assert (
+        trials[0]["values"] != trials[1]["values"]
+        and hashlib.sha256(frozen.read_bytes()).hexdigest() == task_hash
+    )
+    (folder / "verification.json").write_text(
+        json.dumps(
+            dict(
+                backend=args.backend,
+                robot=args.robot,
+                task_sha256=task_hash,
+                rules=scene["rules"],
+                trials=trials,
+                restored=True,
+            ),
+            indent=2,
+        )
+        + "\n"
+    )
+    print(
+        f"Verified four saved scene ranges across two {args.robot} physics runs",
+        flush=True,
+    )
+
+
+if __name__ == "__main__":
+    main()

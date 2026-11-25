@@ -32,6 +32,7 @@ class Compiled:
         return {
             "task_sha256": self.sha256,
             "scene": {k: self.document["scene"][k] for k in ("id", "revision", "name")},
+            **({"ambient_rgb": list(scene.ambient)} if self.document["scene"].get("rules") else {}),
             **(
                 dict(
                     pickup_instance=self.document["pickup"],
