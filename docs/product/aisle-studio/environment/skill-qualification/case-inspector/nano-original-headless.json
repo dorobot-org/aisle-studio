@@ -1,0 +1,10 @@
+{
+  "robot": "Nano",
+  "registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+  "backend": "headless",
+  "verdict_sha256": "ef40a6dd8f8c2caa521662c39290b74eee454db3c215679b88297f39ee9a3b78",
+  "case": 0,
+  "source_release_exposures": 0,
+  "frames": [],
+  "coverage": "Three-cube success across layouts \u00b7 95% Wilson interval 76.2%\u201394.4%"
+}

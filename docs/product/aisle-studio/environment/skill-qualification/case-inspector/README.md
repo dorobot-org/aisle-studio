@@ -1,0 +1,9 @@
+# Inspect a qualification case
+
+Open **Evidence → Skill qualification**, choose a verified registration, and select **Inspect case evidence**. The case selector includes successes and failures. Each selection reads the original verified records. The inspector works with a local cohort or a restored review archive.
+
+**G1.** Select an impact to see its mass, speed and lateral offset, the number of two-foot-supported steps, settled wrist error and recovery time. The eight boundary recipes are counted separately from the twelve interior recipes. Case 8 of the second G1 registration is an interior impact of 0.24 kg at 1.194 m/s. The robot maintained support for 2,000 steps and recovered in 0.50 s. [Offscreen view](g1-inspection.png) · [Measured inspection](g1-offscreen.json)
+
+**Nano.** Select a layout to see its seed, elapsed physics ticks, and the opposing-finger lift and final tabletop contact counts for each cube. The cohort estimate includes a 95% Wilson interval when every case has been verified. The original 44/50 cohort gives 76.2%–94.4%. Its controller did not retain release exposures. Opening such a case displays that recording status. [Original-cohort headless inspection](nano-original-headless.json)
+
+When the controller recorded release exposures, **Next exposure** and **Previous exposure** move between sensor timestamps. The image strip shows the head, left wrist and right wrist in that order. The caption identifies the cube, physics tick, simulation time and RGB digest. For a raised-wrist survey it also reports the number of earlier cubes the controller saw. Studio checks the packet against the verified case and renders its original RGB samples.

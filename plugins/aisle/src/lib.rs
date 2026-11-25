@@ -244,7 +244,19 @@ script_mod! {
                 Bar{qa_register := mod.widgets.ux.ToolButton{text:"Register current controller"} qa_run := mod.widgets.ux.PrimaryButton{text:"Run remaining cases"} qa_verify := mod.widgets.ux.ToolButton{text:"Verify measurements"}}
             }
             qa_review_card := Card{width:Fill height:Fit spacing:7
-                qa_result := Title{}
+                Bar{qa_result := Title{width:Fill} qa_inspect := mod.widgets.ux.ToolButton{text:"Inspect case evidence" visible:false}}
+                qa_inspector := View{width:Fill height:Fit flow:Down spacing:5 visible:false
+                    Bar{Section{width:55 text:"Case"} qa_case_selector := DropDown{width:Fill labels:["Choose a case"]}}
+                    qa_case_coverage := Body{}
+                    qa_case_summary := Body{max_lines:12}
+                    qa_exposures := Bar{visible:false
+                        qa_previous_exposure := mod.widgets.ux.ToolButton{text:"Previous exposure"}
+                        qa_exposure_count := Section{width:Fill}
+                        qa_next_exposure := mod.widgets.ux.ToolButton{text:"Next exposure"}
+                    }
+                    qa_exposure_caption := Body{}
+                    qa_exposure_rgb := VideoPlayer{width:Fill height:160 visible:false}
+                }
                 qa_failure_scroll := ScrollYView{width:Fill height:72 flow:Down qa_failures := Body{max_lines:180}}
                 qa_development := View{width:Fill height:Fit flow:Down spacing:3 visible:false
                     Bar{qa_cases := DropDown{width:Fill labels:["Choose failed layout"]} qa_replay_case := mod.widgets.ux.ToolButton{text:"Test current controller on layout"}}

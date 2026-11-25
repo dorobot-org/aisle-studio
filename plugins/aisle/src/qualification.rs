@@ -7,12 +7,17 @@ use std::{
     time::{Duration, Instant},
 };
 
+struct QualificationReply {
+    data: Value,
+    frame: Vec<u8>,
+}
+
 #[derive(Default)]
 pub(super) struct Qualification {
     pub open: bool,
     robot: Option<Robot>,
     catalog: Value,
-    pending: Option<mpsc::Receiver<Result<Value, String>>>,
+    pending: Option<mpsc::Receiver<Result<QualificationReply, String>>>,
     operation: String,
     message: String,
     next_progress: Option<Instant>,
@@ -20,6 +25,10 @@ pub(super) struct Qualification {
     failed_index: usize,
     loaded_comparison: Option<(String, u64)>,
     comparison: Value,
+    inspecting: bool,
+    case_index: usize,
+    exposure_index: usize,
+    inspected: Value,
 }
 
 fn s<'a>(v: &'a Value, key: &str) -> &'a str {
@@ -51,6 +60,8 @@ impl Panel {
         let case = self.qualification.catalog["failures"]
             .get(self.qualification.failed_index)
             .and_then(|r| r["index"].as_u64());
+        let case_index = self.qualification.case_index;
+        let exposure_index = self.qualification.exposure_index;
         let (tx, rx) = mpsc::channel();
         self.qualification.pending = Some(rx);
         self.qualification.operation = op.into();
@@ -59,7 +70,16 @@ impl Panel {
             let result = (|| {
                 let mut cmd = dorobot_studio_core::api::aisle::python_command(&root)
                     .map_err(|e| e.to_string())?;
-                if op == "replay" {
+                if op == "inspect" {
+                    let id = id.as_deref().ok_or("Select a verified qualification")?;
+                    cmd.arg(root.join("tools/skill_qualification/inspect_case.py"))
+                        .arg("--state")
+                        .arg(&state)
+                        .args(["--id", id, "--expected-verdict", &expected, "--case"])
+                        .arg(case_index.to_string())
+                        .arg("--exposure")
+                        .arg(exposure_index.to_string());
+                } else if op == "replay" {
                     let id = id.as_deref().ok_or("Choose a disclosed registration")?;
                     let index = case.ok_or("Choose a failed layout")?;
                     let base = state.join(id);
@@ -90,7 +110,7 @@ impl Panel {
                         cmd.arg("--id").arg(id);
                     }
                 }
-                if let Some(path) = controller {
+                if let Some(path) = controller.filter(|_| op != "inspect") {
                     cmd.arg("--controller").arg(path);
                 }
                 if matches!(op, "approve" | "reject" | "handoff") {
@@ -110,7 +130,27 @@ impl Panel {
                         .trim_start_matches("ValueError: ")
                         .to_owned());
                 }
-                serde_json::from_slice(&out.stdout).map_err(|e| e.to_string())
+                let mut payload = out.stdout;
+                let frame = if op == "inspect" {
+                    let header = payload
+                        .iter()
+                        .position(|b| *b == b'\n')
+                        .ok_or("The evidence reader returned an incomplete response")?;
+                    payload.split_off(header + 1)
+                } else {
+                    Vec::new()
+                };
+                let data: Value = serde_json::from_slice(&payload).map_err(|e| e.to_string())?;
+                if op == "inspect" {
+                    let width = data["width"].as_u64().unwrap_or(0);
+                    let height = data["height"].as_u64().unwrap_or(0);
+                    if width.checked_mul(height).and_then(|n| n.checked_mul(3))
+                        != Some(frame.len() as u64)
+                    {
+                        return Err("The RGB view differs from its recorded dimensions".into());
+                    }
+                }
+                Ok(QualificationReply { data, frame })
             })();
             let _ = tx.send(result);
             SignalToUI::set_ui_signal();
@@ -137,11 +177,55 @@ impl Panel {
             self.qualification.pending = None;
             self.qualification.progress = None;
             match reply {
-                Ok(v) if self.qualification.operation == "replay" => {
-                    self.qualification.comparison = v;
+                Ok(reply) if self.qualification.operation == "inspect" => {
+                    let v = reply.data;
+                    if let Some(mut player) = self
+                        .root
+                        .video_player(cx, ids!(qa_exposure_rgb))
+                        .borrow_mut()
+                    {
+                        player.clear(cx);
+                        if !reply.frame.is_empty() {
+                            player.set_frame(
+                                cx,
+                                v["width"].as_u64().unwrap_or(0) as usize,
+                                v["height"].as_u64().unwrap_or(0) as usize,
+                                &reply.frame,
+                            );
+                        }
+                    }
+                    self.root
+                        .drop_down(cx, ids!(qa_case_selector))
+                        .set_selected_item(cx, self.qualification.case_index);
+                    self.qualification.inspected = v;
                 }
-                Ok(v) => {
-                    if v["selected"] != self.qualification.catalog["selected"] {
+                Ok(reply) if self.qualification.operation == "replay" => {
+                    self.qualification.comparison = reply.data;
+                }
+                Ok(reply) => {
+                    let v = reply.data;
+                    if v["verdict_sha256"] != self.qualification.catalog["verdict_sha256"]
+                        || v["selected"] != self.qualification.catalog["selected"]
+                    {
+                        self.qualification.inspecting = false;
+                        self.qualification.inspected = Value::Null;
+                        self.qualification.case_index = 0;
+                        self.qualification.exposure_index = 0;
+                        let cases = v["report"]["cases"].as_u64().unwrap_or(0);
+                        let selector = self.root.drop_down(cx, ids!(qa_case_selector));
+                        let failures = v["failures"].as_array();
+                        selector.set_labels(
+                            cx,
+                            (0..cases)
+                                .map(|i| {
+                                    let failed = failures.is_some_and(|rows| {
+                                        rows.iter().any(|row| row["index"].as_u64() == Some(i))
+                                    });
+                                    format!("{i} · {}", if failed { "failed" } else { "passed" })
+                                })
+                                .collect(),
+                        );
+                        selector.set_selected_item(cx, 0);
                         self.qualification.failed_index = 0;
                     }
                     let failures = v["failures"].as_array().cloned().unwrap_or_default();
@@ -295,6 +379,9 @@ impl Panel {
             String::new()
         };
         self.label(cx, ids!(qa_result), &result);
+        self.update_case_inspector(cx, r.is_object(), w.robot);
+        let v = &self.qualification.catalog;
+        let r = &v["report"];
         let failures = v["failures"]
             .as_array()
             .into_iter()
@@ -406,6 +493,81 @@ impl Panel {
         }
     }
 
+    fn update_case_inspector(&self, cx: &mut Cx, has_report: bool, robot: Robot) {
+        let qa = &self.qualification;
+        self.root
+            .widget(cx, ids!(qa_inspect))
+            .set_visible(cx, has_report);
+        self.root
+            .button(cx, ids!(qa_inspect))
+            .set_enabled(cx, qa.pending.is_none());
+        self.root.button(cx, ids!(qa_inspect)).set_text(
+            cx,
+            if qa.inspecting {
+                "Close case evidence"
+            } else {
+                "Inspect case evidence"
+            },
+        );
+        self.root
+            .widget(cx, ids!(qa_inspector))
+            .set_visible(cx, has_report && qa.inspecting);
+        if !has_report || !qa.inspecting {
+            return;
+        }
+        let v = &qa.inspected;
+        self.label(cx, ids!(qa_case_coverage), s(v, "coverage"));
+        self.label(
+            cx,
+            ids!(qa_case_summary),
+            if v.is_object() {
+                s(v, "summary")
+            } else if qa.pending.is_some() {
+                "Reading the recorded case…"
+            } else {
+                &qa.message
+            },
+        );
+        let n = v["exposures"].as_u64().unwrap_or(0) as usize;
+        self.root
+            .widget(cx, ids!(qa_exposures))
+            .set_visible(cx, n > 0);
+        self.root
+            .widget(cx, ids!(qa_exposure_rgb))
+            .set_visible(cx, n > 0);
+        self.root
+            .widget(cx, ids!(qa_exposure_caption))
+            .set_visible(cx, robot == Robot::Nano && v.is_object());
+        if n == 0 {
+            self.label(
+                cx,
+                ids!(qa_exposure_caption),
+                "No recorded release exposures for this case",
+            );
+        } else {
+            self.label(
+                cx,
+                ids!(qa_exposure_count),
+                &format!("Exposure {} of {n}", qa.exposure_index + 1),
+            );
+            self.label(
+                cx,
+                ids!(qa_exposure_caption),
+                &format!(
+                    "{}\nCamera order · head, left wrist, right wrist · RGB {}",
+                    s(v, "caption"),
+                    s(v, "frame_sha256").get(..12).unwrap_or("")
+                ),
+            );
+        }
+        self.root
+            .button(cx, ids!(qa_previous_exposure))
+            .set_enabled(cx, qa.pending.is_none() && qa.exposure_index > 0);
+        self.root
+            .button(cx, ids!(qa_next_exposure))
+            .set_enabled(cx, qa.pending.is_none() && qa.exposure_index + 1 < n);
+    }
+
     pub(super) fn qualification_actions(
         &mut self,
         cx: &mut Cx,
@@ -424,6 +586,42 @@ impl Panel {
             return false;
         }
         let v = &self.qualification.catalog;
+        let inspect_button = self.root.button(cx, ids!(qa_inspect)).clicked(actions);
+        if inspect_button {
+            self.qualification.inspecting = !self.qualification.inspecting;
+            if !self.qualification.inspecting {
+                return true;
+            }
+        }
+        if self.qualification.inspecting {
+            let selected = self
+                .root
+                .drop_down(cx, ids!(qa_case_selector))
+                .selected(actions);
+            let prev = self
+                .root
+                .button(cx, ids!(qa_previous_exposure))
+                .clicked(actions);
+            let next = self
+                .root
+                .button(cx, ids!(qa_next_exposure))
+                .clicked(actions);
+            if let Some(index) = selected {
+                self.qualification.case_index = index;
+                self.qualification.exposure_index = 0;
+            } else if prev {
+                self.qualification.exposure_index =
+                    self.qualification.exposure_index.saturating_sub(1);
+            } else if next {
+                self.qualification.exposure_index += 1;
+            }
+            if inspect_button || selected.is_some() || prev || next {
+                let id = v["selected"].as_str().map(str::to_owned);
+                self.qualification.inspected = Value::Null;
+                self.qualification_op(cx, w, "inspect", id);
+                return true;
+            }
+        }
         if let Some(i) = self.root.drop_down(cx, ids!(qa_selector)).selected(actions) {
             let id = v["ids"].get(i).and_then(Value::as_str).map(str::to_owned);
             self.qualification_op(cx, w, "list", id);

@@ -21,6 +21,10 @@ The G1 archive contains the original unsigned evaluation. The native workflow te
 
 Signed Makepad DevHub job J13 compiled the release candidate, registered a second G1 cohort from the native Evidence page, and executed all 20 cases through the real bridge. All 20 passed, each receipt verified, and Studio restored the signed review after a restart. The job finished in 335 seconds. [Headless build manifest](../devhub/skill-qualification-g1/verification.json) · [G1 workflow receipt](../devhub/skill-qualification-g1/g1/verification.json) · [J14 replay on the final responsive review layout](../devhub/skill-review-g1/verification.json)
 
+## Inspect a case
+
+Select **Inspect case evidence** on a verified registration to review a specific success or failure. Nano shows measured grip, support and retained release images. G1 shows the impact, two-foot support, wrist error and recovery. [Operator steps and measured screenshots](case-inspector/README.md)
+
 ## Test a revision on a disclosed Nano failure
 
 Restore the original Nano archive from its [recorded Studio checkout](https://github.com/dorobot-org/aisle-studio/tree/1762cbc9009e323dd03fb4b14aab979eaee423d8) to the project first. Open the same project in the revised Studio, select **Nano** and prepare its three-cube controller in **Task**. Open **Evidence → Skill qualification**, choose the verified original registration, select a failed layout and click **Test current controller on layout**. Studio runs the prepared controller on the disclosed layout and shows the two outcomes, candidate digest, physics ticks and guard bypasses. Choose a different failure or reopen the project to retrieve the latest comparison for that layout. The original measurements and the new development trials have distinct locations in the project. [Example and camera evidence](nano/wrist-survey/README.md)
