@@ -246,7 +246,7 @@ script_mod! {
             qa_review_card := Card{width:Fill height:Fit spacing:7
                 Bar{qa_result := Title{width:Fill} qa_inspect := mod.widgets.ux.ToolButton{text:"Inspect case evidence" visible:false}}
                 qa_inspector := View{width:Fill height:Fit flow:Down spacing:5 visible:false
-                    Bar{Section{width:55 text:"Case"} qa_case_selector := DropDown{width:Fill labels:["Choose a case"]}}
+                    qa_case_picker := Bar{Section{width:55 text:"Case"} qa_case_selector := DropDown{width:Fill labels:["Choose a case"]}}
                     qa_case_coverage := Body{}
                     qa_case_summary := Body{max_lines:12}
                     qa_exposures := Bar{visible:false
@@ -261,6 +261,7 @@ script_mod! {
                 qa_development := View{width:Fill height:Fit flow:Down spacing:3 visible:false
                     Bar{qa_cases := DropDown{width:Fill labels:["Choose failed layout"]} qa_replay_case := mod.widgets.ux.ToolButton{text:"Test current controller on layout"}}
                     qa_comparison := Body{visible:false}
+                    qa_inspect_retry := mod.widgets.ux.ToolButton{text:"Inspect retry observations" visible:false}
                 }
                 Section{text:"Reviewer decision"} qa_decision := Body{}
                 Bar{Section{width:100 text:"Reviewer"} qa_reviewer := TextInput{width:Fill height:36 empty_text:"Trusted signer identity"} Section{width:62 text:"Reason"} qa_reason := TextInput{width:Fill height:36 empty_text:"Reason for this decision"}}

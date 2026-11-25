@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 
 from studio_native import NativeStudio
+from check_qualification_evidence import check_exposure
 
 
 def read(path):
@@ -57,6 +58,9 @@ def main():
         app.control(prefix + "replay_case")
         select_case(selected)
 
+    directory = state / "case-replays" / baseline.name / f"case-{args.case:03}"
+    retry_frames = []
+
     with app.launch():
         open_case()
         app.click(prefix + "replay_case")
@@ -78,7 +82,9 @@ def main():
         if len(failed_cases) > 1:
             select_case((selected + 1) % len(failed_cases))
             app.wait(
-                lambda s: not s["controls"].get(prefix + "comparison", {}).get("visible"),
+                lambda s: not s["controls"]
+                .get(prefix + "comparison", {})
+                .get("visible"),
                 "previous comparison hidden on a different case",
             )
             select_case(selected)
@@ -88,7 +94,31 @@ def main():
                 in s["controls"][prefix + "comparison"]["text"],
                 "original comparison restored on reselect",
             )
-    directory = state / "case-replays" / baseline.name / f"case-{args.case:03}"
+        app.scroll_to(prefix + "inspect_retry", prefix + "panel")
+        app.click(prefix + "inspect_retry")
+        app.wait(
+            lambda sn: f"Disclosed retry {args.case} ·"
+            in sn["controls"][prefix + "case_summary"]["text"],
+            "measured retry",
+        )
+        trial_dir = directory / read(directory / "latest.json")["trial"]
+        packets = sorted((trial_dir / "release-observations").glob("*.npz"))
+        for j, file in enumerate(packets[:2]):
+            if j:
+                app.scroll_to(prefix + "next_exposure", prefix + "panel")
+                app.click(prefix + "next_exposure")
+            capture = (
+                folder / f"retry-exposure-{j}.png"
+                if args.backend == "offscreen"
+                else None
+            )
+            retry_frames.append(check_exposure(app, prefix, file, capture))
+        if not packets:
+            app.wait(
+                lambda sn: "No recorded release exposures"
+                in sn["controls"][prefix + "exposure_caption"]["text"],
+                "unrecorded retry exposure",
+            )
     comparison = read(directory / "latest.json")
     trial = directory / comparison["trial"]
     assert comparison == read(trial / "comparison.json")
@@ -116,6 +146,7 @@ def main():
         "backend": args.backend,
         "reopened": True,
         "case_switch_checked": len(failed_cases) > 1,
+        "retry_frames": retry_frames,
         "original_verdict_preserved": True,
     }
     (folder / "verification.json").write_text(json.dumps(evidence, indent=2) + "\n")

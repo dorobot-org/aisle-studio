@@ -448,6 +448,7 @@ impl App {
                         "aisle_evidence.qa_cases",
                         "aisle_evidence.qa_replay_case",
                         "aisle_evidence.qa_comparison",
+                        "aisle_evidence.qa_inspect_retry",
                         "aisle_evidence.qa_export",
                         "aisle_evidence.qa_reviewer",
                         "aisle_evidence.qa_reason",

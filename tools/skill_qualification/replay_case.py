@@ -117,6 +117,7 @@ def replay(baseline, published, index, controller, output, inspect):
     measured = nano.receipt(output, member, scoring)
     if not measured.get("verified") or measured["passed"] != after["task_success"]:
         raise ValueError("Candidate physics replay disagrees with the returned verdict")
+    packets = release_packets(output)
     return dict(
         split="disclosed development",
         original_registration=baseline.name,
@@ -128,7 +129,9 @@ def replay(baseline, published, index, controller, output, inspect):
         physics_ticks=measured["physics_ticks"],
         bypasses=measured["guard_bypasses"],
         error=measured["error"],
-        release_exposures=len(release_packets(output)),
+        release_exposures=len(packets),
+        evidence=measured
+        | {"artifacts": {"release_packets_sha256": digest(encode(packets))}},
         baseline_receipt_sha256=before["receipt_sha256"],
         candidate_receipt=receipt,
     )

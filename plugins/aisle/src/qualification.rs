@@ -26,6 +26,7 @@ pub(super) struct Qualification {
     loaded_comparison: Option<(String, u64)>,
     comparison: Value,
     inspecting: bool,
+    inspected_retry: Option<(String, String)>,
     case_index: usize,
     exposure_index: usize,
     inspected: Value,
@@ -60,6 +61,7 @@ impl Panel {
         let case = self.qualification.catalog["failures"]
             .get(self.qualification.failed_index)
             .and_then(|r| r["index"].as_u64());
+        let retry = self.qualification.inspected_retry.clone();
         let case_index = self.qualification.case_index;
         let exposure_index = self.qualification.exposure_index;
         let (tx, rx) = mpsc::channel();
@@ -79,6 +81,9 @@ impl Panel {
                         .arg(case_index.to_string())
                         .arg("--exposure")
                         .arg(exposure_index.to_string());
+                    if let Some((trial, receipt)) = retry {
+                        cmd.args(["--retry", &trial, "--expected-receipt", &receipt]);
+                    }
                 } else if op == "replay" {
                     let id = id.as_deref().ok_or("Choose a disclosed registration")?;
                     let index = case.ok_or("Choose a failed layout")?;
@@ -208,6 +213,7 @@ impl Panel {
                         || v["selected"] != self.qualification.catalog["selected"]
                     {
                         self.qualification.inspecting = false;
+                        self.qualification.inspected_retry = None;
                         self.qualification.inspected = Value::Null;
                         self.qualification.case_index = 0;
                         self.qualification.exposure_index = 0;
@@ -418,6 +424,12 @@ impl Panel {
         self.root
             .widget(cx, ids!(qa_comparison))
             .set_visible(cx, show);
+        self.root
+            .widget(cx, ids!(qa_inspect_retry))
+            .set_visible(cx, show && c["evidence"].is_object());
+        self.root
+            .button(cx, ids!(qa_inspect_retry))
+            .set_enabled(cx, self.qualification.pending.is_none());
         if show {
             let scored = |passed: &Value| if passed == true { "passed" } else { "failed" };
             self.label(cx,ids!(qa_comparison),&format!("Case {} · baseline {} → candidate {} · {} scored ticks · {} guard bypasses\nCandidate {}",
@@ -515,6 +527,9 @@ impl Panel {
         if !has_report || !qa.inspecting {
             return;
         }
+        self.root
+            .widget(cx, ids!(qa_case_picker))
+            .set_visible(cx, qa.inspected_retry.is_none());
         let v = &qa.inspected;
         self.label(cx, ids!(qa_case_coverage), s(v, "coverage"));
         self.label(
@@ -587,7 +602,26 @@ impl Panel {
         }
         let v = &self.qualification.catalog;
         let inspect_button = self.root.button(cx, ids!(qa_inspect)).clicked(actions);
-        if inspect_button {
+        let retry_button = self
+            .root
+            .button(cx, ids!(qa_inspect_retry))
+            .clicked(actions);
+        if retry_button {
+            let comparison = &self.qualification.comparison;
+            let (Some(trial), Some(receipt), Some(index)) = (
+                comparison["trial"].as_str(),
+                comparison["candidate_receipt"]["receipt_sha256"].as_str(),
+                comparison["case"].as_u64(),
+            ) else {
+                return true;
+            };
+            self.qualification.inspected_retry = Some((trial.to_owned(), receipt.to_owned()));
+            self.qualification.case_index = index as usize;
+            self.qualification.exposure_index = 0;
+            self.qualification.inspecting = true;
+        } else if inspect_button {
+            self.qualification.inspected_retry = None;
+            self.qualification.exposure_index = 0;
             self.qualification.inspecting = !self.qualification.inspecting;
             if !self.qualification.inspecting {
                 return true;
@@ -615,7 +649,7 @@ impl Panel {
             } else if next {
                 self.qualification.exposure_index += 1;
             }
-            if inspect_button || selected.is_some() || prev || next {
+            if inspect_button || retry_button || selected.is_some() || prev || next {
                 let id = v["selected"].as_str().map(str::to_owned);
                 self.qualification.inspected = Value::Null;
                 self.qualification_op(cx, w, "inspect", id);

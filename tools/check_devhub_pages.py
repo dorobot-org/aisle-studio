@@ -177,6 +177,7 @@ def main():
             "--baseline", args.baseline.resolve(),
             "--controller", args.controller.resolve(),
             "--case", str(args.case), "--expect-pass",
+            python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable),
         )
     elif args.suite == "skill-qualification":
         for robot in [args.qualification_robot] if args.qualification_robot else ["G1", "Nano"]:

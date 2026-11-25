@@ -4,6 +4,7 @@ import argparse
 from io import BytesIO
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -78,7 +79,7 @@ def release_view(case, row, exposure):
     return result, rgb
 
 
-def case_view(baseline, expected, index, exposure):
+def case_view(baseline, expected, index, exposure, retry=None, expected_receipt=None):
     report = read(baseline / "verification.json")
     rows = read(baseline / "qualification-rows.json")
     registration = read(baseline / "registration.json")
@@ -95,6 +96,42 @@ def case_view(baseline, expected, index, exposure):
     ):
         raise ValueError("The selected case differs from the reviewed qualification")
     row, case = rows[index], baseline / f"case-{index:03}"
+    original = row
+    if retry is not None:
+        if registration["robot"] != "Nano" or not re.fullmatch(r"[0-9]+-[0-9]+", retry):
+            raise ValueError("Choose a saved Nano retry")
+        case = (
+            baseline.parent.parent
+            / "case-replays"
+            / baseline.name
+            / f"case-{index:03}"
+            / retry
+        )
+        comparison = read(case / "comparison.json")
+        if not (
+            comparison["original_registration"] == baseline.name
+            and comparison["trial"] == retry
+            and comparison["case"] == index
+            and comparison["baseline_receipt_sha256"]
+            == original["spec"]["receipt_sha256"]
+            and comparison["candidate_controller_sha256"]
+            == sha(case / "controller.json")
+            and comparison["candidate_receipt"]["receipt_sha256"] == expected_receipt
+            and comparison["candidate_receipt"]["receipt_sha256"]
+            != comparison["baseline_receipt_sha256"]
+        ):
+            raise ValueError("The selected retry differs from the paired record")
+        if "evidence" not in comparison:
+            raise ValueError("This earlier retry has no retained exposure digests")
+        row = comparison["evidence"] | {
+            "spec": comparison["candidate_receipt"],
+            "opening": original["opening"],
+        }
+        if (
+            sha(case / "result.json") != row["result_sha256"]
+            or bool(row["passed"]) != comparison["candidate_passed"]
+        ):
+            raise ValueError("The retry result differs from the original measurement")
     result = dict(index=index, exposures=0, exposure_index=0)
     rgb = b""
     verdict = "passed" if row["passed"] else "failed"
@@ -106,7 +143,8 @@ def case_view(baseline, expected, index, exposure):
     receipt = row["spec"]
     if sha(case / "spec-receipt.json") != receipt["receipt_sha256"]:
         raise ValueError("The case receipt differs from the verified record")
-    summary = [f"Case {index} · {verdict} · {row['guard_bypasses']} guard bypasses"]
+    label = "Disclosed retry" if retry else "Case"
+    summary = [f"{label} {index} · {verdict} · {row['guard_bypasses']} guard bypasses"]
     if registration["robot"] == "G1":
         for name in (
             "wrist-trace.npz",
@@ -139,7 +177,12 @@ def case_view(baseline, expected, index, exposure):
         )
         summary.extend(row.get("reasons", []))
     else:
-        if report["verified"] == len(rows):
+        if retry:
+            result["coverage"] = (
+                "Development run · candidate "
+                + comparison["candidate_controller_sha256"][:16]
+            )
+        elif report["verified"] == len(rows):
             n, z = len(rows), 1.959963984540054
             fraction = report["successes"] / n
             denom = 1 + z * z / n
@@ -176,11 +219,17 @@ if __name__ == "__main__":
     parser.add_argument("--expected-verdict", required=True)
     parser.add_argument("--case", type=int, required=True)
     parser.add_argument("--exposure", type=int, default=0)
+    parser.add_argument("--retry", help="Saved paired development trial")
+    parser.add_argument(
+        "--expected-receipt", help="Candidate receipt selected in Studio"
+    )
     args = parser.parse_args()
     view, rgb = case_view(
         directory_for(args.state, args.id),
         args.expected_verdict,
         args.case,
         args.exposure,
+        args.retry,
+        args.expected_receipt,
     )
     sys.stdout.buffer.write(json.dumps(view).encode("utf-8") + b"\n" + rgb)

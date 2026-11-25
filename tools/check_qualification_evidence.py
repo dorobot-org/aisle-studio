@@ -6,12 +6,64 @@ import json
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 
 from studio_native import NativeStudio
 
 
 def read(path):
     return json.loads(path.read_bytes())
+
+
+def check_exposure(app, key, file, screenshot=None):
+    tick = int(file.stem)
+    state = app.wait(
+        lambda st: f"tick {tick} ·" in st["controls"][key + "exposure_caption"]["text"],
+        f"exposure {tick}",
+    )
+    assert state["controls"][key + "exposure_rgb"]["visible"]
+    with np.load(file, allow_pickle=False) as packet:
+        expected = np.concatenate(
+            [packet[k] for k in ("head", "left_wrist", "right_wrist")], axis=1
+        )
+    checksum = hashlib.sha256(expected.tobytes()).hexdigest()
+    assert checksum[:12] in state["controls"][key + "exposure_caption"]["text"]
+    proof = dict(tick=tick, rgb_sha256=checksum)
+    if screenshot:
+        app.scroll_to(key + "exposure_rgb", key + "panel")
+        x, y, w, h = app.control(key + "exposure_rgb")["rect"]
+        app.act("grab", "w=0", "out=" + str(screenshot))
+        raw = Image.open(screenshot).convert("RGB")
+        frame = Image.fromarray(expected)
+        scale = min(w / frame.width, h / frame.height)
+        rw, rh = frame.width * scale, frame.height * scale
+        x += (w - rw) / 2
+        y += (h - rh) / 2
+        observed = raw.crop((round(x), round(y), round(x + rw), round(y + rh)))
+
+        def regions(image):
+            width, height = image.size
+            for j in range(3):
+                # Average the interior of each camera to tolerate subpixel rasterization.
+                rect = (
+                    round((j + 0.06) * width / 3),
+                    round(0.06 * height),
+                    round((j + 0.94) * width / 3),
+                    round(0.94 * height),
+                )
+                yield np.asarray(
+                    image.crop(rect).resize((32, 24), Image.Resampling.BOX), dtype=float
+                )
+
+        errors = [
+            float(np.abs(a - b).mean())
+            for a, b in zip(regions(observed), regions(frame), strict=True)
+        ]
+        assert max(errors) < 22, (
+            f"Rendered head/left/right RGB differ from the exposure: {errors}"
+        )
+        proof["mean_pixel_error_per_camera"] = [round(e, 2) for e in errors]
+    return proof
 
 
 def main():
@@ -91,20 +143,12 @@ def main():
                         app.scroll_to(key + "next_exposure", key + "panel")
                         app.click(key + "next_exposure")
                     wait_text("exposure_count", f"Exposure {j + 1} of {len(files)}")
-                    stamp = int(f.stem)
-                    rendered = wait_text("exposure_caption", f"tick {stamp} ·")
-                    assert rendered["controls"][key + "exposure_rgb"]["visible"]
-                    with np.load(f, allow_pickle=False) as v:
-                        expected = np.concatenate(
-                            [v[k] for k in ("head", "left_wrist", "right_wrist")],
-                            axis=1,
-                        ).tobytes()
-                    checksum = hashlib.sha256(expected).hexdigest()
-                    assert (
-                        checksum[:12]
-                        in rendered["controls"][key + "exposure_caption"]["text"]
+                    raster = (
+                        folder / f"release-{j}.png"
+                        if args.backend == "offscreen"
+                        else None
                     )
-                    checks["frames"].append(dict(tick=stamp, rgb_sha256=checksum))
+                    checks["frames"].append(check_exposure(app, key, f, raster))
                 assert checks["frames"][0]["tick"] != checks["frames"][1]["tick"]
                 app.scroll_to(key + "previous_exposure", key + "panel")
                 app.click(key + "previous_exposure")
