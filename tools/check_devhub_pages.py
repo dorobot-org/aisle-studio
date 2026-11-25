@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import time
@@ -56,7 +57,8 @@ def main():
     head = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
     ).strip()
-    studio = build_studio()
+    studio = out / "aisle-studio"
+    shutil.copy2(build_studio(), studio)
     subprocess.run(
         [sys.executable, ROOT / "tools/fetch_robot_meshes.py", "g1"], check=True
     )
@@ -110,6 +112,10 @@ def main():
         "--channels-only",
         receipt="channel-verification.json",
     )
+    if hashlib.sha256(studio.read_bytes()).hexdigest() != report["studio_binary_sha256"]:
+        raise RuntimeError("The lease executable changed during page qualification")
+    report["binary_verified_after_checks"] = True
+    (out / "verification.json").write_text(json.dumps(report, indent=2) + "\n")
     print(f"All four native pages passed at {head[:12]}", flush=True)
 
 
