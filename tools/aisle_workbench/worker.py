@@ -358,13 +358,24 @@ def measured_feedback(path, meta, output=None):
                 path / "actions.jsonl", previous["requested"]
             ),
         }
-    if previous.get("kind")=="standing-inspection":
-        disturbance=previous.get("disturbance") or {}
-        return {k:previous[k] for k in ("robot","joint","requested_delta","measured_delta","within_limits","task_success","controller_hash")} | {
-            "standing_measurements":{"both_feet_loaded_steps":previous["both_feet_loaded_steps"],"scored_steps":previous["steps"],
-                "wrist_error_m":previous["wrist_reach"]["max_final_100_error_m"],"stable_recovery_s":disturbance.get("recovery_s"),
-                "contact_links":disturbance.get("links",[]),"prior_trunk_pitch_rad":previous.get("trunk_pitch_target_rad",0.0),
-                "guard_excursion_rad":previous["max_joint_excursion_rad"]}}
+    if previous.get("kind") == "standing-inspection":
+        disturbance = previous.get("disturbance") or {}
+        return {k: previous[k] for k in (
+            "robot", "joint", "requested_delta", "measured_delta", "within_limits",
+            "task_success", "controller_hash"
+        )} | {
+            "bound_task_sha256": previous.get("bound_task_sha256"),
+            "standing_measurements": {
+                "both_feet_loaded_steps": previous["both_feet_loaded_steps"],
+                "scored_steps": previous["steps"],
+                "wrist_error_m": previous["wrist_reach"]["max_final_100_error_m"],
+                "stable_recovery_s": disturbance.get("recovery_s"),
+                "contact_links": disturbance.get("links", []),
+                "prior_trunk_pitch_rad": previous.get("trunk_pitch_target_rad", 0.0),
+                "prior_trunk_yaw_rad": previous.get("trunk_yaw_target_rad", 0.0),
+                "guard_excursion_rad": previous["max_joint_excursion_rad"],
+            },
+        }
     if previous.get("kind") == "visual-approach":
         return {
             k: previous[k]
@@ -570,6 +581,7 @@ def matches_bound(bound, plan):
 
 def prepare(args, meta):
     bound = None
+    revision_instruction = None
     path = getattr(args, "bound_task", None)
     if path is not None:
         from authored_scene import load
@@ -579,6 +591,9 @@ def prepare(args, meta):
         bound = load(path, getattr(args, "bound_task_sha256", None))
         if bound.document["robot"]!=args.robot:
             raise ValueError("Select the robot pinned by this scene task")
+        if (args.robot == "G1" and args.feedback and args.provider != "reference"
+                and args.task.strip() not in ("", REFERENCE, bound.document["instruction"])):
+            revision_instruction = args.task.strip()
         args.task = bound.document["instruction"]
         raw = path.read_bytes()
         if hashlib.sha256(raw).hexdigest() != bound.sha256:
@@ -588,6 +603,8 @@ def prepare(args, meta):
     feedback = (
         measured_feedback(args.feedback, meta, args.out) if args.feedback else None
     )
+    if bound and args.robot == "G1" and feedback and feedback.get("bound_task_sha256") != bound.sha256:
+        raise ValueError("Choose a standing trial from this saved G1 task for revision")
     model_name = None
     required_tracking = None
     moving_color = None
@@ -778,9 +795,17 @@ def prepare(args, meta):
                 "Choose supported=true and kind=standing-inspection when the operator instruction describes this capability. "
                 "Choose supported=false if the instruction demands walking, hardware actuation or incompatible motion. "
                 "Use zero trunk yaw and neutral trunk pitch for the baseline. "
-                "When revising a failed standing reach after recorded impact feedback, the supported alternate upright trunk pitch is -0.10 rad. "
+                "For a revision, consider the measured prior posture, foot support, wrist error and recovery. "
+                "An alternate upright pitch is -0.10 rad with zero yaw. A left waist turn of 20 or 30 degrees uses neutral pitch "
+                "(trunk_yaw_rad=0.34906585 or 0.52359878). The 30-degree preset previously passed a separate standing fixture. "
+                "If the previous posture missed recovery, choose a different supported posture for evaluation. "
                 "Keep the requested shoulder target unchanged. The runtime observes encoders and an IMU. "
-                f"Operator instruction: {args.task}")
+                f"Saved reach task: {args.task}")
+            if revision_instruction:
+                prompt += (
+                    "\nOperator's controller revision request: " + revision_instruction
+                    + "\nPreserve the saved joint and displacement. Reject a revision request that conflicts with them."
+                )
         elif bound:
             prompt += (
                 "\nThe operator selected one "
@@ -873,6 +898,7 @@ def prepare(args, meta):
         ),
         **({"scene_observation": observation} if observation else {}),
         **({"previous_trial": feedback} if feedback else {}),
+        **({"revision_instruction": revision_instruction} if revision_instruction else {}),
         **({"pickup_revision": revision} if revision else {}),
         robot=args.robot,
         task=args.task,
