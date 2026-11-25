@@ -119,7 +119,7 @@ script_mod! {
         status := Body{}
     }
     mod.widgets.AisleScene=Page{
-        Title{text:"Simulation scene"} context_label := Section{}
+        scene_heading := Title{text:"Simulation scene"} context_label := Section{}
         scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"}}
         project_survey := SurveyPane{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
@@ -826,7 +826,9 @@ impl PluginPanel for Panel {
                 self.root.widget(cx, ids!(project_survey)).set_visible(cx, self.survey_open);
                 self.root.widget(cx, ids!(row)).set_visible(cx, !self.survey_open);
                 self.root.button(cx, ids!(asset_mode)).set_enabled(cx, !self.survey_open);
+                self.label(cx,ids!(scene_heading),if self.survey_open {"Survey & assets"}else{"Simulation scene"});
                 if self.survey_open {
+                    self.label(cx,ids!(context_label),&format!("{}   /   AISLE · Nexus   /   Project photo survey",w.robot.name()));
                     for id in [ids!(room_mode) as &[LiveId], ids!(robot_mode), ids!(joint_mode)] {
                         self.root.button(cx, id).set_enabled(cx, true);
                     }

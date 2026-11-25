@@ -1,9 +1,11 @@
+mod editor;
 use dorobot_studio_core::{
     runtime,
-    survey::{Photo, Survey},
+    survey::{Photo, PhotoPixels, Survey},
     widgets::video_player::VideoPlayerWidgetRefExt,
 };
 use dorobot_studio_plugin::*;
+use editor::AssetEditor;
 use std::{
     path::PathBuf,
     sync::mpsc::{self, Receiver, Sender},
@@ -13,6 +15,10 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
     mod.widgets.SurveyPaneBase = #(SurveyPane::register_widget(vm))
+    let Field = TextInput{width:Fill height:32}
+    let Tool = mod.widgets.ux.ToolButton{}
+    let Line = View{width:Fill height:Fit flow:Right spacing:5 align:Align{y:0.5}}
+    let Caption = Label{width:Fill max_lines:4}
     let PhotoTile = View{width: 160 height: 90 flow: Down spacing: 3
         thumb := VideoPlayer{width: Fill height: Fill}
         select := mod.widgets.ux.ToolButton{width:Fill height:25 text:""}
@@ -22,13 +28,58 @@ script_mod! {
         View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y:0.5}
             pick := mod.widgets.ux.PrimaryButton{text:"Import photos"}
             previous_photo := mod.widgets.ux.ToolButton{text:"Previous"}
+            edit_assets := Tool{text:"Edit assets"}
             next_photo := mod.widgets.ux.ToolButton{text:"Next"}
             file_label := Label{width:Fill text:"Drop room or object photos here"}
         }
         thumb_bar := View{width:Fill height:Fit flow:Right spacing:8
             thumb0 := PhotoTile{} thumb1 := PhotoTile{} thumb2 := PhotoTile{}
+            Filler{}
+            room_link := View{width:240 height:Fit flow:Down spacing:4
+                Label{text:"Room for selected photo"}
+                Line{room_name := Field{empty_text:"Room name (optional)"} assign_room := Tool{text:"Apply"}}
+            }
         }
-        photo_canvas := VideoPlayer{width:Fill height:Fill}
+        workspace := View{width:Fill height:Fill flow:Right spacing:10
+            preview_area := View{width:Fill height:Fill flow:Overlay
+                photo_canvas := VideoPlayer{width:Fill height:Fill}
+                geometry_panel := View{visible:false width:Fill height:Fill flow:Down spacing:4
+                    geometry_heading := Caption{text:"Collision geometry"}
+                    geometry_view := VideoPlayer{width:Fill height:Fill}
+                    geometry_info := Caption{}
+                }
+            }
+            asset_inspector := View{visible:false width:294 height:Fill spacing:5 padding:6 flow:Down
+                asset_version := Caption{text:"New asset"}
+                form_scroll := ScrollYView{width:Fill height:Fill spacing:6 flow:Down
+                Line{older_asset := Tool{text:"Previous asset"} next_asset := Tool{text:"Next"} new_asset := Tool{text:"New"}}
+                asset_name := Field{empty_text:"Asset name"} category := Field{empty_text:"Category"}
+                Line{edit_marks := Tool{text:"Photo marks"} edit_physics := Tool{text:"Physics"}}
+                marks_panel := View{width:Fill height:Fit flow:Down spacing:5
+                    Line{outline := Tool{text:"Outline"} floor_ref := Tool{text:"Floor points"} dimension := Tool{text:"Ruler"}}
+                    mark_hint := Caption{}
+                    Line{previous_axis := Tool{text:"‹"} axis_label := Label{text:"Width"} next_axis := Tool{text:"›"}}
+                    Line{length_value := Field{empty_text:"Known length"} length_unit := Tool{text:"cm"} apply_length := Tool{text:"Apply"}}
+                    measured_values := Caption{}
+                    clear_marks := Tool{text:"Clear selected marks"}
+                }
+                physics_panel := View{visible:false width:Fill height:Fit flow:Down spacing:4
+                    Line{asset_shape := Tool{text:"Shape · box"} movable := Tool{text:"Fixed"}}
+                    graspable := Tool{text:"Enable grasping"}
+                    Line{Label{text:"Material"} material := Field{empty_text:"Material"}}
+                    Line{Label{text:"Friction"} friction := Field{} Label{text:"Bounce"} restitution := Field{}}
+                    mass_row := Line{Label{text:"Mass (kg)"} mass := Field{empty_text:"kg"}}
+                    table_details := View{width:Fill height:Fit flow:Down spacing:3
+                        Line{Label{text:"Surface"} surface_name := Field{empty_text:"Placement surface name"}}
+                        Line{Label{text:"Top (m)"} top_thickness := Field{} Label{text:"Leg (m)"} leg_width := Field{}}
+                    }
+                    Line{preview_physics := Tool{text:"Preview changes"} rotate_geometry := Tool{text:"Rotate"}}
+                }
+                }
+                Line{save_asset := mod.widgets.ux.PrimaryButton{text:"Save asset revision"} discard_edits := Tool{text:"Discard edits"}}
+                asset_feedback := Caption{}
+            }
+        }
         import_result := Label{width:Fill max_lines:5 text:"JPEG and PNG · Drop files in the photo area"}
     }
 }
@@ -39,6 +90,10 @@ pub struct SurveyPane {
     view: View,
     #[rust]
     loaded: bool,
+    #[rust]
+    editor: AssetEditor,
+    #[rust]
+    preview_cache: Option<(String, PhotoPixels)>,
     #[rust]
     photos: Vec<Photo>,
     #[rust]
@@ -58,7 +113,7 @@ fn project() -> Survey {
 }
 
 impl SurveyPane {
-    fn show(&self, cx: &mut Cx) {
+    fn show(&mut self, cx: &mut Cx) {
         self.view
             .widget(cx, ids!(thumb_bar))
             .set_visible(cx, !self.photos.is_empty());
@@ -82,6 +137,16 @@ impl SurveyPane {
                 }
             }
         }
+        self.view
+            .button(cx, ids!(previous_photo))
+            .set_enabled(cx, self.index > 0);
+        self.view
+            .button(cx, ids!(next_photo))
+            .set_enabled(cx, self.index + 1 < self.photos.len());
+        self.show_photo(cx);
+    }
+
+    fn show_photo(&mut self, cx: &mut Cx) {
         let player =
             VideoPlayerWidgetRefExt::as_video_player(&self.view.widget(cx, ids!(photo_canvas)));
         if let Some(p) = self.photos.get(self.index) {
@@ -96,29 +161,50 @@ impl SurveyPane {
                     p.height
                 ),
             );
-            match project().preview(p, false) {
-                Ok(rgb) => player.set_frame(
+            if !self
+                .preview_cache
+                .as_ref()
+                .is_some_and(|(id, _)| id == &p.id)
+            {
+                match project().room(p) {
+                    Ok(room) => self
+                        .view
+                        .text_input(cx, ids!(room_name))
+                        .set_text(cx, &room),
+                    Err(e) => self
+                        .view
+                        .label(cx, ids!(import_result))
+                        .set_text(cx, &e.to_string()),
+                }
+                match project().preview(p, false) {
+                    Ok(rgb) => self.preview_cache = Some((p.id.clone(), rgb)),
+                    Err(e) => {
+                        self.preview_cache = None;
+                        player.clear(cx);
+                        self.view
+                            .label(cx, ids!(import_result))
+                            .set_text(cx, &e.to_string());
+                        return;
+                    }
+                }
+            }
+            if let Some((_, original)) = &self.preview_cache {
+                let mut rgb = original.clone();
+                if self.editor.open {
+                    if let Some(mark) = self.editor.asset.photos.get(&p.id) {
+                        mark.paint(&mut rgb, p, self.editor.axis);
+                    }
+                }
+                player.set_frame(
                     cx,
                     rgb.width() as usize,
                     rgb.height() as usize,
                     rgb.as_raw(),
-                ),
-                Err(e) => {
-                    player.clear(cx);
-                    self.view
-                        .label(cx, ids!(import_result))
-                        .set_text(cx, &e.to_string());
-                }
+                );
             }
         } else {
             player.clear(cx);
         }
-        self.view
-            .button(cx, ids!(previous_photo))
-            .set_enabled(cx, self.index > 0);
-        self.view
-            .button(cx, ids!(next_photo))
-            .set_enabled(cx, self.index + 1 < self.photos.len());
     }
 
     fn import(&mut self, paths: Option<Vec<PathBuf>>) {
@@ -182,6 +268,21 @@ impl Widget for SurveyPane {
                 break;
             }
         }
+        if self.view.button(cx, ids!(assign_room)).clicked(&actions) {
+            if let Some(photo) = self.photos.get(self.index) {
+                let name = self.view.text_input(cx, ids!(room_name)).text();
+                let result = project().assign_room(photo, &name);
+                let message = match result {
+                    Ok(()) if name.trim().is_empty() => "Room association cleared".into(),
+                    Ok(()) => format!("{} belongs to {}", photo.filename, name.trim()),
+                    Err(e) => e.to_string(),
+                };
+                self.view
+                    .label(cx, ids!(import_result))
+                    .set_text(cx, &message);
+            }
+        }
+        self.handle_editor(cx, event, &actions);
         let area = self.view.widget(cx, ids!(photo_canvas)).area();
         match event.drag_hits(cx, area) {
             DragHit::Drag(e)

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     fs,
-    io::Cursor,
+    io::{Cursor, Write},
     path::{Path, PathBuf},
 };
 
@@ -118,6 +118,28 @@ impl Survey {
         }
     }
 
+    pub fn room(&self, photo: &Photo) -> Result<String> {
+        let path = self.photos().join(&photo.id).join("room.json");
+        match fs::read(path) {
+            Ok(bytes) => Ok(serde_json::from_slice(&bytes)?),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(String::new()),
+            Err(err) => Err(err.into()),
+        }
+    }
+
+    pub fn assign_room(&self, photo: &Photo, name: &str) -> Result<()> {
+        let room = name.trim();
+        if room.chars().any(char::is_control) {
+            bail!("Use a single-line room name");
+        }
+        let folder = self.photos().join(&photo.id);
+        let mut tmp = tempfile::NamedTempFile::new_in(&folder)?;
+        tmp.write_all(&serde_json::to_vec(room)?)?;
+        tmp.as_file().sync_all()?;
+        tmp.persist(folder.join("room.json"))?;
+        Ok(())
+    }
+
     pub fn preview(&self, photo: &Photo, thumbnail: bool) -> Result<image::RgbImage> {
         let name = if thumbnail {
             "thumbnail.png"
@@ -162,3 +184,6 @@ mod tests {
         Ok(())
     }
 }
+
+pub mod asset;
+pub use image::RgbImage as PhotoPixels;

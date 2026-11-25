@@ -20,18 +20,32 @@ def main():
     cli.add_argument("--remote", required=True, type=Path)
     cli.add_argument("--session", required=True, type=Path)
     cli.add_argument("--backend", choices=["headless", "offscreen"], default="headless")
+    cli.add_argument(
+        "--assets",
+        action="store_true",
+        help="Also edit annotations and save physical assets",
+    )
     args = cli.parse_args()
     folder = args.session.resolve()
     folder.mkdir(parents=True, exist_ok=False)
     source = folder / "imports"
     source.mkdir()
-    jpg = source / "robot.jpg"
+    jpg = source / "room.jpg"
     png = source / "scene.png"
     broken = source / "damaged.jpg"
-    shutil.copyfile(ROOT / "media/nano-three-cubes.jpg", jpg)
+    shutil.copyfile(
+        ROOT / "docs/product/aisle-studio/environment/survey-fixture.jpg", jpg
+    )
     shutil.copyfile(ROOT / "docs/product/aisle-studio/workbench-design.png", png)
     broken.write_bytes(b"invalid image")
-    expected = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (jpg, png)}
+    valid = [jpg, png]
+    if args.assets:
+        closeup = source / "table-leg.jpg"
+        shutil.copyfile(
+            ROOT / "docs/product/aisle-studio/environment/survey-detail.jpg", closeup
+        )
+        valid.append(closeup)
+    expected = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in valid}
     report = folder / "ui.json"
     env = os.environ | dict(
         MAKEPAD_HAL_BACKEND=args.backend,
@@ -77,6 +91,59 @@ def main():
 
         wait(ready)
         time.sleep(0.15)
+        # Makepad reports the child's layout rectangle even when a scroll viewport clips it.
+        in_form = {
+            "asset_name",
+            "category",
+            "outline",
+            "floor_ref",
+            "dimension",
+            "next_axis",
+            "previous_axis",
+            "length_value",
+            "length_unit",
+            "apply_length",
+            "clear_marks",
+            "edit_marks",
+            "edit_physics",
+            "asset_shape",
+            "movable",
+            "material",
+            "friction",
+            "restitution",
+            "mass",
+            "top_thickness",
+            "leg_width",
+            "graspable",
+            "surface_name",
+            "preview_physics",
+            "rotate_geometry",
+            "new_asset",
+            "older_asset",
+            "next_asset",
+        }
+        if key.startswith(PANE) and key[len(PANE) :] in in_form:
+            for _ in range(12):
+                controls = wait(ready)["controls"]
+                x, y, w, h = controls[key]["rect"]
+                fx, fy, fw, fh = controls[PANE + "form_scroll"]["rect"]
+                cy = y + h / 2
+                if fy + 4 <= cy <= fy + fh - 4:
+                    break
+                delta = max(-220, min(220, cy - (fy + fh / 2)))
+                act(
+                    "mouse",
+                    "k=scroll",
+                    "w=0",
+                    f"x={fx+fw*0.7}",
+                    f"y={fy+fh*0.65}",
+                    "dx=0",
+                    f"dy={delta}",
+                    "wait=1",
+                )
+                time.sleep(0.16)
+            else:
+                raise RuntimeError(f"{key} could not be scrolled into view")
         x, y, w, h = wait(ready)["controls"][key]["rect"]
         return act(command, "w=0", f"x={x+w/2}", f"y={y+h/2}", *fields, "wait=1")
 
@@ -105,19 +172,25 @@ def main():
 
     proc = None
     with launch():
-        for path in (jpg, png, broken):
+        for path in (*valid, broken):
             target(PANE + "photo_canvas", "drop", "path=" + str(path))
             shows("import_result", path.name)
-        shows("file_label", "scene.png")
+        shows("file_label", valid[-1].name)
+        if args.assets:
+            from check_survey_assets import exercise, restored
+
+            saved_assets = exercise(target, act, wait, shows, folder, args.backend)
         if args.backend == "offscreen":
             act("grab", "w=0", "out=" + str(folder / "imported.png"))
     source.rename(folder / "moved-originals")
     with launch():
-        shows("file_label", "robot.jpg")
+        shows("file_label", "room.jpg")
         target(PANE + "next_photo")
         shows("file_label", "scene.png")
         target(PANE + "thumb0.select")
-        shows("file_label", "robot.jpg")
+        shows("file_label", "room.jpg")
+        if args.assets:
+            restored(target, shows, folder, saved_assets)
     photos = {}
     for p in (folder / "state/aisle/survey/photos").glob("*/photo.json"):
         data = json.loads(p.read_bytes())
@@ -126,9 +199,26 @@ def main():
         assert (p.parent / "thumbnail.png").is_file()
         photos[data["filename"]] = data["sha256"]
     assert photos == expected
+    receipt = {"backend": args.backend, "restored_photos_sha256": photos}
+    if args.assets:
+        receipt["restored_revisions_sha256"] = saved_assets
+        root = folder / "state/aisle/survey"
+        receipt["assets"] = [
+            {
+                k: a[k]
+                for k in ("id", "name", "revision", "dimensions", "physics", "geometry")
+            }
+            for key in sorted(saved_assets)
+            for a in [json.loads((root / key).read_bytes())]
+        ]
+    (folder / "verification.json").write_text(json.dumps(receipt, indent=2) + "\n")
     print(
-        f"{args.backend}: JPEG and PNG accepted, per-file error shown, both originals verified after relocation and restart"
+        f"{args.backend}: restored {len(photos)} original photos after relocation and restart"
     )
+    if args.assets:
+        print(
+            f"Verified {len(saved_assets)} immutable revisions, source-pixel marks, mixed units, five table colliders, placement surface and graspable cube mass."
+        )
 
 
 if __name__ == "__main__":
