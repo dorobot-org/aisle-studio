@@ -1,0 +1,62 @@
+{
+  "provider": "codex",
+  "model": "gpt-6.2-astra",
+  "backend": "offscreen",
+  "task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+  "prior_controller_sha256": "9c8e5298e62facb82f7fc1e3577b877bf7d871e4dcf0d12d741b7307c74caf54",
+  "controller_sha256": "c7163404fe0a7fa6dce1b66c0ed698ffe7f4a60bbd38811484aed43e8da091a2",
+  "prior_impact_case": 14,
+  "prior_passed": false,
+  "prior_stance": {
+    "both_feet_loaded_steps": 2000,
+    "scored_steps": 2000,
+    "wrist_error_m": 0.00304948883397369,
+    "stable_recovery_s": null,
+    "contact_links": [],
+    "prior_trunk_pitch_rad": -0.1,
+    "prior_trunk_yaw_rad": 0.0,
+    "guard_excursion_rad": 0.0
+  },
+  "revision_instruction": "Keep the saved left shoulder reach. Try a 30-degree left waist turn with neutral pitch for the next simulation.",
+  "nominal_impact": {
+    "contacts": 3,
+    "normal_impulse_sum_ns": 0.082304862793535,
+    "links": [
+      "torso_link"
+    ],
+    "recovery_s": 0.5,
+    "last_contact_step": 611,
+    "recovered_step": 711,
+    "passed": true
+  },
+  "reach": {
+    "link": "left_wrist_yaw_link",
+    "frame": "world",
+    "start_m": [
+      0.11170946061611176,
+      0.22365494072437286,
+      0.05952753871679306
+    ],
+    "target_m": [
+      0.08756049639797597,
+      0.21715152462654283,
+      0.04542803840779066
+    ],
+    "final_m": [
+      0.08400733768939972,
+      0.21924136579036713,
+      0.04850863292813301
+    ],
+    "requested_travel_m": 0.028709977407059658,
+    "final_error_m": 0.005146108772374433,
+    "max_final_100_error_m": 0.005146144899657345,
+    "tolerance_m": 0.01,
+    "passed": true,
+    "trace_sha256": "cc84ee11db29e0f708ce24688676204584bc1abdc4654dc239e6b3231c4d64fb"
+  },
+  "settled_trunk_yaw_rad": 0.522369110584259,
+  "two_foot_steps": 2000,
+  "passed": true,
+  "original_preserved": true,
+  "restored": true
+}

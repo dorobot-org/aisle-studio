@@ -772,6 +772,9 @@ impl PluginPanel for Panel {
                     )
                 };
                 let mut detail = detail;
+                if let Some(request) = w.plan["revision_instruction"].as_str() {
+                    detail.push_str(&format!("\nRevision request · {request}"));
+                }
                 if w.plan["track_grasp"] == true {
                     detail.push_str("\nWrist-guided interception during descent");
                 }

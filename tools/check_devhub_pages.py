@@ -51,12 +51,20 @@ def main():
     parser.add_argument(
         "--provider", choices=["reference", "octos", "codex"], default="reference"
     )
-    parser.add_argument(
+    focused = parser.add_mutually_exclusive_group()
+    focused.add_argument(
         "--photo-reviews",
         action="store_true",
         help="Run the survey and both authenticated proposal workflows as a focused lease",
     )
+    focused.add_argument(
+        "--g1-revision",
+        action="store_true",
+        help="Revise a failed authored-room G1 run using the selected authenticated provider",
+    )
     args = parser.parse_args()
+    if args.g1_revision and args.provider == "reference":
+        parser.error("--g1-revision requires --provider octos or codex")
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     head = subprocess.check_output(
@@ -98,7 +106,12 @@ def main():
         (out / "verification.json").write_text(json.dumps(report, indent=2) + "\n")
         print(f"{name} passed", flush=True)
 
-    run("survey", "check_survey.py", "--assets")
+    if not args.g1_revision:
+        run("survey", "check_survey.py", "--assets")
+    if not args.photo_reviews:
+        subprocess.run(
+            [sys.executable, tools / "fetch_robot_meshes.py", "g1"], check=True
+        )
     if args.photo_reviews:
         for provider in ["codex", "octos-deepseek"]:
             run(
@@ -110,10 +123,9 @@ def main():
                 out / "survey/state/aisle/survey",
                 python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable),
             )
+    elif args.g1_revision:
+        run("g1-revision", "check_g1_revision.py", "--provider", args.provider)
     else:
-        subprocess.run(
-            [sys.executable, tools / "fetch_robot_meshes.py", "g1"], check=True
-        )
         report["nano_provider"] = args.provider
         run("scene", "check_scene_editor.py")
         run("g1", "check_start_areas.py")
