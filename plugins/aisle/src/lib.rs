@@ -15,6 +15,7 @@ use dorobot_ux::kit::SparkWidgetRefExt;
 use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
+mod survey;
 
 pub struct AislePlugin;
 const PAGES: &[PanelDescriptor] = &[
@@ -49,6 +50,7 @@ impl StudioPlugin for AislePlugin {
         }
     }
     fn register(&self, vm: &mut ScriptVm) {
+        survey::script_mod(vm);
         script_mod(vm);
     }
     fn create(&self, panel: &str, vm: &mut ScriptVm) -> Result<Box<dyn PluginPanel>, String> {
@@ -71,6 +73,7 @@ impl StudioPlugin for AislePlugin {
             detailed_trial: None,
             joint_robot: None,
             joint_index: 0,
+            survey_open: false,
         }))
     }
     fn can_disable(&self, b: &dyn Backend) -> Result<(), String> {
@@ -117,7 +120,8 @@ script_mod! {
     }
     mod.widgets.AisleScene=Page{
         Title{text:"Simulation scene"} context_label := Section{}
-        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"}}
+        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"}}
+        project_survey := SurveyPane{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             model_card := Card{width:Fill height:Fill Section{text:"URDF model"} robot := RobotView{width:Fill height:Fill keyboard_controls:false tint_selected_links:true}}
             photo_card := Card{width:Fill height:Fill photo_label := Section{text:"Floor footprint"} photo := VideoPlayer{width:Fill height:Fill}}
@@ -252,6 +256,7 @@ struct Panel {
     detailed_trial: Option<PathBuf>,
     joint_robot: Option<Robot>,
     joint_index: usize,
+    survey_open: bool,
 }
 impl Panel {
     fn label(&self, cx: &mut Cx, id: &[LiveId], s: &str) {
@@ -818,6 +823,15 @@ impl PluginPanel for Panel {
                 }
             }
             "aisle_scene" => {
+                self.root.widget(cx, ids!(project_survey)).set_visible(cx, self.survey_open);
+                self.root.widget(cx, ids!(row)).set_visible(cx, !self.survey_open);
+                self.root.button(cx, ids!(asset_mode)).set_enabled(cx, !self.survey_open);
+                if self.survey_open {
+                    for id in [ids!(room_mode) as &[LiveId], ids!(robot_mode), ids!(joint_mode)] {
+                        self.root.button(cx, id).set_enabled(cx, true);
+                    }
+                    return;
+                }
                 if self.joint_robot != Some(w.robot) {
                     self.joint_robot = None;
                 }
@@ -1833,6 +1847,15 @@ impl PluginPanel for Panel {
         }
     }
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
+        if self.page == "aisle_scene" {
+            if self.root.button(cx, ids!(asset_mode)).clicked(actions) {
+                self.survey_open = true;
+                return true;
+            }
+            if [ids!(room_mode) as &[LiveId], ids!(robot_mode), ids!(joint_mode)].iter().any(|id| self.root.button(cx, id).clicked(actions)) {
+                self.survey_open = false;
+            }
+        }
         if self.page == "aisle_scene" && self.handle_joint_inspector(cx, actions, b) {
             return true;
         }

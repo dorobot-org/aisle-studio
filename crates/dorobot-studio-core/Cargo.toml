@@ -45,3 +45,8 @@ ffmpeg-next = { workspace = true, optional = true }
 [features]
 default = ["video"]
 video = ["ffmpeg-next"]
+
+[dependencies.image]
+version = "0.25.10"
+default-features = false
+features = ["png", "jpeg"]
