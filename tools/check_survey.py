@@ -110,13 +110,13 @@ def main():
             shows("import_result", path.name)
         shows("file_label", "scene.png")
         if args.backend == "offscreen":
-            act("grab", "w=0", "path=" + str(folder / "imported.png"))
+            act("grab", "w=0", "out=" + str(folder / "imported.png"))
     source.rename(folder / "moved-originals")
     with launch():
         shows("file_label", "robot.jpg")
         target(PANE + "next_photo")
         shows("file_label", "scene.png")
-        target(PANE + "previous_photo")
+        target(PANE + "thumb0.select")
         shows("file_label", "robot.jpg")
     photos = {}
     for p in (folder / "state/aisle/survey/photos").glob("*/photo.json"):

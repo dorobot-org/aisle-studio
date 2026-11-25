@@ -113,6 +113,8 @@ impl App {
                         "aisle_scene.inspect",
                         "aisle_scene.asset_mode",
                         "aisle_scene.project_survey.pick",
+                        "aisle_scene.project_survey.thumb0.select",
+                        "aisle_scene.project_survey.thumb1.select",
                         "aisle_scene.project_survey.photo_canvas",
                         "aisle_scene.project_survey.file_label",
                         "aisle_scene.project_survey.import_result",
