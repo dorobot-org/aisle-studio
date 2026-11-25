@@ -23,3 +23,19 @@ In the offscreen Makepad test, an operator selected failure 16 from the verified
 Signed Makepad DevHub job J16 also ran the native comparison on case 16 and reopened the result. Its prepared controller used the original runtime, stationary pickup and static wrist clearance. The job built the tested commit from its lease checkout and verified the executable digest again after the headless run. [Build and workflow manifest](../../../devhub/disclosed-layout/verification.json) · [Headless case receipt](../../../devhub/disclosed-layout/nano-case/verification.json)
 
 On case 20, headless Studio also exercised the grasp recovery with the original docking distance. After restarting the app, selecting another failed case hid the previous result and reselecting case 20 restored its own result. [Native case-switching receipt](native-grasp-recovery.json)
+
+## Matched development results
+
+Each row used the same 12 previously disclosed layouts. Each passing case required all three cubes to finish on the table.
+
+| Controller | Total | Original failures corrected | Passing controls preserved | Guard bypasses |
+| --- | ---: | ---: | ---: | ---: |
+| Original qualification | 6/12 | 0/6 | 6/6 | 0 |
+| Continuous tracking and static wrist | 5/12 | 1/6 | 4/6 | 0 |
+| Stationary grasp and active wrist | 10/12 | 4/6 | 6/6 | 0 |
+| Active wrist, grasp recovery and increased standoff | 8/12 | 6/6 | 2/6 | 0 |
+| Active wrist and grasp recovery, original standoff | 11/12 | 5/6 | 6/6 | 0 |
+
+We selected **active wrist and grasp recovery, original standoff** for fresh qualification. Development results cover the original six failures and six original successes. The preregistered 50-layout cohort supplies the release denominator. [Case outcomes, controller digests and receipts](development.json)
+
+The selected controller succeeded on **11/12** disclosed layouts, including five of the six original failures and all six previously passing controls. Layout 43 still timed out during stereo docking. Increasing the docking distance fixed that case but introduced four failures on the controls. The release uses the original distance. The release source differs from the selected development policy in comments and formatting. Their parsed Python syntax trees are identical. The fresh registration pins the exact release bytes. Each alternative’s prepared controller, policy digest, and zero-context patch from the release source are available in the development record. In a disposable release checkout, apply the corresponding patch with `git apply --unidiff-zero` to reconstruct a screened policy. [Nano release registration](../release-2/registration.json)

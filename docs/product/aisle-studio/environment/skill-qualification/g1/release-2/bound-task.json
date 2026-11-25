@@ -1,0 +1,621 @@
+{
+  "schema": "aisle-studio-g1-standing-v1",
+  "robot": "G1",
+  "instruction": "Stand and track a positive left shoulder displacement of 0.10 radians.",
+  "scene": {
+    "id": "scene-living-room",
+    "revision": 1,
+    "parent": null,
+    "name": "Surveyed living room",
+    "room_m": [
+      12.0,
+      10.0
+    ],
+    "instances": [
+      {
+        "id": "object-oak",
+        "name": "Coffee table",
+        "asset": {
+          "id": "asset-oak",
+          "revision": 1
+        },
+        "position_m": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-red",
+        "name": "Red cube",
+        "asset": {
+          "id": "asset-red",
+          "revision": 1
+        },
+        "position_m": [
+          0.73,
+          0.2,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-blue",
+        "name": "Blue cube",
+        "asset": {
+          "id": "asset-blue",
+          "revision": 1
+        },
+        "position_m": [
+          0.84,
+          -0.32,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "chair-left",
+        "name": "Left chair",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          -1.2,
+          -1.7,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "chair-right",
+        "name": "Right chair",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          1.2,
+          -1.7,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      }
+    ]
+  },
+  "assets": [
+    {
+      "id": "asset-blue",
+      "revision": 1,
+      "name": "Blue cube",
+      "category": "Object",
+      "photos": {},
+      "dimensions": [
+        {
+          "value": 0.04,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.04,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.04,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        }
+      ],
+      "physics": {
+        "material": {
+          "value": "Painted wood",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "appearance": {
+          "value": "blue",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "friction": {
+          "value": 0.7,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "restitution": {
+          "value": 0.0,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "movable": {
+          "value": true,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "graspable": {
+          "value": true,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "surface_name": {
+          "value": "Landing area",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "mass_kg": {
+          "value": 0.032,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "shape": "box",
+        "top_thickness_m": {
+          "value": 0.08,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "leg_width_m": {
+          "value": 0.08,
+          "provenance": {
+            "source": "operator"
+          }
+        }
+      },
+      "geometry": {
+        "colliders": [
+          {
+            "name": "body",
+            "center_m": [
+              0.0,
+              0.0,
+              0.02
+            ],
+            "size_m": [
+              0.04,
+              0.04,
+              0.04
+            ]
+          }
+        ],
+        "surfaces": []
+      }
+    },
+    {
+      "id": "asset-oak",
+      "revision": 1,
+      "name": "Coffee table",
+      "category": "Furniture",
+      "photos": {},
+      "dimensions": [
+        {
+          "value": 1.4,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.8,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.5743,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        }
+      ],
+      "physics": {
+        "material": {
+          "value": "Oak",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "appearance": {
+          "value": "oak",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "friction": {
+          "value": 0.7,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "restitution": {
+          "value": 0.0,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "movable": {
+          "value": false,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "graspable": {
+          "value": false,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "surface_name": {
+          "value": "Landing area",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "mass_kg": {
+          "value": null,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "shape": "four_leg_table",
+        "top_thickness_m": {
+          "value": 0.08,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "leg_width_m": {
+          "value": 0.08,
+          "provenance": {
+            "source": "operator"
+          }
+        }
+      },
+      "geometry": {
+        "colliders": [
+          {
+            "name": "top",
+            "center_m": [
+              0.0,
+              0.0,
+              0.5343
+            ],
+            "size_m": [
+              1.4,
+              0.8,
+              0.08
+            ]
+          },
+          {
+            "name": "leg-0",
+            "center_m": [
+              -0.66,
+              -0.36,
+              0.24715
+            ],
+            "size_m": [
+              0.08,
+              0.08,
+              0.4943
+            ]
+          },
+          {
+            "name": "leg-1",
+            "center_m": [
+              0.66,
+              -0.36,
+              0.24715
+            ],
+            "size_m": [
+              0.08,
+              0.08,
+              0.4943
+            ]
+          },
+          {
+            "name": "leg-2",
+            "center_m": [
+              -0.66,
+              0.36,
+              0.24715
+            ],
+            "size_m": [
+              0.08,
+              0.08,
+              0.4943
+            ]
+          },
+          {
+            "name": "leg-3",
+            "center_m": [
+              0.66,
+              0.36,
+              0.24715
+            ],
+            "size_m": [
+              0.08,
+              0.08,
+              0.4943
+            ]
+          }
+        ],
+        "surfaces": [
+          {
+            "name": "Landing area",
+            "center_m": [
+              0.0,
+              0.0,
+              0.5743
+            ],
+            "size_m": [
+              1.4,
+              0.8
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "asset-red",
+      "revision": 1,
+      "name": "Red cube",
+      "category": "Object",
+      "photos": {},
+      "dimensions": [
+        {
+          "value": 0.04,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.04,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.04,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        }
+      ],
+      "physics": {
+        "material": {
+          "value": "Painted wood",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "appearance": {
+          "value": "red",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "friction": {
+          "value": 0.7,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "restitution": {
+          "value": 0.0,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "movable": {
+          "value": true,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "graspable": {
+          "value": true,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "surface_name": {
+          "value": "Landing area",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "mass_kg": {
+          "value": 0.032,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "shape": "box",
+        "top_thickness_m": {
+          "value": 0.08,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "leg_width_m": {
+          "value": 0.08,
+          "provenance": {
+            "source": "operator"
+          }
+        }
+      },
+      "geometry": {
+        "colliders": [
+          {
+            "name": "body",
+            "center_m": [
+              0.0,
+              0.0,
+              0.02
+            ],
+            "size_m": [
+              0.04,
+              0.04,
+              0.04
+            ]
+          }
+        ],
+        "surfaces": []
+      }
+    },
+    {
+      "id": "fixture-chair",
+      "revision": 1,
+      "name": "Chair",
+      "category": "test library",
+      "photos": {},
+      "dimensions": [
+        {
+          "value": 0.42,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.43,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        {
+          "value": 0.8,
+          "unit": "m",
+          "provenance": {
+            "source": "operator"
+          }
+        }
+      ],
+      "physics": {
+        "material": {
+          "value": "Oak",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "appearance": {
+          "value": "neutral",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "friction": {
+          "value": 0.6,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "restitution": {
+          "value": 0.0,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "movable": {
+          "value": false,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "graspable": {
+          "value": false,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "surface_name": {
+          "value": "Coffee tabletop",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "mass_kg": {
+          "value": null,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "shape": "box",
+        "top_thickness_m": {
+          "value": 0.035,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "leg_width_m": {
+          "value": 0.045,
+          "provenance": {
+            "source": "default"
+          }
+        }
+      },
+      "geometry": {
+        "colliders": [
+          {
+            "name": "body",
+            "center_m": [
+              0.0,
+              0.0,
+              0.4
+            ],
+            "size_m": [
+              0.42,
+              0.43,
+              0.8
+            ]
+          }
+        ],
+        "surfaces": []
+      }
+    }
+  ],
+  "standing": {
+    "joint": "left_shoulder_pitch_joint",
+    "delta_rad": 0.1,
+    "impact": {
+      "mass_kg": 0.23,
+      "speed_m_s": 1.17,
+      "lateral_m": 0.0
+    }
+  },
+  "observations": [
+    "joint encoders",
+    "IMU orientation"
+  ],
+  "success_criteria": [
+    "Both feet loaded throughout the scored reach and no contact with furniture",
+    "Wrist within 10 mm during the final 100 steps, impact on torso and stable recovery within two seconds",
+    "Pelvis drift below 0.10 m, peak tilt below 12 degrees and joint excursion at most 0.005 rad"
+  ]
+}

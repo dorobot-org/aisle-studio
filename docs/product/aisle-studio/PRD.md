@@ -169,7 +169,7 @@ For the Nano reference task, the carrying hand must confirm a grasp before the b
 
 | Order | Owner and decision | Acceptance evidence |
 | --- | --- | --- |
-| 1 | Nano controller owner qualifies a revised three-cube skill | The current package scored 44/50. Reproduce the three failed placements, the two failures of wrist grasp confirmation and the docking timeout using the disclosed records. Freeze any revision and rerun it on a fresh preregistered cohort of 50 layouts. Retain the original denominator and every failure. [Case evidence](environment/skill-qualification/nano/outcomes.md) |
+| 1 | Nano controller owner qualifies a revised three-cube skill | The original package scored 44/50. The selected revision completed 11/12 disclosed development layouts, preserving all six baseline-pass controls. Qualify the frozen release on its 50 fresh preregistered layouts and retain every outcome. [Matched comparison](environment/skill-qualification/nano/wrist-survey/README.md) · [Fresh registration](environment/skill-qualification/nano/release-2/registration.json) |
 | 2 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Obtain independent reviewer approval for the measured simulation package, identify and verify the implementation on the physical vendor node, then pair an authorized supervised device run with its simulation. Verify calibration, sensor-loss response and operator stop on each device. [Simulation package handoff](environment/spec-skills.md) |
 
 ## Capability comparison and release decisions

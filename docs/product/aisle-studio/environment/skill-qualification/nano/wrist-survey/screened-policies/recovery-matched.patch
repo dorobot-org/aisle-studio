@@ -1,0 +1,38 @@
+--- a/tools/aisle-validation/nano_rgb_transfer_policy.py
++++ b/tools/aisle-validation/nano_rgb_transfer_policy.py
+@@ -269,10 +269,3 @@
+-        self.act(
+-            "grasp observation",
+-            color=color,
+-            xy=xy.tolist(),
+-            cameras=["left_wrist"],
+-            stamp_ns=int(sample["stamp_ns"]),
+-            intercept_xy_m=xy.tolist(),
+-            height_m=float(centre[2]),
+-            recovery="stationary-wrist-reacquisition",
+-        )
++        self.act("grasp observation", color=color, xy=xy.tolist(), cameras=["left_wrist"],
++                 stamp_ns=int(sample["stamp_ns"]), intercept_xy_m=xy.tolist(),
++                 height_m=float(centre[2]), recovery="stationary-wrist-reacquisition")
+@@ -335,2 +328,3 @@
+-            # Keep the calibrated docking distance for both spare-wrist postures.
+-            dock_distance = DOCK_DISTANCE
++            # The camera survey moves a second arm near the rim. Brake slightly
++            # farther away when both the approach and release pose are reachable.
++            dock_distance = DOCK_DISTANCE + (0.015 if self.wrist_clearance else 0.0)
+@@ -413,7 +407,3 @@
+-            self.act(
+-                "table observation",
+-                survey_camera="right_wrist",
+-                height_above_table_m=camera_height - edge["height"],
+-                survey_occupants=len(occupants),
+-                color=color,
+-            )
++            self.act("table observation", survey_camera="right_wrist",
++                     height_above_table_m=camera_height - edge["height"],
++                     survey_occupants=len(occupants), color=color)
+@@ -680,3 +670 @@
+-                    occupied.extend(
+-                        self.survey_release_area(edge, observation, color, self.colors[:index])
+-                    )
++                    occupied.extend(self.survey_release_area(edge, observation, color, self.colors[:index]))

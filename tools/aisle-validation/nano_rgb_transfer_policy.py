@@ -255,6 +255,30 @@ class Controller:
         self.joints({self.grip: 0.70}, 55 if self.track_grasp else 200)
         self.reach(np.r_[xy, 0.085], 320, 8, True)
 
+    def reacquire_under_wrist(self, color):
+        """After two missed stationary grasps, remeasure from the lifted wrist above the cube."""
+        self.joints({self.grip: -0.25}, 120)
+        sample = self.sense()
+        q = sample["encoders"]
+        points = self.servo.camera_candidates("left_wrist", sample["left_wrist"], q)
+        centre, _ = self.model.grip(q)
+        near = [p for p in points if np.linalg.norm(p - centre[:2]) < 0.085]
+        if len(near) != 1:
+            return False
+        xy = near[0]
+        self.act(
+            "grasp observation",
+            color=color,
+            xy=xy.tolist(),
+            cameras=["left_wrist"],
+            stamp_ns=int(sample["stamp_ns"]),
+            intercept_xy_m=xy.tolist(),
+            height_m=float(centre[2]),
+            recovery="stationary-wrist-reacquisition",
+        )
+        self.pick(xy)
+        return self.held_in_wrist_view(color)
+
     def table_views(self, data, cameras=("head", "right_wrist")):
         views = []
         for name in cameras:
@@ -308,7 +332,9 @@ class Controller:
                 if not self.held_in_wrist_view(color):
                     return None
                 elevated = True
-            if elevated and abs(angle) < 0.04 and abs(distance - DOCK_DISTANCE) < 0.010:
+            # Keep the calibrated docking distance for both spare-wrist postures.
+            dock_distance = DOCK_DISTANCE
+            if elevated and abs(angle) < 0.04 and abs(distance - dock_distance) < 0.010:
                 self.drive()
                 self.drive()
                 final = self.table()
@@ -318,7 +344,7 @@ class Controller:
                 self.drive()
                 continue
             speed = (
-                np.clip((distance - DOCK_DISTANCE) * 0.55, -0.025, 0.055)
+                np.clip((distance - dock_distance) * 0.55, -0.025, 0.055)
                 if abs(angle) < 0.09
                 else 0.0
             )
@@ -366,6 +392,34 @@ class Controller:
                 if len(points) == 1:
                     landmarks[camera, color] = points[0]
         return landmarks
+
+    def survey_release_area(self, edge, packet, color, prior_colors):
+        """Look over the observed rim with the spare wrist, then restore the docking posture."""
+        names = self.servo.cameras["right_wrist"][0].joint_names
+        encoders = packet["encoders"]
+        previous = {name: float(encoders[self.names.index(name)]) for name in names}
+        # URDF-calibrated survey posture. The optical centre is about 0.68 m
+        # above the base frame, on the opposite side from the carrying hand.
+        pose = [-0.867, 0.650, -1.506, 0.420, -0.099]
+        self.joints(dict(zip(names, pose, strict=True)), 220)
+        try:
+            seen = self.sense()
+            view = self.table_views(seen, ("right_wrist",))[0]
+            camera_height = float(view[1][2, 3])
+            if camera_height - edge["height"] < 0.05:
+                return []
+            self.release_observation(seen, edge, color)
+            occupants = occupied_table_points([view], edge, prior_colors)
+            self.act(
+                "table observation",
+                survey_camera="right_wrist",
+                height_above_table_m=camera_height - edge["height"],
+                survey_occupants=len(occupants),
+                color=color,
+            )
+            return occupants
+        finally:
+            self.joints(previous, 220)
 
     def reposition_for_release(self, edge, occupied, packet, color, prior_colors):
         # A turn in place changes where the left arm can reach on the observed rim.
@@ -549,6 +603,8 @@ class Controller:
                     if self.held_in_wrist_view(color):
                         break
                     if attempt:
+                        if not self.track_grasp and self.reacquire_under_wrist(color):
+                            break
                         raise ValueError(
                             f"Could not confirm {color} in the wrist camera after two grasps"
                         )
@@ -618,6 +674,12 @@ class Controller:
                     self.colors[:index],
                     include_clipped=self.wrist_clearance,
                 )
+                if self.wrist_clearance:
+                    # The head and docked spare wrist can both be below the tabletop.
+                    # A second exposure above the rim can resolve an occluded prior placement.
+                    occupied.extend(
+                        self.survey_release_area(edge, observation, color, self.colors[:index])
+                    )
             selection = self.release_slot(edge, occupied)
             if selection is None and index and self.wrist_clearance:
                 edge, occupied = self.reposition_for_release(

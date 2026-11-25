@@ -36,6 +36,7 @@ def main():
         ROOT
         / "docs/product/aisle-studio/environment/skill-qualification"
         / args.robot.lower()
+        / "release-2"
     )
     prep = state / ("1-" + args.robot + "-prepare")
     prep.mkdir(parents=True, exist_ok=False)

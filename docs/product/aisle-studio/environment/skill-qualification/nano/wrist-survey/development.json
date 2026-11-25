@@ -1,0 +1,942 @@
+{
+  "split": "disclosed development",
+  "baseline_passed": 6,
+  "registered_layouts": [
+    {
+      "index": 7,
+      "seed": 635131795,
+      "baseline_passed": false
+    },
+    {
+      "index": 16,
+      "seed": 7796629,
+      "baseline_passed": false
+    },
+    {
+      "index": 20,
+      "seed": 2467225787,
+      "baseline_passed": false
+    },
+    {
+      "index": 34,
+      "seed": 1311191756,
+      "baseline_passed": false
+    },
+    {
+      "index": 43,
+      "seed": 1202720272,
+      "baseline_passed": false
+    },
+    {
+      "index": 48,
+      "seed": 3390152535,
+      "baseline_passed": false
+    },
+    {
+      "index": 0,
+      "seed": 146327938,
+      "baseline_passed": true
+    },
+    {
+      "index": 9,
+      "seed": 3148448665,
+      "baseline_passed": true
+    },
+    {
+      "index": 18,
+      "seed": 2869651259,
+      "baseline_passed": true
+    },
+    {
+      "index": 27,
+      "seed": 2919889989,
+      "baseline_passed": true
+    },
+    {
+      "index": 36,
+      "seed": 240691068,
+      "baseline_passed": true
+    },
+    {
+      "index": 45,
+      "seed": 3215869797,
+      "baseline_passed": true
+    }
+  ],
+  "alternatives": [
+    {
+      "name": "continuous tracking and static wrist",
+      "batch": "deepseek-matched",
+      "provider": "octos-deepseek",
+      "controller_sha256": "735ea57b58835011fce1a46f1721c11c1cc3114764698850d6fe3641de1d4a55",
+      "runtime": {
+        "node_sha256": "f7bfb090110105ee0d85957bac1876fdf3aaa63ef534d2c6c62916155ef1ec80",
+        "studio_adapter_sha256": "1a84459b64ccf14aeb170c03dda60e44fd3f1823c7a37ef89365292e240b90e9",
+        "aisle_backend_sha256": "af23d5f3f17eb403ab02cd9b5eb5dff5c68005791003b919159b8c0992282868",
+        "nexus_sha256": "155978e684822af2bbe09f42dd148cdef963facf4e67220177a05b8ff7665354",
+        "bridge_sha256": "b5a1af6e1550f29ae7fb377c9737c61bccbdff0334a8f50cba1912d5046c6af2"
+      },
+      "passed": 5,
+      "preserved": 4,
+      "rescues": 1,
+      "bypasses": 0,
+      "cases": [
+        {
+          "case": 0,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28478,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "e7d6c235da649196b76fcf10e8c8f1cee601ab1e9481d9daacec18aeb1b44eba",
+            "receipt_sha256": "86855ed4a12b9f6287f9d4216d87522d91aed2245b41253e5902c277db257ac9",
+            "request_id": "c15aadf5-4fd5-4603-8b15-94f2e5edc574",
+            "run_id": "ee333b90ed554f07b79c1e54c8a37ad6"
+          }
+        },
+        {
+          "case": 7,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: No reachable clear release point on the visible tabletop",
+          "physics_ticks": 21906,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "c5fbcd151a275288b039933192a51a80da92df292a0a3550637f63c6bc7f7f04",
+            "receipt_sha256": "150f94fb1121a735127d829c757368c6980e438bc934e43e259a921d8f8b8cc4",
+            "request_id": "1fa2a773-520c-4418-970e-fb5f89cd4805",
+            "run_id": "f8e2662ce07c4f4b914a914f45bdc2a0"
+          }
+        },
+        {
+          "case": 9,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 23176,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "c454003895048d25dc295ce103e5ec9600e77389e5691a1d0177f20dd544a490",
+            "receipt_sha256": "8052279e21d5e07c5f9fce580089f52a04ab8135f6789efcffe85e9a757b6cff",
+            "request_id": "2682964a-de7e-46f6-bc32-20892672c103",
+            "run_id": "c4059e457a0f4063b5555bb9b3ee553b"
+          }
+        },
+        {
+          "case": 16,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Could not confirm red in the wrist camera after two grasps",
+          "physics_ticks": 4544,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "8b249b9c36c5ffa3946e54bd466ca324cab11b4ce99610ce104126fddda6b511",
+            "receipt_sha256": "615df66ea2022fe80f0560c96268629ffdb1a5fe69ae7647dfe37d9efdf1434b",
+            "request_id": "0ef54863-8854-46e9-b722-c96ee8fc85c8",
+            "run_id": "8b2e6f71df91486094d2005e0abcdc0b"
+          }
+        },
+        {
+          "case": 18,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 25198,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "fd360db9b757f407c37b961910ebf8a199199a094b0587fa263627aa124b8201",
+            "receipt_sha256": "80c355feae11b1c61b2cf00ed798f86bce6e7bd04f2f6b31f4c566b1f6038342",
+            "request_id": "56b3c45f-54d6-4f4a-a6d3-a294629ef89e",
+            "run_id": "e654e505963444a09f17cee2afcad659"
+          }
+        },
+        {
+          "case": 20,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Could not confirm red in the wrist camera after two grasps",
+          "physics_ticks": 4584,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "20f6a1793553ffa0e3e9308477f9068da6b36105298ad5e3b3d53a3cb25552df",
+            "receipt_sha256": "0e530291a28c1da60a9b33f929fd2a7c17f1bd1e856b38773ee3867814543117",
+            "request_id": "3a9b33e4-79c1-43d3-a329-38de190cd2e9",
+            "run_id": "1a562a0cb0fb475ab3703fc5eb4a8229"
+          }
+        },
+        {
+          "case": 27,
+          "baseline_passed": true,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Could not confirm red in the wrist camera after two grasps",
+          "physics_ticks": 4504,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "8842ee54fd30411265462cb73505b2ec7e8be40f9b61c8f0d74a0501bf950f5b",
+            "receipt_sha256": "6f756b73a56a6dc37019de3c2d4ff88dd7d669a8a18cd46998705d4b4a07c0a3",
+            "request_id": "80c91bef-bd16-47f0-973a-fbd50a05bbdb",
+            "run_id": "c91a0366826a4bcb8b80514645a25403"
+          }
+        },
+        {
+          "case": 34,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Could not confirm red in the wrist camera after two grasps",
+          "physics_ticks": 4484,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "96c08cd276e14b649b7919da312491a451946341a6cca4aa41fe6030b44c4022",
+            "receipt_sha256": "92fbccd05342bf393b68f6e6dba6dfde7f9840cf0c80fe9fccf5327747850947",
+            "request_id": "f02e6726-f537-464a-a841-55528806b00f",
+            "run_id": "6d4ea42112f74b628a8f251c9861997c"
+          }
+        },
+        {
+          "case": 36,
+          "baseline_passed": true,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Could not confirm red in the wrist camera after two grasps",
+          "physics_ticks": 4484,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "c47aec155948fbaa365c37d031d7526f4be6357023e575e7a1c0476f072ee7fb",
+            "receipt_sha256": "7ef57fcf2682cc9db6e7c4997466979cdca26a5690bac0092e41c8e32d823314",
+            "request_id": "54011995-9421-4d0c-ac46-a20baf48bfb0",
+            "run_id": "670aed6ea30a438fb483cc2ec0024e5e"
+          }
+        },
+        {
+          "case": 43,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 22236,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "f18b366749f199d0d3ae6e560ac0cad7fbe02c8ca1dd6812994c9028603c115d",
+            "receipt_sha256": "2f7f6706d75ff30e66911da8ebaf56c257e5165539167a0da4330a6b2ae15a62",
+            "request_id": "e479d2d2-5071-40fa-b2e5-d1583bc13789",
+            "run_id": "b2ddf57a730e44b99dbb6a8da687baa5"
+          }
+        },
+        {
+          "case": 45,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 26060,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "3aa9ffe657d8832c0def454beeb63614d6e05fe1d43680f1068292d2aa5cefd4",
+            "receipt_sha256": "875bc95421bcec832b801d1a19fb2797ab961ff5dbaeb9bd79d1f26c2bdb4369",
+            "request_id": "70358027-fced-4f55-b335-7a6d2e602b4b",
+            "run_id": "c041014fa1b7450daae8f282bbc8ba7c"
+          }
+        },
+        {
+          "case": 48,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Cube motion across the placement turn is inconsistent",
+          "physics_ticks": 21246,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "f276fc34a7b089fa25894cd064912c3fceac8ee324ca589cc4af7eb438231184",
+            "receipt_sha256": "8aa39ed7acb13e9e6021e5486a3998475d6acc709aaf3cd2cfef6930d31ad31b",
+            "request_id": "7963b4f4-de73-4e2f-b418-0ae637600180",
+            "run_id": "62c8ccd62a10401f9062dc9c234f0ecd"
+          }
+        }
+      ],
+      "development_policy_patch": "screened-policies/deepseek-matched.patch",
+      "nano_policy_sha256": "b5c6fcad49896651baa98ab4b01670b5b57f19756f3d04cdc465d0b4bbaeaa79",
+      "prepared_controller": "screened-policies/deepseek-matched-controller.json"
+    },
+    {
+      "name": "stationary grasp and active wrist",
+      "batch": "wrist-survey-matched",
+      "provider": "octos-deepseek",
+      "controller_sha256": "b26cf136dbcd257a13c527b017b3513848b6097f3c71061641735fb60cf3d0e7",
+      "runtime": {
+        "node_sha256": "f7bfb090110105ee0d85957bac1876fdf3aaa63ef534d2c6c62916155ef1ec80",
+        "studio_adapter_sha256": "1a7c736db04502a706e185178b861edb0ef4129bcc7017a78877ee1a46bd07f9",
+        "aisle_backend_sha256": "af23d5f3f17eb403ab02cd9b5eb5dff5c68005791003b919159b8c0992282868",
+        "nexus_sha256": "155978e684822af2bbe09f42dd148cdef963facf4e67220177a05b8ff7665354",
+        "bridge_sha256": "b5a1af6e1550f29ae7fb377c9737c61bccbdff0334a8f50cba1912d5046c6af2"
+      },
+      "passed": 10,
+      "preserved": 6,
+      "rescues": 4,
+      "bypasses": 0,
+      "cases": [
+        {
+          "case": 0,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28962,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "90ba97e0ee5a731d1bf440f92294bf49fa2b6b65196950f8be60ef89b12fc272",
+            "receipt_sha256": "e0a1bc4700f7108d7e5f33295182ab262eeb7e4fc7fbf9250bd28ccaddb2c65c",
+            "request_id": "9e3480e1-8543-47d3-892d-da906f19d57c",
+            "run_id": "ff4c1e4271a942d6aaec23470dbd4973"
+          }
+        },
+        {
+          "case": 7,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 33680,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7d5502f11727ddc4265e3d1dacb8d440e91da3915e8224129ca89a7ecea2e216",
+            "receipt_sha256": "659326cdd1ad3004507ccec034e7f0b69e5abb3262a2731fe773a42e3fafc5ba",
+            "request_id": "73fbc2b5-f11c-462a-bc5e-f37a6e3a6bee",
+            "run_id": "cbb862e76cb44829917a5087b6ccd924"
+          }
+        },
+        {
+          "case": 9,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28702,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "ea7dfc10d7ee5ce13a1395005dcb782c06ebeeadd9ef0322f67150b6f76bcee5",
+            "receipt_sha256": "c5930cd09ed42b36718d035a799c905240ef39fd589f9768cdc6261783b273b6",
+            "request_id": "8cfca060-437d-4b94-829d-3ae618e97519",
+            "run_id": "128b4a80f9964ef692b2ab772371c119"
+          }
+        },
+        {
+          "case": 16,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28502,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "8a604798e1ad3895433c5dbe627c595e60e2294dab6788796eed36a713ec7b62",
+            "receipt_sha256": "95aae43803370e14d21e399350ab781ce66d190171361b4ff7ad642c71c404f7",
+            "request_id": "861b4a26-5950-40fb-ad36-8a29360d65f9",
+            "run_id": "c9bde585d8ee4f72b8f263426e7aac89"
+          }
+        },
+        {
+          "case": 18,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 25244,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7b774682bb8b402a6d18270f20f9c55ddbf1e4312413e76d9a48f7c00fdebc58",
+            "receipt_sha256": "8aed613fd1c05590c28a47bee881939511fad81c9a54c669d4e543b300897cd5",
+            "request_id": "9d472450-ee35-40ca-bb28-bd271c5d762d",
+            "run_id": "51069228da6b45468c10e18b602face8"
+          }
+        },
+        {
+          "case": 20,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Could not confirm green in the wrist camera after two grasps",
+          "physics_ticks": 12944,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "b62642746b0112e6bd22fee1554a40c6b211d02e2959d8e80c58e77030e104aa",
+            "receipt_sha256": "9897642d48a5ec9039a162927fbdb9e92afd6bdafa006bef1dd58aaafc7ae604",
+            "request_id": "11b58ea2-f365-4102-a146-2f3845d6f8fd",
+            "run_id": "ccc2bc82871b4fb690eb24a8c4dc14e1"
+          }
+        },
+        {
+          "case": 27,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 29122,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "3d71121cfe0b162a1e7f63faccb85df863205bc0757937f315072d1b9da15465",
+            "receipt_sha256": "c393f00f0da0614bb9b06a9755aa3ccbc24ec63e9bc7642d4f6f718def6b9198",
+            "request_id": "d8fe40c4-8dfc-4753-b6ca-7811b42443af",
+            "run_id": "d35e2b2aeeb8401b9a1d7a66f3142a98"
+          }
+        },
+        {
+          "case": 34,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28562,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "0ce5d413f54f784024fb84668484ef13856ff4e4885d7161183b2315de5e58e1",
+            "receipt_sha256": "4aa725a38937d9ca9f825062badce6d89635963a5b00755c5c328ffec9b80d6b",
+            "request_id": "27e55fe6-1010-457b-bad0-a1f66267c060",
+            "run_id": "dd34d3edfd0f47bc80e36112ce3f8f15"
+          }
+        },
+        {
+          "case": 36,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 24384,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "f5ffbae6ffc0d5b24f1985ec9cd292788734fb29f9d93f4a486d8b1a69b96642",
+            "receipt_sha256": "a24f23f87effeb844b16145021362f28ec6a4f2947477c4be1bf2f70fa9db613",
+            "request_id": "c3db6e09-9081-4c81-845b-f2e1912a7aa2",
+            "run_id": "38f4a1f918624ed1a46ca876fbe6f9c0"
+          }
+        },
+        {
+          "case": 43,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Stereo table docking timed out",
+          "physics_ticks": 15626,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "9b0280c3fb159180734d2f228e4c4bfd4490ff1c502b73e6ff98856316dbeccf",
+            "receipt_sha256": "7569dc2136695f2353708a9ed63bb6c4221055721abc8a97181ac610fc33a616",
+            "request_id": "d600280f-2a13-4148-9d0e-acf9275bd747",
+            "run_id": "e01ccbf4a8eb4cc29a7228e6cfdb5df8"
+          }
+        },
+        {
+          "case": 45,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 26342,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "58d4d13055ba7dac952d7766b1be1c7165522b38d4b82dfd1d5f64032b727d77",
+            "receipt_sha256": "946555f06e0e4f78ee6dbef0ec7f62448ea1e3e12f2365330574670818057c60",
+            "request_id": "1c0359c8-b261-436c-afa5-9e597b650814",
+            "run_id": "ca8166e5c16749cc978f292b030a5cb9"
+          }
+        },
+        {
+          "case": 48,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 29142,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "e6d191f7ab26b35d24b964f802b1a2b9282129eca429217e7180c36fd45993ea",
+            "receipt_sha256": "496004be6a0c65a8c8ac0e925dcf4790f642f563ee970ebcfb03540b9958ff70",
+            "request_id": "dcca630a-20f5-4ebe-bf86-1dbbef8c023d",
+            "run_id": "67cd8bc8413e44a0ae66ef79f7794e98"
+          }
+        }
+      ],
+      "development_policy_patch": "screened-policies/wrist-survey-matched.patch",
+      "nano_policy_sha256": "8edc0360a48ac689b0a193e562a7686cca24ea438fb338ec231560922f4955ac",
+      "prepared_controller": "screened-policies/wrist-survey-matched-controller.json"
+    },
+    {
+      "name": "active wrist, grasp recovery and increased standoff",
+      "batch": "recovery-matched",
+      "provider": "octos-deepseek",
+      "controller_sha256": "c6a0fd2687a7ae82522877043e20af0dbca8abecc4b3554d08d5ad175e486da5",
+      "runtime": {
+        "aisle_backend_sha256": "af23d5f3f17eb403ab02cd9b5eb5dff5c68005791003b919159b8c0992282868",
+        "bridge_sha256": "b5a1af6e1550f29ae7fb377c9737c61bccbdff0334a8f50cba1912d5046c6af2",
+        "nexus_sha256": "155978e684822af2bbe09f42dd148cdef963facf4e67220177a05b8ff7665354",
+        "node_sha256": "f7bfb090110105ee0d85957bac1876fdf3aaa63ef534d2c6c62916155ef1ec80",
+        "studio_adapter_sha256": "18cfbc0f3b25a795fb7c02152cadb6d76d8b3231e9c96c7be1f8a69097c648d3"
+      },
+      "passed": 8,
+      "preserved": 2,
+      "rescues": 6,
+      "bypasses": 0,
+      "cases": [
+        {
+          "case": 0,
+          "baseline_passed": true,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: No reachable clear release point on the visible tabletop",
+          "physics_ticks": 33448,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7ee8c2fcb5205a7d4e673d9bc6becd83835a8e90ac400a39511a50a6c2d6e56e",
+            "receipt_sha256": "1c4c9982b2811d7f53c70b66d25ce829f0a0d2361444e7759b1f2d17772d86f9",
+            "request_id": "9e7c0276-5516-4093-90e9-fead03ec3b0b",
+            "run_id": "59c53d488b384b8aae018e0f2ed580a6"
+          }
+        },
+        {
+          "case": 7,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28342,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "362fd1ce67e4397ed514a623a5623a7d7e45380039646f6d20dd09530a59702b",
+            "receipt_sha256": "843413a70ef6f250a2654a6ff215e13d29a1abd4b0b7938b9c93500c25efad8b",
+            "request_id": "f0bda72d-6d06-4b5d-9337-26cd859418f2",
+            "run_id": "4d068856000c4892aab1a14adb4640ab"
+          }
+        },
+        {
+          "case": 9,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28682,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "ea02e36af288bf85983d025f648bf64f6c9618163589e3076c47a7eb2040c950",
+            "receipt_sha256": "5262f9c5f6cc09e9df9fa184e43058579c6784bc3f761421291371ec5e4a7237",
+            "request_id": "260e662d-19fb-4765-af91-3a0a454d19b9",
+            "run_id": "90479ba73601435bafa77643baa935b8"
+          }
+        },
+        {
+          "case": 16,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 31040,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "e21eba03ba8ff701de72192b13b89a6c6f98749caa23f00e0b08eabf6b8c6891",
+            "receipt_sha256": "05fe8f4a2c175cf457a102ca61b0756c7f8d9968e5d46f0a6585138262e10eb2",
+            "request_id": "c9d2538b-abf2-4e76-8b21-7d0405c0e5e1",
+            "run_id": "5c5e655bacc149c5a8efc906e1a8d138"
+          }
+        },
+        {
+          "case": 18,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 25366,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "efdc8f4be1e4601ac7c91ec48f96930ff858eb529dd7b79c5875de88cad552cf",
+            "receipt_sha256": "359019a5f5b3328acd72214c11efe2312bc0bcc0810859f8dd40d5764ec3ae17",
+            "request_id": "d164f3d3-e3ee-4274-aaa9-a748ced7ca6a",
+            "run_id": "18a49585d98d4f21b61926315d718168"
+          }
+        },
+        {
+          "case": 20,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 35960,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "5c17fd1b1a9290eb9b849a58da2ad0797b155c24a64caf72e9dea0259afe507d",
+            "receipt_sha256": "86834c2fd59075421477c39c086042016fe90946433393ac5623fc18ed6eb911",
+            "request_id": "507b807a-c60a-43c1-b43f-9962571e25fb",
+            "run_id": "53570c581b24480890f1d4d33b8e47ff"
+          }
+        },
+        {
+          "case": 27,
+          "baseline_passed": true,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: No reachable clear release point on the visible tabletop",
+          "physics_ticks": 27152,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "0afa5044bbcd2da00e170422234465477f4abb4c4df41a888b10ae5575691e4a",
+            "receipt_sha256": "bf906a4b5b926b8df0fc4a2e816c18566aba8514efb1342a8d4c1c40afdfd5c9",
+            "request_id": "44814b2b-5207-4db7-adf4-1df594a92ccf",
+            "run_id": "6924e8e9db084b3f88cd3c06572722c9"
+          }
+        },
+        {
+          "case": 34,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 24464,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "3851d4800cab82735e0b7eaeee12fcd0098e014d88c12a8acf5a919360b088ef",
+            "receipt_sha256": "d5a886f870c10d0eac1314299d4b4ff22f0125b40427a43842aae1f24ed06e47",
+            "request_id": "893a86ce-3123-47fc-aa0c-74918fe6674e",
+            "run_id": "acbc58bc52964a0a8af8a836b57208ad"
+          }
+        },
+        {
+          "case": 36,
+          "baseline_passed": true,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Cannot track an earlier cube through a placement turn",
+          "physics_ticks": 13346,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "e4f978fce830552c58c19c60171e6377f637cd173fe8250c5082cdd18fa9b258",
+            "receipt_sha256": "fd6bf1eb2da51d46bb01bf34d23ede35d6faa1ee6918dc9a152259a9f5fd22dd",
+            "request_id": "8f479899-ad9b-4535-9d6f-635c8efaae76",
+            "run_id": "8279879857e94d4894ae5cd8bb66c009"
+          }
+        },
+        {
+          "case": 43,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 26362,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "ecbda9c98ffbd96ca5a44e1cb9df623a79821042fe5c2badbd6e03d00ea97f1f",
+            "receipt_sha256": "e62174e416583d5324f1f85d982a11a31fd821df74ea1060a0a5299e8d518afd",
+            "request_id": "63843f5f-e2ca-4f20-940c-f6cf9afd5065",
+            "run_id": "a493a362bf11427ab8779726b7e7e9da"
+          }
+        },
+        {
+          "case": 45,
+          "baseline_passed": true,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Cube motion across the placement turn is inconsistent",
+          "physics_ticks": 27472,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "4bfbbef7212e2805ce25863b98ca7bee54e277b478f961c2b9eb8abac7f700f4",
+            "receipt_sha256": "20b12025481e01b707e7fcd455ba3b3a77af5f9c62def3487a9244209aff94f1",
+            "request_id": "407f8657-ba6a-40f6-9509-a3970b35991d",
+            "run_id": "703562990c974b969c31dd93eeb5d57f"
+          }
+        },
+        {
+          "case": 48,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 29382,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "9aafc2b83568b51bdd6cfddb7f69659baf5807af4b6935beb094d71d142a7570",
+            "receipt_sha256": "41959ba0ab6a2ce1b5e545d214344be25d650de6364e20b156c89dddc59c9036",
+            "request_id": "58946532-75df-4cce-8701-0bd4a1278a59",
+            "run_id": "abde727fcb0e4257bc3bb22d8958256f"
+          }
+        }
+      ],
+      "development_policy_patch": "screened-policies/recovery-matched.patch",
+      "nano_policy_sha256": "5dd503f4a8e1fd56511167ee7ec7626853bcab5c2ddf0d568610c1e8bdd3697a",
+      "prepared_controller": "screened-policies/recovery-matched-controller.json"
+    },
+    {
+      "name": "active wrist and grasp recovery, original standoff",
+      "batch": "retry-matched",
+      "provider": "octos-deepseek",
+      "controller_sha256": "19b86852061a363abcd9b734bd60c467f5b4de3517e49e70eb2cdfc20ba4a5aa",
+      "runtime": {
+        "aisle_backend_sha256": "af23d5f3f17eb403ab02cd9b5eb5dff5c68005791003b919159b8c0992282868",
+        "bridge_sha256": "b5a1af6e1550f29ae7fb377c9737c61bccbdff0334a8f50cba1912d5046c6af2",
+        "nexus_sha256": "155978e684822af2bbe09f42dd148cdef963facf4e67220177a05b8ff7665354",
+        "node_sha256": "f7bfb090110105ee0d85957bac1876fdf3aaa63ef534d2c6c62916155ef1ec80",
+        "studio_adapter_sha256": "84898505f78ba92703ecbd6a9d6b00fe93cacd56e16119fc15071786796af0bb"
+      },
+      "passed": 11,
+      "preserved": 6,
+      "rescues": 5,
+      "bypasses": 0,
+      "cases": [
+        {
+          "case": 0,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28962,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "3ca1f80d3ca2437ea1d3f4c5b6bcaa0eea36a62b03642b5931c40c376a6c0e32",
+            "receipt_sha256": "5fcc64fd43b21659886d811e685bf1cc05b75f0ba9ef8d1a6352329a487d8f2b",
+            "request_id": "c0ca8a86-1918-4384-98f4-8c213d48885a",
+            "run_id": "6325ae70e43349529123387216780552"
+          }
+        },
+        {
+          "case": 7,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 33680,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "260d61e75363a9bd09824beec4594a8e940fe025445f48ab84f3c13ad6d354fc",
+            "receipt_sha256": "61dd5313cc033ca55ea529a3f13c39f5b230d45212a96d0a4f15ad96c08ed221",
+            "request_id": "9f29c214-5149-452f-9de2-ac0265359b21",
+            "run_id": "7ef2b4155c364d27897b89314880b4ee"
+          }
+        },
+        {
+          "case": 9,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28702,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7015d8236aa395ae7c6ca56906e95541349085ae10c50d07b0d4d5d0c35b7a83",
+            "receipt_sha256": "1bf0b485ebc532aa19a71ea3fbd06f8bb2cd17139fb8e95bfcb2691ee9d25fc1",
+            "request_id": "a4bee231-2a53-4bed-a241-22344744920e",
+            "run_id": "80449a748ef7464ea24effec5aad76a2"
+          }
+        },
+        {
+          "case": 16,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28502,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "52f144bddc25fe6bddf37e09db1284fd37645d5c12304a2337b4334e480af8a3",
+            "receipt_sha256": "865d00ee9f3a96299731093acd82e3482c537ee45d4d1f71b85ca890ee5cef1c",
+            "request_id": "75a5c513-a29e-4e16-b50f-ccde3e420d46",
+            "run_id": "9ffe90325b534236b8ed643355a777e8"
+          }
+        },
+        {
+          "case": 18,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 25244,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "4f67fb81b58e28acdf7c6ecf0b416db4a1e2fa57773210a2bfe118abe0ac0720",
+            "receipt_sha256": "b7f87ee9c7973f0a8c154b15c1c9f25392d71bd9e7c5a8d332143d6e79ffaf36",
+            "request_id": "be5e5d24-65f5-4242-8629-aa6d700e21fc",
+            "run_id": "236f0b4311c64f80a34498e6b86bf8df"
+          }
+        },
+        {
+          "case": 20,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 32758,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "ff98d85095d0a7f5d73eec69c67bc570e9059f5613d62dff00d66434ff9d653a",
+            "receipt_sha256": "1e2fd4d70dd5002c7ef0146c1134ea60ff41f157a70c242fbde5a82817629add",
+            "request_id": "1cfe2fdb-5369-4e4f-9607-374ff0b6946c",
+            "run_id": "5ea2fb7b3c674739aac4e7d973e04540"
+          }
+        },
+        {
+          "case": 27,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 29122,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "60a3115a2532ca0ca86d7c265ec326cf23affaa1403ddb0b38ed7f57ffdaae33",
+            "receipt_sha256": "80c8c26a308f80085b9031a76338867c5ab817f52dcadb685fb8337f1eacd84c",
+            "request_id": "0c7682ca-e98d-4888-9b99-a1177e93b7b1",
+            "run_id": "6cb1b39ee43b471fa4a056a4f77fa719"
+          }
+        },
+        {
+          "case": 34,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 28562,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "14ce0a80b650a79dcdbcbe05f6ff18c0bd882033686bd5d2c5ffc49d15cf6fad",
+            "receipt_sha256": "9784d0f7064029275a0a7cc165bd88f8aeae0f9593e5c6cb3efaa02f1705c340",
+            "request_id": "5677f5d4-d86d-4d70-9200-8305b7f0569a",
+            "run_id": "2b9cbd5af0c84857ba132dd5e4de986d"
+          }
+        },
+        {
+          "case": 36,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 24384,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7f426a01aa770543cdce39b593def2cf6138b4516c8995d75275ff48034656f3",
+            "receipt_sha256": "b8f1927de4eda82c031089282b0c1d2ce734d3c81e812a4107b3fd3f82a6bc02",
+            "request_id": "99345777-6fe9-4ec0-85f0-187f7b4839af",
+            "run_id": "9355251ffcde46e9922ed24f785b2b1e"
+          }
+        },
+        {
+          "case": 43,
+          "baseline_passed": false,
+          "passed": false,
+          "verified": true,
+          "error": "ValueError: Stereo table docking timed out",
+          "physics_ticks": 15626,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7bf6e0e8d87c0cbabd27c52bacae7cd01aa142560903b4e03614cf3130e10bcc",
+            "receipt_sha256": "0e317449ffc6e73118a42f51cc77185eca389f301cca05fbf1ecc8dff514cc26",
+            "request_id": "1241ad9f-278f-4787-9da6-90667a1b4c67",
+            "run_id": "30270d6c5bd143cea20a3521fbafa982"
+          }
+        },
+        {
+          "case": 45,
+          "baseline_passed": true,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 26342,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "6ae6ddda9b45187f34ea3e0cf5f1d5e4520b24668803fe29d9785751d2d4f494",
+            "receipt_sha256": "3c29d9c8e54e2451c61d4a7f5af7ff607c1830e9f5c006a2281752c9edc93eab",
+            "request_id": "2e0c0615-7694-4d08-a456-90e9aba49000",
+            "run_id": "e33ca44bebdc4350a8371bc295bdd18e"
+          }
+        },
+        {
+          "case": 48,
+          "baseline_passed": false,
+          "passed": true,
+          "verified": true,
+          "error": null,
+          "physics_ticks": 29142,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "476f2424436ec50a1633c221613b4948c43a61a9b70078ab8a0f3250c58baed0",
+            "receipt_sha256": "c9326809379ed5de7453166fc5bf81c1dae9dff77df69c8d5173eba6e1c3022c",
+            "request_id": "f50be370-e6c6-4c13-9306-f9e9bf0696dc",
+            "run_id": "878c6960e27f4258a27f437a06c9c0c6"
+          }
+        }
+      ],
+      "development_policy_patch": "screened-policies/retry-matched.patch",
+      "nano_policy_sha256": "6e79c40e34a3a40d85025effdf6b91ee2ef9b57eb9bc5b2bb207ce9a576c8c03",
+      "prepared_controller": "screened-policies/retry-matched-controller.json"
+    }
+  ],
+  "static_wrist_with_stationary_grasp": [
+    {
+      "split": "disclosed development",
+      "original_registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+      "baseline_controller_sha256": "da61865aa4a1a2cfedb550c27a5a8cc0aed756cbb7f71b22b8b9f98650afb024",
+      "candidate_controller_sha256": "831343c3a4b3a2f070f3c0b196fc91cd76ef9a50bb60c0a6b66b2608730c923d",
+      "case": 16,
+      "baseline_passed": false,
+      "candidate_passed": true,
+      "physics_ticks": 33840,
+      "bypasses": 0,
+      "error": null,
+      "release_exposures": 2,
+      "baseline_receipt_sha256": "6dcfc79f81051d5939897c54cadf8f2e96a7b239a6a8bbc1c82afc8662f242dd",
+      "candidate_receipt": {
+        "request_id": "1172b6bf-8cad-4c34-a63d-8d1ea612f6c4",
+        "run_id": "03893cd1180841ce8247b18d71f806cf",
+        "receipt_sha256": "30a574376c02a13e67be94719bdc106ed8391f38f761b11707a3083f2cb3c4bb",
+        "measurement_sha256": "fab39172aca76cd56092b84ecbddfac611285c502c435fee2dfa5dabccd4a0f1"
+      }
+    },
+    {
+      "split": "disclosed development",
+      "original_registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+      "baseline_controller_sha256": "da61865aa4a1a2cfedb550c27a5a8cc0aed756cbb7f71b22b8b9f98650afb024",
+      "candidate_controller_sha256": "831343c3a4b3a2f070f3c0b196fc91cd76ef9a50bb60c0a6b66b2608730c923d",
+      "case": 34,
+      "baseline_passed": false,
+      "candidate_passed": true,
+      "physics_ticks": 27562,
+      "bypasses": 0,
+      "error": null,
+      "release_exposures": 3,
+      "baseline_receipt_sha256": "54837e963198ff6a0290bf0770a8e7a397ab5adfbedebef5378a9b27c71cec18",
+      "candidate_receipt": {
+        "request_id": "3f120630-d23d-4b4d-90d6-b512a69959f9",
+        "run_id": "d9eadf9f9e0f44daa4c4bf1fdf1d18bf",
+        "receipt_sha256": "8c04dbbeb8f3406c54672f0a8acf80068be0986f04e2140dd66840aa42e832e8",
+        "measurement_sha256": "b02cf6bab4f0f80191089a39e7f1651c298c193e025231b197cf57a2c5d04dc7"
+      }
+    },
+    {
+      "split": "disclosed development",
+      "original_registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+      "baseline_controller_sha256": "da61865aa4a1a2cfedb550c27a5a8cc0aed756cbb7f71b22b8b9f98650afb024",
+      "candidate_controller_sha256": "831343c3a4b3a2f070f3c0b196fc91cd76ef9a50bb60c0a6b66b2608730c923d",
+      "case": 48,
+      "baseline_passed": false,
+      "candidate_passed": true,
+      "physics_ticks": 28162,
+      "bypasses": 0,
+      "error": null,
+      "release_exposures": 2,
+      "baseline_receipt_sha256": "991ecf5c613d39458d49cc96474b62e691cb52ad65530ffb7582a95071aa6fb4",
+      "candidate_receipt": {
+        "request_id": "b76d53bf-fc33-41e6-95a0-5171bd7f7b0d",
+        "run_id": "4354d0b7f60d4c96af4ff599aa2ff029",
+        "receipt_sha256": "cd82276af53ef39376ff257f670277d355e0c94af5340a03252d22144606c2b0",
+        "measurement_sha256": "e06396ac06d9a10e6eff579c39bfca6a51547db58dd6c1dc6b4dfd9a4c57e6d2"
+      }
+    }
+  ],
+  "selection": "Most complete layouts, then most passing controls preserved, then original docking distance. All twelve cases must be verified with zero bypasses.",
+  "selected": "active wrist and grasp recovery, original standoff",
+  "release_policy_sha256": "64173d4fe81d79f3f700f8a027c00c0ae6edaa4351000350447075c55ea11164",
+  "selected_policy_ast_equal_to_release": true
+}

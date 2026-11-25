@@ -25,6 +25,10 @@ Signed Makepad DevHub job J13 compiled the release candidate, registered a secon
 
 Restore the original Nano archive from its [recorded Studio checkout](https://github.com/dorobot-org/aisle-studio/tree/1762cbc9009e323dd03fb4b14aab979eaee423d8) to the project first. Open the same project in the revised Studio, select **Nano** and prepare its three-cube controller in **Task**. Open **Evidence → Skill qualification**, choose the verified original registration, select a failed layout and click **Test current controller on layout**. Studio runs the prepared controller on the disclosed layout and shows the two outcomes, candidate digest, physics ticks and guard bypasses. Choose a different failure or reopen the project to retrieve the latest comparison for that layout. The original measurements and the new development trials have distinct locations in the project. [Example and camera evidence](nano/wrist-survey/README.md)
 
+## Second release registration
+
+The revised Nano controller uses stationary pickup, one wrist-based reacquisition after two missed grasps, an elevated RGB survey before releasing near previously placed cubes, and the original docking distance. The selected DeepSeek/Octos plan completed 11 of 12 disclosed development layouts, including all six previously passing controls. The new Nano registration commits to 50 fresh layouts disjoint from the original 50. The G1 reference is registered again because its runtime identity binds the shared Studio adapter. Its standing-reach task and acceptance criteria are unchanged. [Development comparison](nano/wrist-survey/README.md) · [Nano preregistration](nano/release-2/registration.json) · [G1 preregistration](g1/release-2/registration.json)
+
 ## Reviewer identity
 
 Configure the native Studio process with the two paths below. The signing key identifies the reviewer. The allowed signers file is maintained by the team that owns release decisions. Studio does not create a reviewer identity for an operator. Use an OpenSSH key available to the local signer, including through an unlocked agent. For example, the authorized-signers entry can scope a public key to this protocol.
