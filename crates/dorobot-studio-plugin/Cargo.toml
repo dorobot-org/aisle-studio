@@ -1,0 +1,9 @@
+[package]
+name = "dorobot-studio-plugin"
+version.workspace = true
+edition = "2021"
+license.workspace = true
+
+[dependencies]
+dorobot-studio-core = { path = "../dorobot-studio-core", default-features = false }
+makepad-widgets = { workspace = true }

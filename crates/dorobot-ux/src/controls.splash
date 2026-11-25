@@ -1,0 +1,8 @@
+
+// Desktop controls center their ink inside the face without inherited outer gaps.
+mod.widgets.Button.draw_bg.border_radius = 6.0
+mod.widgets.Button.padding = mod.turtle.Inset{left: 14.0 right: 14.0 top: 8.0 bottom: 8.0}
+
+mod.widgets.Button.margin = 0.0
+mod.widgets.Button.align = mod.turtle.Align{x: 0.5 y: 0.5}
+mod.widgets.Button.draw_text.ink_centered = true

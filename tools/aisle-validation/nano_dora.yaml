@@ -1,0 +1,46 @@
+# Materialized by nano_validation.py with the current Python and run config.
+# Only nano_sim owns Nexus. Every frame waits for nano_recorder/ack.
+nodes:
+  - id: nano_task
+    path: nano_dora_node.py
+    args: task
+    inputs:
+      ready: {source: nano_sim/ready, queue_size: 2, queue_policy: backpressure}
+      ack: {source: nano_recorder/ack, queue_size: 2, queue_policy: backpressure}
+    outputs: [request]
+  - id: nano_trajectory
+    path: nano_dora_node.py
+    args: trajectory
+    inputs:
+      request: {source: nano_task/request, queue_size: 2, queue_policy: backpressure}
+    outputs: [joint_cmd]
+  - id: nano_limits
+    path: nano_dora_node.py
+    args: limits
+    inputs:
+      command: {source: nano_trajectory/joint_cmd, queue_size: 2, queue_policy: backpressure}
+    outputs: [joint_cmd_safe]
+  - id: nano_sim
+    path: nano_dora_node.py
+    args: sim
+    inputs:
+      command: {source: nano_limits/joint_cmd_safe, queue_size: 2, queue_policy: backpressure}
+    outputs: [ready, reset_done, joint_state, head, left_wrist, right_wrist, objects, gripper_applied, applied, frame_done, finished]
+  - id: nano_recorder
+    path: nano_dora_node.py
+    args: recorder
+    inputs:
+      ready: {source: nano_sim/ready, queue_size: 2, queue_policy: backpressure}
+      proposed: {source: nano_trajectory/joint_cmd, queue_size: 2, queue_policy: backpressure}
+      approved: {source: nano_limits/joint_cmd_safe, queue_size: 2, queue_policy: backpressure}
+      reset_done: {source: nano_sim/reset_done, queue_size: 2, queue_policy: backpressure}
+      joint_state: {source: nano_sim/joint_state, queue_size: 2, queue_policy: backpressure}
+      head: {source: nano_sim/head, queue_size: 2, queue_policy: backpressure}
+      left_wrist: {source: nano_sim/left_wrist, queue_size: 2, queue_policy: backpressure}
+      right_wrist: {source: nano_sim/right_wrist, queue_size: 2, queue_policy: backpressure}
+      objects: {source: nano_sim/objects, queue_size: 2, queue_policy: backpressure}
+      applied: {source: nano_sim/applied, queue_size: 2, queue_policy: backpressure}
+      gripper_applied: {source: nano_sim/gripper_applied, queue_size: 2, queue_policy: backpressure}
+      frame_done: {source: nano_sim/frame_done, queue_size: 2, queue_policy: backpressure}
+      finished: {source: nano_sim/finished, queue_size: 2, queue_policy: backpressure}
+    outputs: [ack]

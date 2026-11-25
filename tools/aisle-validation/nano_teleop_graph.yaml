@@ -1,0 +1,40 @@
+nodes:
+  - id: gamepad
+    path: nano_teleop_node.py
+    args: gamepad
+    inputs:
+      tick: {source: dora/timer/millis/20, queue_size: 1}
+    outputs: [input]
+  - id: control
+    path: nano_teleop_node.py
+    args: control
+    inputs:
+      input: {source: gamepad/input, queue_size: 1}
+    outputs: [command]
+  - id: guard
+    path: nano_teleop_node.py
+    args: guard
+    inputs:
+      command: {source: control/command, queue_size: 1}
+    outputs: [safe_command]
+  - id: sim
+    path: nano_teleop_node.py
+    args: sim
+    inputs:
+      command: {source: guard/safe_command, queue_size: 1}
+      tick: {source: dora/timer/millis/20, queue_size: 1}
+      viewer_ready: preview/viewer_ready
+    outputs: [scene_info, preview_frame, recording]
+  - id: recorder
+    path: nano_teleop_node.py
+    args: recorder
+    inputs:
+      recording: {source: sim/recording, queue_size: 64}
+      tick: {source: dora/timer/millis/200, queue_size: 1}
+  - id: preview
+    path: nano_teleop_node.py
+    args: preview
+    inputs:
+      scene_info: sim/scene_info
+      frame: {source: sim/preview_frame, queue_size: 1}
+    outputs: [viewer_ready]

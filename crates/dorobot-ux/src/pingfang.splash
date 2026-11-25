@@ -1,0 +1,24 @@
+
+// Resolve the installed face through the OS; no Apple font files are bundled.
+// Inter remains available on platforms without PingFang. The framework appends
+// its normal symbol, CJK and emoji fallback chain after these primary faces.
+use mod.text.*
+use mod.res.*
+mod.theme.font_regular = mod.theme.font_regular{
+    font_family: FontFamily{
+        pingfang := FontMember{system: "PingFang SC" weight: 400.0}
+        latin := FontMember{res: crate_resource("self:resources/Inter.ttf") weight: 400.0}
+    }
+}
+mod.theme.font_label = mod.theme.font_label{
+    font_family: FontFamily{
+        pingfang := FontMember{system: "PingFang SC" weight: 400.0}
+        latin := FontMember{res: crate_resource("self:resources/Inter.ttf") weight: 400.0}
+    }
+}
+mod.theme.font_bold = mod.theme.font_bold{
+    font_family: FontFamily{
+        pingfang := FontMember{system: "PingFang SC" weight: 600.0}
+        latin := FontMember{res: crate_resource("self:resources/Inter.ttf") weight: 600.0}
+    }
+}

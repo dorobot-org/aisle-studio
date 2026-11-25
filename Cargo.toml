@@ -1,0 +1,94 @@
+[workspace]
+resolver = "2"
+members = [".", "crates/dorobot-ux", "crates/dorobot-types", "crates/dorobot-studio-core", "crates/dorobot-studio-plugin", "plugins/aisle"]
+default-members = ["."]
+
+[package]
+name = "aisle-studio"
+version = "0.1.0"
+edition = "2021"
+description = "Native AISLE robotics workbench for Nexus simulation"
+
+[dependencies]
+makepad-widgets.workspace = true
+dorobot-studio-core = { path = "crates/dorobot-studio-core" }
+dorobot-studio-plugin = { path = "crates/dorobot-studio-plugin" }
+dorobot-plugin-aisle = { path = "plugins/aisle" }
+serde_json.workspace = true
+
+[workspace.package]
+version = "0.1.0-rc.2"
+edition = "2021"
+license = "MIT"
+authors = ["dorobot team"]
+
+[workspace.dependencies]
+# Internal crates
+dorobot-types = { path = "crates/dorobot-types" }
+# The shared visual language: tokens + custom-drawn widgets.
+dorobot-ux = { path = "crates/dorobot-ux" }
+
+# Makepad
+makepad-widgets = { git = "https://github.com/OctoSense-org/makepad.git", rev = "44d8220f12acfa46157019267e119e0866dd6b05", default-features = false, features = ["dock", "glass", "nav_menus"] }
+# Pinned by rev: the makepad-dev branch carries the dev-script port.
+# theme-hook: exposes mod.widgets.shell.* tokens and script_mod_with_theme,
+# which is how dorobot-flex supplies the nexus palette to the shell chrome.
+makepad-app-shell = { git = "https://github.com/mofa-org/makepad-flex-layout", rev = "3f971f0" }
+
+# Rerun viewer, optional and off by default (see dorobot-studio's `rerun`
+# feature). Taken from crates.io rather than the monorepo: a git rev would make
+# every clone fetch the whole rerun repo just to resolve a dependency that is
+# not built. 0.28 is the line the local checkout sat on.
+rerun = { version = "0.28", default-features = false, features = ["sdk"] }
+
+# Dora
+dora-node-api = "0.3"
+
+# Async & threading
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "macros"] }
+crossbeam-channel = "0.5"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Data loading
+parquet = { version = "56.1", default-features = false, features = ["arrow", "snap"] }
+
+# Video decoding
+# The pinned Makepad JIT supplies bitflags 2.10; ffmpeg-next 8.1 needs 2.11.
+ffmpeg-next = "=8.0.0"
+
+# Utilities
+parking_lot = "0.12"
+log = "0.4"
+env_logger = "0.11"
+anyhow = "1"
+thiserror = "1"
+
+# URDF visualization (optional)
+kiss3d = "0.35"
+urdf-rs = "0.8"
+mesh-loader = "0.1"
+
+# File dialogs
+rfd = "0.15"
+
+# Keep the layout and URDF renderer on the same JIT-capable Makepad revision.
+[patch."https://github.com/makepad/makepad"]
+makepad-widgets = { git = "https://github.com/OctoSense-org/makepad.git", rev = "44d8220f12acfa46157019267e119e0866dd6b05" }
+makepad-xr = { git = "https://github.com/OctoSense-org/makepad.git", rev = "44d8220f12acfa46157019267e119e0866dd6b05" }
+
+[patch."https://github.com/dorobot-org/makepad-urdf-viewer"]
+makepad-urdf-player = { path = "vendor/makepad-urdf-player" }
+
+# Match the framework macro source when file dialogs also depend on bitflags.
+[patch.crates-io]
+bitflags = { git = "https://github.com/OctoSense-org/makepad.git", rev = "44d8220f12acfa46157019267e119e0866dd6b05" }
+
+# 网格法线计算在未优化的开发构建中会阻塞数秒，模型库单独启用优化。
+[profile.dev.package.makepad-urdf-player]
+opt-level = 2
+
+[profile.dev.package.stl_io]
+opt-level = 2

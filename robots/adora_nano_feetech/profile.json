@@ -1,0 +1,15 @@
+{
+  "id": "adora_nano_feetech",
+  "name": "Adora Nano · Feetech base",
+  "transport": "serial",
+  "baud": 1000000,
+  "wheel_ids": [13, 14, 15],
+  "wheel_joints": ["wheel_2_joint", "wheel_1_joint", "wheel_3_joint"],
+  "wheel_positions": ["Left front", "Rear", "Right front"],
+  "registers": {"lock": 55, "mode": 33, "torque": 40, "speed": 46},
+  "speed_limit_ticks": 1500,
+  "teleop_limit_ticks": 300,
+  "command_timeout_ms": 250,
+  "capabilities": {"mobile_base": true, "strafe": true, "arms": false, "head": false, "cameras": false, "joint_feedback": false, "measured_odometry": false},
+  "model": "data/adora_nano/adora_nano.urdf"
+}

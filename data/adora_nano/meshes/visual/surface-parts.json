@@ -1,0 +1,24 @@
+{
+  "source": "base_link.stl",
+  "source_sha256": "b1ad151352ad2300d806cca69dade4eec220ba5b11e900daee7e37cf00371545",
+  "original_triangles": 275316,
+  "triangle_records_preserved": true,
+  "parts": {
+    "base_body": {
+      "triangles": 231476,
+      "sha256": "41c54054a2c582ee7b03659a87ec8cf7b6d20cae08a685aa410bd056405a4384"
+    },
+    "base_cover": {
+      "triangles": 42788,
+      "sha256": "073caa76f2fb4ce1b7267b9a0e7102d5e288a8345d9fb5e607fa62f777171861"
+    },
+    "screen_frame": {
+      "triangles": 1050,
+      "sha256": "96819a5acca40f1427b02e42dd09c1e8732986bfc9c76f9e0dd95847cbac4b78"
+    },
+    "screen_surface": {
+      "triangles": 2,
+      "sha256": "69990a36570e8fad4250325af52c7e6beccdb8ddd177b5cac4fda4197655def3"
+    }
+  }
+}

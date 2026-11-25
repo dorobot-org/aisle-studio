@@ -1,0 +1,44 @@
+# AISLE Studio
+
+AISLE Studio is a standalone Makepad application for developing robot tasks with AISLE and Nexus. It opens directly to Task, with Scene, Run and Evidence in the same window. Adora Nano and Unitree G1 are the reference robots.
+
+## Run locally
+
+The tested setup uses an Apple Silicon Mac, Rust, Python 3.13, uv, FFmpeg with development headers, and a GPU supported by Nexus. From this repository:
+
+```sh
+git clone https://github.com/moxin-org/AISLE.git ../aisle-workbench-runtime
+git -C ../aisle-workbench-runtime checkout --detach dbd34a71b6f82a011541b433306ca7e6a705e823
+export DOROBOT_AISLE_ROOT="$(cd ../aisle-workbench-runtime && pwd)"
+uv venv --python 3.13 .venv-aisle
+uv pip install --python .venv-aisle/bin/python numpy==2.5.5 pillow==13.0.0 dimforge-nexus3d==0.2.1 pyarrow==26.0.1 pyyaml==6.0.3 opencv-python-headless==5.1.0.95 scipy==1.18.1
+python3 tools/fetch_robot_meshes.py g1
+cargo run --locked --bin aisle-studio
+```
+
+Select **Use reference task** to inspect a shoulder without an authoring service. **Ask Codex** uses the authenticated Codex CLI. **DeepSeek via Octos** uses an installed Octos CLI with a configured DeepSeek profile. The selected author prepares the task program. The local simulation controller reads sensors and issues bounded motor commands.
+
+1. On **Task**, select Nano or G1 and prepare a controller.
+2. On **Scene**, inspect the model, choose a layout or adjust simulation conditions.
+3. On **Run**, start the selected program and watch the live camera and feedback.
+4. On **Evidence**, inspect the verdict, export a LeRobot episode, or open the exported episode in Replay.
+
+By default, sessions live in `~/Library/Application Support/AISLE Studio/aisle` on macOS and `~/.local/share/aisle-studio/aisle` on Linux. `DOROBOT_STUDIO_STATE_DIR` isolates a session. `DOROBOT_AISLE_PYTHON` selects an existing Python environment.
+
+## Screen recording
+
+Build `makepad-remote` from the same Makepad revision as `Cargo.lock`. To record a fresh Codex-authored three-cube transfer, run the following in the environment above. Choose a new session directory and output filename for each take.
+
+```sh
+python3 tools/record_demo.py --studio target/debug/aisle-studio \
+  --remote "$(command -v makepad-remote)" --session /tmp/aisle-nano-demo \
+  --output /tmp/aisle-nano-3x.mp4
+```
+
+The recorder captures the complete app window with no desktop window visible. Makepad’s `offscreen` backend provides rendered pixels. Its `headless` backend is available for input and state checks. The recorder uses elapsed wall time for 3× playback, including controller preparation, simulation, and the final Evidence page.
+
+## Product and provenance
+
+The native executable, navigation and session storage belong to this repository. The four robotics pages, Nexus worker, model assets and shared UI libraries were extracted from [the validated source revision](https://github.com/dorobot-org/dorobot-studio/tree/e490c9f73ce2a6d63416880e33305cfbdcc50a2b). The asset directories retain their provenance records. The original integration PR is independent of this repository.
+
+[Product requirements](docs/product/aisle-studio/PRD.md) · [Design review and generated screens](docs/product/aisle-studio/design-review.md) · [AISLE runtime](https://github.com/moxin-org/AISLE)

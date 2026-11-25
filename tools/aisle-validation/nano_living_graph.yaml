@@ -1,0 +1,41 @@
+nodes:
+  - id: living_nav
+    path: nano_living_node.py
+    args: nav
+    inputs:
+      scene_info: living_sim/scene_info
+      observation: {source: living_sim/observation, queue_size: 2, queue_policy: backpressure}
+      ack: {source: living_recorder/ack, queue_size: 2, queue_policy: backpressure}
+    outputs: [wheel_cmd]
+  - id: living_guard
+    path: nano_living_node.py
+    args: guard
+    inputs:
+      command: {source: living_nav/wheel_cmd, queue_size: 2, queue_policy: backpressure}
+      ack: {source: living_recorder/ack, queue_size: 2, queue_policy: backpressure}
+    outputs: [safe_wheel_cmd]
+  - id: living_sim
+    path: nano_living_node.py
+    args: sim
+    inputs:
+      command: {source: living_guard/safe_wheel_cmd, queue_size: 2, queue_policy: backpressure}
+      ack: {source: living_recorder/ack, queue_size: 2, queue_policy: backpressure}
+      viewer_ready: living_preview/viewer_ready
+    outputs: [scene_info, observation, frame, preview_frame]
+  - id: living_recorder
+    path: nano_living_node.py
+    args: recorder
+    inputs:
+      scene_info: living_sim/scene_info
+      proposed: {source: living_nav/wheel_cmd, queue_size: 4, queue_policy: backpressure}
+      command: {source: living_guard/safe_wheel_cmd, queue_size: 4, queue_policy: backpressure}
+      frame: {source: living_sim/frame, queue_size: 2, queue_policy: backpressure}
+    outputs: [ack, recording_result]
+  - id: living_preview
+    path: nano_living_node.py
+    args: preview
+    inputs:
+      scene_info: living_sim/scene_info
+      frame: {source: living_sim/preview_frame, queue_size: 1}
+      recording_result: living_recorder/recording_result
+    outputs: [viewer_ready]

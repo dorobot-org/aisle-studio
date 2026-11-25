@@ -1,0 +1,8 @@
+/target/
+/.venv*/
+/datasets/
+**/__pycache__/
+*.pyc
+/data/g1/meshes/
+/tools/aisle-validation/runs/
+.DS_Store

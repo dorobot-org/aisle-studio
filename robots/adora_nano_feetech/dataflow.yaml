@@ -1,0 +1,26 @@
+nodes:
+  - id: gamepad
+    path: node.py
+    args: gamepad
+    inputs:
+      tick: {source: dora/timer/millis/20, queue_size: 1}
+    outputs: [input]
+  - id: control
+    path: node.py
+    args: control
+    inputs:
+      input: {source: gamepad/input, queue_size: 1}
+    outputs: [command]
+  - id: guard
+    path: node.py
+    args: guard
+    inputs:
+      command: {source: control/command, queue_size: 1}
+    outputs: [safe_command]
+  - id: driver
+    path: node.py
+    args: driver
+    inputs:
+      command: {source: guard/safe_command, queue_size: 1}
+      tick: {source: dora/timer/millis/100, queue_size: 1}
+    outputs: [status]

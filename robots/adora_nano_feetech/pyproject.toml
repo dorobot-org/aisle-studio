@@ -1,0 +1,5 @@
+[project]
+name = "dorobot-adora-nano-feetech"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["dora-rs==1.0.1", "pygame==2.6.1", "pyserial==3.5", "pyyaml==6.0.3"]
