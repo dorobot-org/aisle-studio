@@ -1,0 +1,10 @@
+{
+  "robot": "G1",
+  "registration": "4d11b39106f4feaffdb38b68bae0bbb474ebbe853beeba9119da024011b9a3c2",
+  "backend": "headless",
+  "verdict_sha256": "44f20a1725dbdf0aed5b57205d52ea6fff961c6125b27cfc3300e1ed22a99477",
+  "case": 8,
+  "support_steps": 2000,
+  "wrist_error_mm": 5.146256636460384,
+  "coverage": "8/8 boundary impacts passed \u00b7 12/12 interior impacts passed"
+}

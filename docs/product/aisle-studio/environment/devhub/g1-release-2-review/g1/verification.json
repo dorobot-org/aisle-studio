@@ -1,0 +1,21 @@
+{
+  "robot": "G1",
+  "backend": "headless",
+  "cases": 20,
+  "successes": 20,
+  "verified": 20,
+  "guard_bypasses": 0,
+  "qualified": true,
+  "registered_via_native": true,
+  "execution": "reopened raw cohort",
+  "registration_sha256": "4d11b39106f4feaffdb38b68bae0bbb474ebbe853beeba9119da024011b9a3c2",
+  "rows_sha256": "5e5ca1ca936bee2525083ff555071c999f4ae84d3749728e002554874e073b5e",
+  "package_sha256": "48b58d3d4c140fb4aa34a020c8a9386c0512c730f4fcba4dc97279814a279a28",
+  "reviewer_fixture": "ephemeral devhub-test",
+  "unknown_reviewer_rejected": true,
+  "modified_measurement_rejected": true,
+  "decision_reopened": true,
+  "signed_handoff_checked": true,
+  "final_disposition": "reject",
+  "physical_qualification": false
+}
