@@ -42,6 +42,8 @@ DeepSeek via Octos received case 14 from the unsuccessful upright-pitch revision
 
 The motor traces recorded a 30° yaw command and neutral pitch command at every scored step. Each run's final 100 samples averaged 29.93° of measured waist yaw. The verifier reconstructed wrist, foot, contact, actuator and room checks from both archives. This qualifies the specified simulated room, reach and disturbance envelope. [Matched results](g1-verification/turned-stance/paired/report.json) · [Fresh results](g1-verification/turned-stance/fresh/report.json) · [Matched verification](g1-verification/turned-stance/paired/verified.json) · [Fresh verification](g1-verification/turned-stance/fresh/verified.json)
 
+The Codex offscreen run and the signed DeepSeek headless run each prepared the stance with an empty run history and then revised a retained failed trial in a separate workspace. Both providers held the frozen task constant and restored the revised controller and verdict after restart. The native runs use the nominal disturbance. [Codex measurements](g1-verification/turned-stance/codex-offscreen.json) · [DevHub measurements](devhub/g1-standing/g1-revision/verification.json) · [Native Task page](g1-verification/turned-stance/native-revision.png)
+
 ## Reproduce
 
 Use the pinned AISLE and Nexus runtime and the G1 meshes fetched with `python3 tools/fetch_robot_meshes.py g1`. The native script seeds the same measured asset library and performs profile selection, binding, execution, replay and reopen through Makepad. Use an empty session directory.
