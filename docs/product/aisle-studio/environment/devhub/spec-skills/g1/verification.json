@@ -1,0 +1,106 @@
+{
+  "backend": "headless",
+  "robot": "G1",
+  "bridge": {
+    "backend": "Nexus",
+    "controller_sha256": "4a95e2277b1bc92362b7bd21575337d0f8a62ce47b9b2eda90d183e43d3b4e9d",
+    "measured_result_sha256": "219301145e8d08f98df4f8c468b43f6b30bfcc03ea6e7bb8f490632315007cd4",
+    "observation_inputs": [
+      "joint_encoders",
+      "imu"
+    ],
+    "package": {
+      "action_units": [
+        "rad"
+      ],
+      "main_sha256": "727bdd87c718fbf62af3d05b93aea18aac4bd5e3e88abd0e3e2bd58dabb22ea5",
+      "name": "aisle-nexus-task",
+      "package_sha256": "546b824010ca9fee8215d093fcb8d1d791f90b668686a24f9e4d0918b9141ff2",
+      "robot": "G1",
+      "sensors": [
+        "joint_encoders",
+        "imu"
+      ],
+      "source": "Reviewed build",
+      "verb": "vendor.dorobot.aisle.task.run",
+      "version": "1.0.0"
+    },
+    "package_sha256": "546b824010ca9fee8215d093fcb8d1d791f90b668686a24f9e4d0918b9141ff2",
+    "request_id": "da7e31d4-4612-4b03-a1fb-c3195b44f3b6",
+    "run_id": "e595d67fc82744caab202c86fee2290f",
+    "runtime": {
+      "aisle_backend_sha256": "af23d5f3f17eb403ab02cd9b5eb5dff5c68005791003b919159b8c0992282868",
+      "bridge_sha256": "b5a1af6e1550f29ae7fb377c9737c61bccbdff0334a8f50cba1912d5046c6af2",
+      "nexus_sha256": "155978e684822af2bbe09f42dd148cdef963facf4e67220177a05b8ff7665354",
+      "node_sha256": "f7bfb090110105ee0d85957bac1876fdf3aaa63ef534d2c6c62916155ef1ec80",
+      "studio_adapter_sha256": "1a84459b64ccf14aeb170c03dda60e44fd3f1823c7a37ef89365292e240b90e9"
+    },
+    "task_success": true,
+    "verb": "vendor.dorobot.aisle.task.run"
+  },
+  "direct_package_sha256": "48b58d3d4c140fb4aa34a020c8a9386c0512c730f4fcba4dc97279814a279a28",
+  "prepared_controller_sha256": "4a95e2277b1bc92362b7bd21575337d0f8a62ce47b9b2eda90d183e43d3b4e9d",
+  "result_sha256": "613f9058bf6e7eca74507c13004c6d003bb2e0c20570cb0cb42dbab3785118c5",
+  "verdict": {
+    "physics_ticks": 2000,
+    "both_feet_loaded_steps": 2000,
+    "wrist_reach": {
+      "final_error_m": 0.006268228905198323,
+      "final_m": [
+        0.1784912645816803,
+        0.15410947799682617,
+        0.04299846664071083
+      ],
+      "frame": "world",
+      "link": "left_wrist_yaw_link",
+      "max_final_100_error_m": 0.006268540509092077,
+      "passed": true,
+      "requested_travel_m": 0.028735532844040363,
+      "start_m": [
+        0.20476223528385162,
+        0.14905844628810883,
+        0.05083111673593521
+      ],
+      "target_m": [
+        0.18012575089920124,
+        0.1541588286396217,
+        0.03694729215968186
+      ],
+      "tolerance_m": 0.01,
+      "trace_sha256": "72cf8a174561da7c9b8eeb20d32a75db34eaa9dbfc58512237dd0c1275df36ba"
+    },
+    "disturbance": {
+      "contacts": 2,
+      "last_contact_step": 610,
+      "links": [
+        "torso_link"
+      ],
+      "normal_impulse_sum_ns": 0.1111509338952601,
+      "passed": true,
+      "recovered_step": 710,
+      "recovery_s": 0.5
+    }
+  },
+  "changed_main_rejected": "The installed skill differs from the selected package. Review it in Task.",
+  "privileged_input_rejected": true,
+  "source_restored": true,
+  "stop_verified_groups": 0,
+  "rejected_request": {
+    "request_id": "a0a210d2-c364-4f3a-9c71-8c94ba7e6988",
+    "code": "OBSERVATION_DENIED",
+    "observation_inputs": [
+      "joint_encoders",
+      "imu",
+      "simulator_object_poses"
+    ]
+  },
+  "device_preflight": {
+    "state": "Dry run measured",
+    "motor_commands_sent": 0,
+    "receipt_sha256": "ab75f983f4f1df83c8b56019c80f12e3ac82c10f5dc311f467875f831193f5d0",
+    "physical_qualification": false,
+    "missing_capabilities": [],
+    "replay_steps": 2200,
+    "max_target_difference_rad": 0.0
+  }
+}

@@ -31,6 +31,8 @@ By default, sessions live in `~/Library/Application Support/AISLE Studio/aisle` 
 
 To repeat a saved experiment on another Mac, select the registered worker under **Run → Repeat experiment**. Studio checks its robot model, shows its available slots, and imports the measured trial when the lease finishes. [Worker setup, cancellation and recovery](docs/product/aisle-studio/environment/experiments.md#run-on-a-registered-worker)
 
+To run a prepared controller through an installed Octos skill, use **Task → Skill library**. Choose the source and version, prepare the task, then use **Run**. Evidence records the bridge request and the package that actually executed. [Install and verify the SPEC bridge](docs/product/aisle-studio/environment/spec-skills.md)
+
 ## Verify the windowless app
 
 With the workspace built and the runtime configured, run the native smoke check from a fresh session. It selects G1, inspects its reference shoulder movement in Nexus, exports the episode, opens Replay and verifies that Evidence restores the same trial on restart.
