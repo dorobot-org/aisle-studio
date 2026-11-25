@@ -1,0 +1,133 @@
+{
+  "protocol": {
+    "split": "disclosed development",
+    "cases": [
+      16,
+      20,
+      43
+    ],
+    "selection": "One recorded placement, one grasp and one docking failure.",
+    "instruction": "Transfer all three stationary floor cubes onto the coffee table in red, green, blue order. Use the normal stationary grasp without continuous descent tracking. Use experimental wrist clearance.",
+    "feedback_case": 16,
+    "engine": "Nexus",
+    "inputs": "Existing Nano RGB and encoders",
+    "measurements": [
+      "three-cube outcomes",
+      "motor targets",
+      "unique bridge receipt",
+      "authoring latency"
+    ]
+  },
+  "controller_request_sha256_without_provider": "aafaf63c955c4a983a22b31bb92f21a5a686c209ac8f8a87d45670e8e262b53a",
+  "feedback_sha256": "ea471a7c287bb67b7ffb5124f4131f872bb387b067b2063149ff4d39fdb8a873",
+  "controller_sha256_without_author_metadata": "b882fe51256069e0bde0b19933c1193047ab8d8559fcc90831542281c67cd114",
+  "providers": {
+    "codex": {
+      "authoring": {
+        "provider": "codex",
+        "model": "gpt-6.2-astra",
+        "wall_seconds": 7.137097334023565
+      },
+      "controller_sha256": "29faee5d513f93a23128341dac004fac5e3e3208ce98a4b2bb0165dfb29c386c",
+      "cases": {
+        "16": {
+          "passed": true,
+          "error": null,
+          "physics_ticks": 28502,
+          "guard_bypasses": 0,
+          "motor_sha256": "8ce3b04142def657cd5285137f1cd7945af11fc88bd2e4fc940efb0dd0e7e74e",
+          "receipt": {
+            "measurement_sha256": "7d44da4c7cd0e1148ec75159551a60406c881520a9e87e22156a4c6c8f7b336e",
+            "receipt_sha256": "9a3d1bdafa3340a9b8e07a1b0a8d55ba6bdd51f8adb7193bb0ab7e081f7e463f",
+            "request_id": "e47326e6-9569-40c7-b175-0a21e607f8b2",
+            "run_id": "353fb95904c34c08be46010058633bbd"
+          }
+        },
+        "20": {
+          "passed": true,
+          "error": null,
+          "physics_ticks": 32758,
+          "guard_bypasses": 0,
+          "motor_sha256": "d1018f34fa0593cb3655be796a1912a917cbaeb17597139189ff06fe7ce32c53",
+          "receipt": {
+            "measurement_sha256": "67c7a673295bb07f3302042fe08276e463d60d520be34334335a26f2af1ea6f7",
+            "receipt_sha256": "5a19ea488321b0ff9c5c3b5fbbab9fe8c1892006e9db0f7813d7ea6c5c0aed82",
+            "request_id": "1ec962b4-bf56-4ccf-b19a-599e73041bef",
+            "run_id": "13ae321fa2344bc09309fd7c50d53f5c"
+          }
+        },
+        "43": {
+          "passed": false,
+          "error": "ValueError: Stereo table docking timed out",
+          "physics_ticks": 15626,
+          "guard_bypasses": 0,
+          "motor_sha256": "a65a4c36f9b562ce26a18fca2f45f45a6fbc983d5be3c30699b07abdd446b45b",
+          "receipt": {
+            "measurement_sha256": "c94f93f732ee26db4c25be72ff5eb136eda97194cd7828d4c68095b01e3d3a16",
+            "receipt_sha256": "c5fb02fb627495247352b58c22addc55a03f8a9dc8ae59dd75f8eadd05e7cf60",
+            "request_id": "37917f5d-5548-450b-b5cd-ccb37d2966c3",
+            "run_id": "ef86f8b5def44319b4b5838d547575dc"
+          }
+        }
+      },
+      "complete": 2
+    },
+    "octos-deepseek": {
+      "authoring": {
+        "provider": "octos-deepseek",
+        "model": "deepseek-v4-flash",
+        "wall_seconds": 2.3586109168827534,
+        "input_tokens": 6834,
+        "output_tokens": 255
+      },
+      "controller_sha256": "06896fc17161f3da3d49ed2206ba52632021f2facdee6bc369ae6e695d929984",
+      "cases": {
+        "16": {
+          "passed": true,
+          "error": null,
+          "physics_ticks": 28502,
+          "guard_bypasses": 0,
+          "motor_sha256": "8ce3b04142def657cd5285137f1cd7945af11fc88bd2e4fc940efb0dd0e7e74e",
+          "receipt": {
+            "measurement_sha256": "a8ad0301ea386f35a6dfbbce87b433a1071e454ca88d2bbd6bffaba9b8a4c13d",
+            "receipt_sha256": "df0e6f234576be6746b6d277f9c94536e682da06aed36f590541764157533f46",
+            "request_id": "4ad42128-f4c0-4a5e-a36f-8229b1c646e6",
+            "run_id": "9e60588e9f91428d88d0eae4b556ebda"
+          }
+        },
+        "20": {
+          "passed": true,
+          "error": null,
+          "physics_ticks": 32758,
+          "guard_bypasses": 0,
+          "motor_sha256": "d1018f34fa0593cb3655be796a1912a917cbaeb17597139189ff06fe7ce32c53",
+          "receipt": {
+            "measurement_sha256": "6e13d6da870580aeed7fce2d7bc3afb91f9514b79740a8cc1e0a965459eb0b6d",
+            "receipt_sha256": "7af22d0cb2d42ef48363fafd6c8db285df2bb9a7b4ff9511f4878a7da0edd471",
+            "request_id": "f315975e-43b6-468d-80f9-f4411d05a913",
+            "run_id": "0d7711b40e0f451bbb21909d7bc87260"
+          }
+        },
+        "43": {
+          "passed": false,
+          "error": "ValueError: Stereo table docking timed out",
+          "physics_ticks": 15626,
+          "guard_bypasses": 0,
+          "motor_sha256": "a65a4c36f9b562ce26a18fca2f45f45a6fbc983d5be3c30699b07abdd446b45b",
+          "receipt": {
+            "measurement_sha256": "7f4cd95ef45d525c5f8cf7e9e93f5d0383309f941bd69a855731f457b2936776",
+            "receipt_sha256": "f81d983e35950fe089bc17b0924aefdb9130d58e22c449a0c8991b947a03767e",
+            "request_id": "0d694753-39a6-4ecc-8b56-8f678618c25d",
+            "run_id": "7ba0a95296c1424aa08cc349bebdcab6"
+          }
+        }
+      },
+      "complete": 2
+    }
+  },
+  "matched_motor_targets": {
+    "16": true,
+    "20": true,
+    "43": true
+  }
+}

@@ -160,6 +160,31 @@ def main():
         checks["coverage"] = app.control(key + "case_coverage")["text"]
         if args.backend == "offscreen":
             app.act("grab", "w=0", "out=" + str(folder / "case-evidence.png"))
+            checks["window_sizes"] = []
+            for width, height in [(1024, 768), (1440, 900)]:
+                app.act("resize", "window=0", f"w={width}", f"h={height}")
+                capture = folder / f"case-evidence-{width}.png"
+                if robot == "Nano" and files:
+                    evidence = check_exposure(app, key, files[0], capture)
+                    field = "exposure_rgb"
+                else:
+                    field = "case_summary"
+                    app.scroll_to(key + field, key + "panel")
+                    app.act("grab", "w=0", "out=" + str(capture))
+                    evidence = {}
+                bounds = app.control(key + field)["rect"]
+                x, y, w, h = bounds
+                assert (
+                    x >= -1 and x + w <= width + 1 and y >= 0 and y + h <= height + 1
+                ), (field, bounds, width, height)
+                checks["window_sizes"].append(
+                    dict(
+                        size=[width, height],
+                        image=capture.name,
+                        bounds=bounds,
+                        **evidence,
+                    )
+                )
         app.scroll_to(key + "inspect", key + "panel")
         app.click(key + "inspect")
         app.wait(

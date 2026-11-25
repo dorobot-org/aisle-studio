@@ -37,6 +37,8 @@ The second G1 release met every registered requirement. All 20 standing reaches 
 
 Signed Makepad DevHub job J17 tested the exact frozen Nano controller on disclosed layout 20. The headless Evidence page completed the transfer, reopened it after restart and correctly restored the selected result when switching between cases. [Build manifest](../devhub/release-2-replay/verification.json) · [Nano receipt](../devhub/release-2-replay/nano-case/verification.json)
 
+Codex and DeepSeek via Octos also received the same instruction and public feedback independently. Each completed two of the three disclosed comparison layouts. Their motor journals were identical in all three pairs, including the docking timeout. [Matched provider measurements](nano/provider-comparison/README.md)
+
 ## Reviewer identity
 
 Configure the native Studio process with the two paths below. The signing key identifies the reviewer. The allowed signers file is maintained by the team that owns release decisions. Studio does not create a reviewer identity for an operator. Use an OpenSSH key available to the local signer, including through an unlocked agent. For example, the authorized-signers entry can scope a public key to this protocol.
