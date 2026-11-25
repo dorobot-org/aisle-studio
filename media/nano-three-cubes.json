@@ -1,0 +1,78 @@
+{
+  "app": "AISLE Studio",
+  "backend": "offscreen",
+  "capture": "Makepad window grab",
+  "speed": 3,
+  "elapsed_seconds": 343.9331886670552,
+  "video_seconds": 114.625,
+  "original_window_frames": 1932,
+  "output_frames": 2751,
+  "provider": "codex",
+  "model": "gpt-6.2-astra",
+  "requested": [
+    "red",
+    "green",
+    "blue"
+  ],
+  "cubes": {
+    "blue": {
+      "cube_center_over_table": true,
+      "detached": true,
+      "final_position_m": [
+        0.349778950214386,
+        0.6504631638526917,
+        0.5599989295005798
+      ],
+      "min_finger_clearance_tail_m": 0.2408124467580614,
+      "nearest_table_edge_m": 0.05046316385269167,
+      "opposing_finger_airborne_ticks": 4230,
+      "passed": true,
+      "required_table_inset_m": 0.035,
+      "settle_motion_m": 0.0,
+      "table_contact_tail_ticks": 100
+    },
+    "green": {
+      "cube_center_over_table": true,
+      "detached": true,
+      "final_position_m": [
+        0.3915480077266693,
+        0.710083544254303,
+        0.5599988698959351
+      ],
+      "min_finger_clearance_tail_m": 0.284771299984231,
+      "nearest_table_edge_m": 0.110083544254303,
+      "opposing_finger_airborne_ticks": 3831,
+      "passed": true,
+      "required_table_inset_m": 0.035,
+      "settle_motion_m": 0.0,
+      "table_contact_tail_ticks": 100
+    },
+    "red": {
+      "cube_center_over_table": true,
+      "detached": true,
+      "final_position_m": [
+        0.143330380320549,
+        0.689417839050293,
+        0.5599988698959351
+      ],
+      "min_finger_clearance_tail_m": 0.3501803137789053,
+      "nearest_table_edge_m": 0.08941783905029299,
+      "opposing_finger_airborne_ticks": 4307,
+      "passed": true,
+      "required_table_inset_m": 0.035,
+      "settle_motion_m": 0.0,
+      "table_contact_tail_ticks": 100
+    }
+  },
+  "physics_ticks": 33462,
+  "wheel_supported_ticks": 33462,
+  "rejected_motor_writes": 0,
+  "task_success": true,
+  "movie_sha256": "bdfa33d989bd5efb596d3cede8ec66154a1cbdcc94715ba7e390cdec31805088",
+  "controller_sha256": "0fd4c9c9c4a2f26442995601339257774b71f4d1ffc132993e61fc463a5d3a09",
+  "resolution": [
+    1280,
+    800
+  ],
+  "frame_rate": 24
+}

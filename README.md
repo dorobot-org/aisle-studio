@@ -2,6 +2,10 @@
 
 AISLE Studio is a standalone Makepad application for developing robot tasks with AISLE and Nexus. It opens directly to Task, with Scene, Run and Evidence in the same window. Adora Nano and Unitree G1 are the reference robots.
 
+[![AISLE Studio running the Nano transfer](media/nano-three-cubes.jpg)](media/nano-three-cubes-3x.mp4)
+
+[Watch the standalone app at 3× speed](media/nano-three-cubes-3x.mp4). Codex prepared the red, green, blue transfer and Nexus verified all three cubes settled on the coffee table. The 1 min 55 s recording shows the full app from Task through Evidence. [Run measurements](media/nano-three-cubes.json)
+
 ## Run locally
 
 The tested setup uses an Apple Silicon Mac, Rust, Python 3.13, uv, FFmpeg with development headers, and a GPU supported by Nexus. From this repository:
