@@ -59,10 +59,10 @@ impl SceneEditorPane {
         }
         self.view
             .button(cx, ids!(rule_delete))
-            .set_enabled(cx, r.is_some() && self.candidate.is_none());
+            .set_enabled(cx, r.is_some() && !self.review_active());
         self.view
             .button(cx, ids!(rule_apply))
-            .set_enabled(cx, self.candidate.is_none());
+            .set_enabled(cx, !self.review_active());
     }
 
     pub(super) fn rule_actions(&mut self, cx: &mut Cx, a: &Actions) -> Result<bool, String> {

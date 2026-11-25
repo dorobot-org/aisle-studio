@@ -130,6 +130,8 @@ pub struct Scene {
     pub instances: Vec<Instance>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub rules: Vec<SceneRule>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub edit_history: Vec<agent_edit::EditSource>,
 }
 
 impl Default for Scene {
@@ -142,6 +144,7 @@ impl Default for Scene {
             room_m: [6., 4.],
             instances: vec![],
             rules: vec![],
+            edit_history: vec![],
         }
     }
 }
@@ -448,6 +451,7 @@ mod tests {
     }
 }
 
+pub mod agent_edit;
 pub mod composition;
 pub mod viewport;
 

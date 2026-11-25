@@ -59,6 +59,7 @@ def main():
             "photo-reviews",
             "g1-revision",
             "scene-ranges",
+            "scene-agents",
             "experiment-worker",
         ],
         default="pages",
@@ -149,6 +150,9 @@ def main():
                 out / "survey/state/aisle/survey",
                 python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable),
             )
+    elif args.suite == "scene-agents":
+        for provider in ("codex", "octos-deepseek"):
+            run(provider, "check_scene_proposals.py", "--provider", provider)
     elif args.suite == "g1-revision":
         run("g1-revision", "check_g1_revision.py", "--provider", args.provider)
     elif args.suite == "experiment-worker":

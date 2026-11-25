@@ -13,7 +13,9 @@ use dorobot_studio_core::{
 };
 use dorobot_studio_plugin::*;
 use std::collections::HashMap;
+mod agents;
 mod rules;
+use dorobot_studio_core::survey::scene::agent_edit::{changed_ids, EditSource};
 
 script_mod! {
     use mod.prelude.widgets.*
@@ -33,7 +35,9 @@ script_mod! {
             View{width:Fill height:Fill flow:Down spacing:6
                 Row{top_view := Tool{text:"Top view"} undo := Tool{text:"Undo"} redo := Tool{text:"Redo"} viewpoint := Caption{}}
                 canvas := VideoPlayer{width:Fill height:Fill}
-                Row{instruction := Field{empty_text:"Place one coffee table and two chairs"} propose := Tool{text:"Preview"}}
+                Row{proposal_provider := DropDown{width:158 labels:["Local commands" "Codex" "DeepSeek via Octos"]} instruction := Field{empty_text:"Describe a room edit"} propose := Tool{text:"Preview"}}
+                reference_row := Row{reference_prompt := Caption{} reference_choices := DropDown{width:150} confirm_reference := Tool{text:"Use selection"}}
+                source_label := Caption{}
                 proposal_row := Row{summary := Caption{} apply := Tool{text:"Apply proposal"} cancel := Tool{text:"Discard proposal"}}
             }
             inspector := ScrollYView{width:283 height:Fill flow:Down spacing:6
@@ -99,6 +103,8 @@ pub struct SceneEditorPane {
     frame: Option<Viewport>,
     #[rust]
     candidate: Option<Scene>,
+    #[rust]
+    review: agents::Review,
     #[rust]
     drag: Option<Drag>,
     #[rust]
@@ -173,6 +179,7 @@ impl SceneEditorPane {
         self.baseline = scene.clone();
         self.editor.open(scene);
         self.candidate = None;
+        self.review = Default::default();
         self.drag = None;
         self.sync(cx);
     }
@@ -224,8 +231,9 @@ impl SceneEditorPane {
         list.set_selected_item(cx, selected.unwrap_or(0));
         let summary = if self.candidate.is_some() {
             format!(
-                "Preview · {} objects. Review their positions before applying.",
-                s.instances.len()
+                "Preview · {} objects · {} changed",
+                s.instances.len(),
+                changed_ids(&self.editor.scene, s).len()
             )
         } else {
             String::new()
@@ -353,7 +361,7 @@ impl SceneEditorPane {
             })
             .unwrap_or_default();
         self.view.label(cx, ids!(pin)).set_text(cx, &pin);
-        let pending = self.candidate.is_some();
+        let pending = self.review_active();
         self.view
             .widget(cx, ids!(proposal_row))
             .set_visible(cx, pending);
@@ -365,6 +373,9 @@ impl SceneEditorPane {
             ids!(redo),
             ids!(apply_room),
             ids!(snap),
+            ids!(reload),
+            ids!(propose),
+            ids!(discard),
         ] {
             self.view.button(cx, id).set_enabled(cx, !pending);
         }
@@ -374,13 +385,15 @@ impl SceneEditorPane {
         self.view
             .button(cx, ids!(add))
             .set_enabled(cx, !pending && !self.catalog.is_empty());
-        for id in [ids!(apply) as &[LiveId], ids!(cancel)] {
-            self.view.widget(cx, id).set_visible(cx, pending);
-        }
+        self.view
+            .widget(cx, ids!(apply))
+            .set_visible(cx, self.candidate.is_some());
+        self.view
+            .button(cx, ids!(update))
+            .set_enabled(cx, item.is_some() && (!pending || self.candidate.is_some()));
         for id in [
             ids!(remove) as &[LiveId],
             ids!(duplicate),
-            ids!(update),
             ids!(area_save),
             ids!(area_clear),
         ] {
@@ -390,6 +403,7 @@ impl SceneEditorPane {
         }
         self.selected = item.map(|i| i.id.clone());
         self.rule_fields(cx);
+        self.review_labels(cx);
         self.draw_frame(cx);
     }
     fn supports(&self) -> Vec<(String, Support)> {
@@ -447,7 +461,7 @@ impl SceneEditorPane {
         ])
     }
     fn actions(&mut self, cx: &mut Cx, a: &Actions) -> Result<(), String> {
-        if self.candidate.is_none()
+        if !self.review_active()
             && self
                 .view
                 .text_input(cx, ids!(scene_name))
@@ -459,7 +473,7 @@ impl SceneEditorPane {
             self.editor.change(draft);
         }
         let click = |id: &[LiveId]| self.view.button(cx, id).clicked(a);
-        if click(ids!(reload)) {
+        if !self.review_active() && click(ids!(reload)) {
             self.refresh(cx)?;
             self.sync(cx);
             self.note(cx, "Library refreshed");
@@ -471,20 +485,48 @@ impl SceneEditorPane {
             return Ok(());
         }
         if click(ids!(cancel)) {
+            self.review = Default::default();
             self.candidate = None;
             self.sync(cx);
             self.note(cx, "Proposal discarded");
             return Ok(());
         }
         if click(ids!(apply)) {
-            if let Some(s) = self.candidate.take() {
+            if let (Some(mut s), Some(mut source)) =
+                (self.candidate.take(), self.review.source.take())
+            {
+                source.affected = changed_ids(&self.editor.scene, &s);
+                self.review = Default::default();
+                if source.affected.is_empty() {
+                    self.sync(cx);
+                    return Err("The reviewed layout is unchanged".into());
+                }
+                s.edit_history.push(source);
                 self.commit(cx, s);
                 self.note(cx, "Proposal applied");
             }
             return Ok(());
         }
-        if click(ids!(propose)) {
+        if click(ids!(confirm_reference)) {
+            return self.confirm_reference(cx);
+        }
+        if !self.review_active() && click(ids!(propose)) {
             let text = self.text(cx, ids!(instruction));
+            let provider = self
+                .view
+                .drop_down(cx, ids!(proposal_provider))
+                .selected_item();
+            if provider != 0 {
+                return self.request_edit(
+                    cx,
+                    if provider == 1 {
+                        "codex"
+                    } else {
+                        "octos-deepseek"
+                    },
+                    &text,
+                );
+            }
             let assets = if text.to_lowercase().trim_start().starts_with("move ") {
                 self.pinned.values().cloned().collect::<Vec<_>>()
             } else {
@@ -494,6 +536,7 @@ impl SceneEditorPane {
             let result = self.editor.scene.propose(&text, &assets);
             match result {
                 Ok(scene) => {
+                    self.review.source = Some(EditSource::local(text, &self.editor.scene, &scene));
                     self.candidate = Some(scene);
                     self.sync(cx);
                     self.note(cx, "Review the local library match");
@@ -502,6 +545,53 @@ impl SceneEditorPane {
                     self.sync(cx);
                     return Err(e.to_string());
                 }
+            }
+            return Ok(());
+        }
+        if self.review_active() && self.candidate.is_none() {
+            return Ok(());
+        }
+        if let Some(i) = self.view.drop_down(cx, ids!(objects)).selected(a) {
+            self.selected = self.visible_scene().instances.get(i).map(|v| v.id.clone());
+            self.sync(cx);
+            return Ok(());
+        }
+        if click(ids!(update)) {
+            let name = self.text(cx, ids!(selected_name));
+            if name.is_empty() {
+                return Err("Name the instance".into());
+            }
+            let p = [
+                self.number(cx, ids!(x), "X position")?,
+                self.number(cx, ids!(y), "Y position")?,
+                self.number(cx, ids!(z), "Z position")?,
+            ];
+            let mut s = self.visible_scene().clone();
+            let id = self.selected.as_ref().ok_or("Select an object")?;
+            let obj = s
+                .instances
+                .iter_mut()
+                .find(|o| &o.id == id)
+                .ok_or("Select an object")?;
+            obj.name = name;
+            obj.position_m = p;
+            obj.yaw_deg = self.number(cx, ids!(yaw), "rotation in degrees")?;
+            if self.candidate.is_some() {
+                if Some(&s) != self.candidate.as_ref() {
+                    let source = self
+                        .review
+                        .source
+                        .as_mut()
+                        .ok_or("Missing proposal source")?;
+                    if !source.operator_adjusted.contains(id) {
+                        source.operator_adjusted.push(id.clone());
+                    }
+                    self.candidate = Some(s);
+                    self.sync(cx);
+                    self.note(cx, "Preview pose updated");
+                }
+            } else {
+                self.commit(cx, s);
             }
             return Ok(());
         }
@@ -631,11 +721,6 @@ impl SceneEditorPane {
         if click(ids!(add)) {
             return self.place(cx, [0., 0.]);
         }
-        if let Some(i) = self.view.drop_down(cx, ids!(objects)).selected(a) {
-            self.selected = self.editor.scene.instances.get(i).map(|v| v.id.clone());
-            self.sync(cx);
-            return Ok(());
-        }
         let mut s = self.editor.scene.clone();
         if click(ids!(apply_room)) {
             s.room_m = [
@@ -655,21 +740,7 @@ impl SceneEditorPane {
         else {
             return Ok(());
         };
-        if click(ids!(update)) {
-            let name = self.text(cx, ids!(selected_name));
-            if name.is_empty() {
-                return Err("Name the instance".into());
-            }
-            let p = [
-                self.number(cx, ids!(x), "X position")?,
-                self.number(cx, ids!(y), "Y position")?,
-                self.number(cx, ids!(z), "Z position")?,
-            ];
-            let obj = &mut s.instances[index];
-            obj.name = name;
-            obj.position_m = p;
-            obj.yaw_deg = self.number(cx, ids!(yaw), "rotation in degrees")?;
-        } else if click(ids!(remove)) {
+        if click(ids!(remove)) {
             let removed = s.instances.remove(index);
             s.rules.retain(|r| r.instance.as_ref() != Some(&removed.id));
         } else if click(ids!(duplicate)) {
@@ -699,14 +770,15 @@ impl Widget for SceneEditorPane {
         if !self.view.visible {
             return;
         }
+        self.poll_edit(cx);
         let tile = self.view.widget(cx, ids!(palette_tile)).area();
         match event.hits(cx, tile) {
-            Hit::FingerDown(_) => {
+            Hit::FingerDown(_) if !self.review_active() => {
                 self.dragging_asset = true;
                 self.note(cx, "Release over the room to place the selected asset");
                 return;
             }
-            Hit::FingerUp(e) if self.dragging_asset => {
+            Hit::FingerUp(e) if self.dragging_asset && !self.review_active() => {
                 self.dragging_asset = false;
                 if let Some([x, y]) = self.pixel(cx, e.abs) {
                     let p = self.camera().floor(x, y, 0.);
@@ -722,7 +794,7 @@ impl Widget for SceneEditorPane {
         if let Err(e) = self.actions(cx, &a) {
             self.note(cx, &e);
         }
-        if self.candidate.is_some() {
+        if self.review_active() {
             return;
         }
         let frame = self
@@ -821,7 +893,7 @@ impl Widget for SceneEditorPane {
 impl SceneEditorPaneRef {
     pub fn task_scene(&self, cx: &mut Cx) -> Option<Revision> {
         let w = self.borrow()?;
-        if w.baseline != w.editor.scene || w.editor.scene.revision == 0 || w.candidate.is_some() {
+        if w.baseline != w.editor.scene || w.editor.scene.revision == 0 || w.review_active() {
             w.note(
                 cx,
                 "Apply your changes and save a scene revision before creating a task",
