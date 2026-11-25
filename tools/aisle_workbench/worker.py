@@ -358,6 +358,13 @@ def measured_feedback(path, meta, output=None):
                 path / "actions.jsonl", previous["requested"]
             ),
         }
+    if previous.get("kind")=="standing-inspection":
+        disturbance=previous.get("disturbance") or {}
+        return {k:previous[k] for k in ("robot","joint","requested_delta","measured_delta","within_limits","task_success","controller_hash")} | {
+            "standing_measurements":{"both_feet_loaded_steps":previous["both_feet_loaded_steps"],"scored_steps":previous["steps"],
+                "wrist_error_m":previous["wrist_reach"]["max_final_100_error_m"],"stable_recovery_s":disturbance.get("recovery_s"),
+                "contact_links":disturbance.get("links",[]),"prior_trunk_pitch_rad":previous.get("trunk_pitch_target_rad",0.0),
+                "guard_excursion_rad":previous["max_joint_excursion_rad"]}}
     if previous.get("kind") == "visual-approach":
         return {
             k: previous[k]
@@ -760,7 +767,15 @@ def prepare(args, meta):
             )
         if bound and args.robot=="G1":
             target=bound.document["standing"]
-            prompt+=f"\nThe selected standing test uses a separately simulated bounded impact fixture. Choose standing-inspection with joint {target['joint']} and delta_rad {target['delta_rad']}. The local controller receives encoders and an IMU."
+            prompt=(f"The Studio operator selected the G1 standing-reach capability in an authored room. "
+                f"The controller must hold its stance and track {target['joint']} by {target['delta_rad']} radians. "
+                "The evaluator applies a separate bounded disturbance. The controller does not generate it. "
+                "Choose supported=true and kind=standing-inspection when the operator instruction describes this capability. "
+                "Choose supported=false if the instruction demands walking, hardware actuation or incompatible motion. "
+                "Use zero trunk yaw and neutral trunk pitch for the baseline. "
+                "When revising a failed standing reach after recorded impact feedback, the supported alternate upright trunk pitch is -0.10 rad. "
+                "Keep the requested shoulder target unchanged. The runtime observes encoders and an IMU. "
+                f"Operator instruction: {args.task}")
         elif bound:
             prompt += (
                 "\nThe operator selected one "

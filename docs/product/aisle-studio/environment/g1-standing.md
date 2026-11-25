@@ -10,11 +10,24 @@ AISLE loads the actual 29-DOF G1 URDF with a free pelvis. The room and every aut
 
 On the saved five-object living room, headless Makepad on a second Mac ran the reference controller. The local offscreen app prepared the same shoulder target with DeepSeek via Octos. The test rejected an out-of-range mass, saved a 0.23 kg, 1.17 m/s nominal impact and independently read back 14 Nexus bodies. Each run sustained two-foot support throughout 2,000 scored steps. The final wrist error was about 6.3 mm against a 10 mm tolerance. The operator-camera recording contains 100 frames. The test reopened the task and verified that switching to Nano preserved its independent binding. [Headless receipt](g1-verification/reference-headless.json) · [DeepSeek receipt](g1-verification/octos-offscreen.json) · [G1 task form](g1-verification/standing-binding.png)
 
+Codex also prepared the nominal shoulder controller in native Studio. The batch recorded 100 operator-camera frames and 2,000 physics samples, each with all 29 joint measurements and commands. Native Evidence reopened the trial and displayed the camera and trace at physics step 40 (0.20 s). [Codex receipt](g1-verification/codex-offscreen.json) · [Native recording inspector](g1-verification/standing-recording.png)
+
 ## Preregistered impact suite
 
 The authored-room baseline **passed 17 of 20** impacts. It passed all eight envelope corners and nine of twelve sealed interior cases. The independent scorer verified all 20 executions, with zero position or rate guard bypasses, support from both feet on all 40,000 scored steps and at most 6.269 mm settled wrist error. The release requirement is 20 of 20.
 
 Cases 13 and 14 had torso contact followed by prolonged left-ankle contact. Case 17 contacted the right ankle and missed the torso. Each lacked the required stable interval after the last impact. These failures are included in the published denominator. The verification archive holds every recipe, opening, frozen task and controller, physical contact log, full-rate actuator and wrist traces, result and source fingerprints. [Preregistration](g1-verification/suite.json) · [All 20 outcomes](g1-verification/report.json) · [Raw evidence archive](g1-verification/g1-room.zip)
+
+## Controller revision on the same impacts
+
+DeepSeek via Octos received the measured failure from case 13 and authored a controller with a −0.10 rad trunk pitch. The shoulder target, room, twenty impact recipes and scoring criteria stayed fixed. The independent verifier reconstructed the verdicts from the archived traces.
+
+| Controller | Passed | Both feet loaded | Worst settled wrist error | Actuator guard bypasses |
+| --- | ---: | ---: | ---: | ---: |
+| Neutral baseline | 17/20 | 40,000/40,000 steps | 6.269 mm | 0 |
+| Revised trunk pitch | 15/20 | 40,000/40,000 steps | 3.055 mm | 0 |
+
+The revision recovered cases 13 and 17. It lost cases 1, 5, 7 and 18 on the impact and recovery criterion. Case 14 failed with both controllers. The baseline remains the default for the authored room. Its qualification target is 20/20. [Matched manifest](g1-verification/matched-upright/suite.json) · [All measured outcomes](g1-verification/matched-upright/report.json) · [Revised controller and raw traces](g1-verification/matched-upright/matched.zip)
 
 ## Reproduce
 
@@ -26,6 +39,9 @@ python3 tools/check_g1_scene.py --studio target/debug/aisle-studio \
 python tools/aisle_workbench/g1_reach_suite.py verify \
   docs/product/aisle-studio/environment/g1-verification/g1-room.zip \
   5aaa5d731ff66498a3750c080eec13de555d9e596b0ed4fc5d4bedbed7351488
+python tools/aisle_workbench/g1_reach_suite.py verify \
+  docs/product/aisle-studio/environment/g1-verification/matched-upright/matched.zip \
+  76a8e6506e1fef5da91c2034da8981328424907ca1a71644f6542353a47052a0
 ```
 
 For a new qualification, pass the prepared G1 `controller.json` to `g1_reach_suite.py prepare`. Record its returned manifest hash before calling `run`. The registered controller and room stay fixed while the suite varies the impact recipe across its declared envelope.
