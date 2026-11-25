@@ -19,7 +19,7 @@ Both registrations reached the remote PR branch before execution. Members with r
 
 The G1 archive contains the original unsigned evaluation. The native workflow test used its own ephemeral reviewer key in an isolated copy. An untrusted identity and a modified measurement were both rejected. The test exported a signed simulation dossier, reopened the decision after restart and exercised supersession with a signed rejection. The original project remains available for an independent reviewer. [Native acceptance record](g1/native-offscreen.json) · [1024 × 768](g1/native-review.png) · [1440 × 900](g1/native-review-1440.png) · [Measured control bounds](g1/window-sizes.json)
 
-Signed Makepad DevHub job J13 compiled the release candidate, registered a second G1 cohort from the native Evidence page, and executed all 20 cases through the real bridge. All 20 passed, each receipt verified, and Studio restored the signed review after a restart. The job finished in 335 seconds. [Headless build manifest](../devhub/skill-qualification-g1/verification.json) · [G1 workflow receipt](../devhub/skill-qualification-g1/g1/verification.json)
+Signed Makepad DevHub job J13 compiled the release candidate, registered a second G1 cohort from the native Evidence page, and executed all 20 cases through the real bridge. All 20 passed, each receipt verified, and Studio restored the signed review after a restart. The job finished in 335 seconds. [Headless build manifest](../devhub/skill-qualification-g1/verification.json) · [G1 workflow receipt](../devhub/skill-qualification-g1/g1/verification.json) · [J14 replay on the final responsive review layout](../devhub/skill-review-g1/verification.json)
 
 ## Reviewer identity
 

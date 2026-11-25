@@ -294,7 +294,7 @@ impl Panel {
             (ids!(qa_reject), r.is_object()),
             (
                 ids!(qa_export),
-                w.prepared.is_some()
+                w.prepared_digest() == Some(s(v, "controller_sha256"))
                     && r["qualified"] == true
                     && s(review, "disposition") == "approve",
             ),
