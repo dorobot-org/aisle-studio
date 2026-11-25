@@ -1,0 +1,13 @@
+{
+  "studio_commit": "d1526ab0012d3ce002a674d7f15e47b21267865c",
+  "studio_binary_sha256": "92c51052398d785a8c615cfd1be46e79c349eca03f9e98f49af0b5c0c663ffb8",
+  "backend": "headless",
+  "checks": {
+    "nano-case": {
+      "receipt": "nano-case/verification.json",
+      "sha256": "527a15638346b3142ff1145527bc1fdd6ca330687656169f48ba9b55cd531c4d",
+      "wall_seconds": 322.75
+    }
+  },
+  "binary_verified_after_checks": true
+}

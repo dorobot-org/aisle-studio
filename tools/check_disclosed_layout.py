@@ -31,7 +31,8 @@ def main():
     baseline = args.baseline.resolve()
     original = (baseline / "verification.json").read_bytes()
     report = json.loads(original)
-    selected = report["failed_cases"].index(args.case)
+    failed_cases = report["failed_cases"]
+    selected = failed_cases.index(args.case)
     quals = state / "qualifications"
     quals.mkdir()
     (quals / baseline.name).symlink_to(baseline, target_is_directory=True)
@@ -39,19 +40,22 @@ def main():
     prefix = "aisle_evidence.qa_"
     app = NativeStudio(args, folder)
 
+    def select_case(index):
+        app.click(prefix + "cases")
+        for code in ["Home", *(["ArrowDown"] * index), "ReturnKey"]:
+            app.act("key", "w=0", "c=" + code, "wait=1")
+        app.wait(
+            lambda s: f"Case {failed_cases[index]} ·"
+            in (s["controls"][prefix + "cases"].get("selected_label") or ""),
+            "selected disclosed layout",
+        )
+
     def open_case():
         app.click("aisle_task.nano")
         app.click("tabs.plugin_tab_aisle_evidence")
         app.click(prefix + "mode")
         app.control(prefix + "replay_case")
-        app.click(prefix + "cases")
-        for code in ["Home", *(["ArrowDown"] * selected), "ReturnKey"]:
-            app.act("key", "w=0", "c=" + code, "wait=1")
-        app.wait(
-            lambda s: f"Case {args.case} ·"
-            in (s["controls"][prefix + "cases"].get("selected_label") or ""),
-            "selected disclosed layout",
-        )
+        select_case(selected)
 
     with app.launch():
         open_case()
@@ -71,6 +75,19 @@ def main():
             in s["controls"].get(prefix + "comparison", {}).get("text", ""),
             "restored case comparison",
         )
+        if len(failed_cases) > 1:
+            select_case((selected + 1) % len(failed_cases))
+            app.wait(
+                lambda s: not s["controls"].get(prefix + "comparison", {}).get("visible"),
+                "previous comparison hidden on a different case",
+            )
+            select_case(selected)
+            app.wait(
+                lambda s: s["controls"].get(prefix + "comparison", {}).get("visible")
+                and f"Case {args.case} · baseline failed → candidate "
+                in s["controls"][prefix + "comparison"]["text"],
+                "original comparison restored on reselect",
+            )
     directory = state / "case-replays" / baseline.name / f"case-{args.case:03}"
     comparison = read(directory / "latest.json")
     trial = directory / comparison["trial"]
@@ -98,6 +115,7 @@ def main():
     evidence = comparison | {
         "backend": args.backend,
         "reopened": True,
+        "case_switch_checked": len(failed_cases) > 1,
         "original_verdict_preserved": True,
     }
     (folder / "verification.json").write_text(json.dumps(evidence, indent=2) + "\n")
