@@ -1,0 +1,39 @@
+{
+  "studio_commit": "a34aa95126f15ec84fbf59b2af2c4783ee7ca294",
+  "studio_binary_sha256": "d073b87109886e136e49298e36414e04fdcf18d1493b045de2ecf690a9879afb",
+  "backend": "headless",
+  "nano_provider": "reference",
+  "checks": {
+    "survey": {
+      "receipt": "survey/verification.json",
+      "sha256": "c29da64c812e9a67d6d2d3191faa8ec5d98ed9357f1ee287f06e724bb224d3ca",
+      "wall_seconds": 18.85
+    },
+    "scene": {
+      "receipt": "scene/verification.json",
+      "sha256": "030c0e2ff58f8de9ac169fbdbf2e8f12fb89b5a7afe6ffb1dd2b7369caa918cd",
+      "wall_seconds": 7.67
+    },
+    "g1": {
+      "receipt": "g1/verification.json",
+      "sha256": "763d0fc542edc0c5d0d58474ef57f946f5dc0a26b51dc3e44630e7aa0898946a",
+      "wall_seconds": 53.1
+    },
+    "nano": {
+      "receipt": "nano/verification.json",
+      "sha256": "bd6ca6184ef3ad07945074e6cedd8b569c1a31eb5faffe6133977d4a4e92206e",
+      "wall_seconds": 395.37
+    },
+    "evidence": {
+      "receipt": "evidence/verification.json",
+      "sha256": "13f97e4c97794bc92b34db100997557ddc77f8292ba81d4a37bdd6b0f36a718d",
+      "wall_seconds": 337.14
+    },
+    "channels": {
+      "receipt": "channels/channel-verification.json",
+      "sha256": "32bdb0d5c6c3214369e160c66357b51a5ad12be645db21cad26fe61cc99c88ce",
+      "wall_seconds": 3.72
+    }
+  },
+  "binary_verified_after_checks": true
+}

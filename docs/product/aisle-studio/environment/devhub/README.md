@@ -28,4 +28,7 @@ The scheduler and signed worker ran on the same Apple Silicon Mac. The earlier n
 | Lease | Source | Checks | Result |
 | --- | --- | --- | --- |
 | J1 / L1 | `b80a505` | Two G1 trials of 2,000 physics steps with seeded regions on the floor and a rotated tabletop | Exit 0 in 53 s |
+| J3 / L3 | `a34aa95` | Six checks covering native pages, two 2,000-step G1 trials, four successful Nano pickups of 11,266 steps each, durable cancellation of seed 46, original and edited reruns, and four recording combinations | Exit 0 in 822 s. [Binary and receipt digests](native-pages/verification.json) · [Nano trials](native-pages/nano/verification.json) · [Evidence replay](native-pages/evidence/verification.json) |
 | J4 / L4 | `0bf2545` | An empty survey was populated using native controls. Codex and DeepSeek via Octos each reviewed two photos. Both runs restored the expected 0.24 m width and retained all earlier revisions | Exit 0 in 76 s. [Binary and receipt digests](photo-reviews/verification.json) · [Codex](photo-reviews/codex/verification.json) · [DeepSeek](photo-reviews/octos-deepseek/verification.json) |
+
+The Evidence run captured 563 frames from each of the head, left-wrist and right-wrist cameras. Nexus measured the chair moving 0.30 m in the variant. The original rerun reproduced the parent verdict digest, and all 1,765 frozen parent artifacts retained their original bytes. [Trial receipts](native-pages/evidence/verification.json) · [Recording combinations](native-pages/channels/channel-verification.json)
