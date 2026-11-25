@@ -1,0 +1,10 @@
+{
+  "passed": 20,
+  "verified": 20,
+  "qualified": true,
+  "bypasses": 0,
+  "supported_steps": 40000,
+  "max_wrist_error_mm": 5.146556232555147,
+  "longest_recovery_s": 0.5,
+  "failed_indices": []
+}

@@ -1,0 +1,11 @@
+{
+  "job": "J23",
+  "lease": "L23",
+  "node": "aisle-local",
+  "exit_code": 0,
+  "elapsed": "345s",
+  "snapshot": "ca92ee17941cd93081eba037d41c8a760447f11f",
+  "checks": [
+    "nano-case"
+  ]
+}

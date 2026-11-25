@@ -45,6 +45,8 @@ Codex and DeepSeek via Octos also received the same instruction and public feedb
 
 The selected Nano revision reobserves earlier cubes from a stationary, raised wrist when placement tracking fails. It completed 17/17 development layouts from the second release, recovering 11/11 previously failed layouts and preserving 6/6 successful controls. It also completed 11/12 disclosed layouts from the original cohort. The fresh 50-layout Nano registration shares no seeds with either earlier cohort. G1 repeats the 20-case standing reach because the Studio adapter identity is shared by both profiles. [Development measurements](nano/placement-recovery/README.md) · [Nano registration](nano/release-3/registration.json) · [G1 registration](g1/release-3/registration.json)
 
+The third G1 qualification passed all 20 cases. The verifier measured 40,000 two-foot-supported steps and zero guard bypasses. The native Evidence page reopened and independently checked the same archive on signed DevHub jobs J25 and J26. [G1 results, screenshots and raw evidence](g1/release-3/outcomes.md)
+
 ## Reviewer identity
 
 Configure the native Studio process with the two paths below. The signing key identifies the reviewer. The allowed signers file is maintained by the team that owns release decisions. Studio does not create a reviewer identity for an operator. Use an OpenSSH key available to the local signer, including through an unlocked agent. For example, the authorized-signers entry can scope a public key to this protocol.

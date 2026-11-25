@@ -23,3 +23,5 @@ Across the selected controller’s 17 second-release development layouts, the ev
 ## Review the retry in Studio
 
 The native Makepad Evidence page retried the same failed layout with the exact frozen controller. All three cubes passed with 0 guard bypasses. The operator reopened the project and switched between cases. Studio restored the correct trial and its three synchronized cameras. Across two displayed exposures, the largest mean absolute error for any camera against its recorded RGB pixels was 1.15 on a 0–255 scale. [Studio screenshot](native-case-001.png) · [Headless replay receipt](native-case-001.json)
+
+Signed DevHub job J23 repeated the disclosed-layout retry with the published controller on the headless backend. It reloaded the original and revised outcomes and verified two synchronized camera exposures. [DevHub job](../../../devhub/r3-disclosed/job.json) · [Native result](../../../devhub/r3-disclosed/nano-case/verification.json)

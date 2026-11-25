@@ -1,0 +1,38 @@
+{
+  "robot": "G1",
+  "registration": "b62e023b1dc750c7eec0ab79ecc164cebd2e9767fc68acff9c0040972a4a0251",
+  "backend": "offscreen",
+  "verdict_sha256": "019f7e6f73cc2334a5924b695bfde88bb7270642d42b33c5d394a4c998e4da20",
+  "case": 8,
+  "support_steps": 2000,
+  "wrist_error_mm": 5.146556232555147,
+  "coverage": "8/8 boundary impacts passed \u00b7 12/12 interior impacts passed",
+  "window_sizes": [
+    {
+      "size": [
+        1024,
+        768
+      ],
+      "image": "case-evidence-1024.png",
+      "bounds": [
+        35.5,
+        592.0,
+        953.0,
+        70.46666717529297
+      ]
+    },
+    {
+      "size": [
+        1440,
+        900
+      ],
+      "image": "case-evidence-1440.png",
+      "bounds": [
+        35.5,
+        592.0,
+        1369.0,
+        70.46666717529297
+      ]
+    }
+  ]
+}
