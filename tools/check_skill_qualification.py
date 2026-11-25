@@ -118,6 +118,8 @@ def main():
         rows = read(directory / "qualification-rows.json")
         assert len(rows) == report["cases"] and all(r["verified"] for r in rows), report
         assert len({r["spec"]["request_id"] for r in rows}) == len(rows)
+        if args.backend == "offscreen":
+            app.act("grab", "w=0", "out=" + str(folder / "skill-review.png"))
         if not report["qualified"]:
             assert not read(app.report)["controls"][prefix + "approve"]["enabled"]
         action = "approve" if report["qualified"] else "reject"

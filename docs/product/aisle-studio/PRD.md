@@ -1,6 +1,6 @@
 # AISLE Studio product requirements
 
-Version 1.5 · 2026-11-24 · Proposed product specification for standalone AISLE Studio
+Version 1.6 · 2026-11-25 · Proposed product specification for standalone AISLE Studio
 
 ## Purpose and users
 
@@ -151,11 +151,19 @@ Codex and DeepSeek via Octos each passed the two-chair edit in native offscreen 
 
 The Task skill library resolves two installed builds with the same Octos name and version. Studio pins the selected executable, package and simulation runtime at controller preparation. The simulated vendor node verifies the identities again at execution and preflight. In native offscreen tests and signed headless DevHub job J12, both robots rejected a changed executable, and the node rejected a request for simulator object poses. Nano then completed its table transfer and G1 its standing reach. The G1 DDS replay reproduced 63,800 motor target values. Stopping a separate Nano pickup released both Dora process groups. [Setup and per-robot measurements](environment/spec-skills.md) · [J12 manifest](environment/devhub/spec-skills/verification.json)
 
+### Qualification and reviewer handoff
+
+A robotics developer registers the prepared Octos controller from **Evidence → Skill qualification**. Before the first case, Studio freezes the entire installed package, vendor node, AISLE adapter, Nexus runtime, allowed observations, robot model, controller bytes and case commitments. The reference profiles use 50 hidden three-cube layouts for Nano and eight boundary plus twelve sealed interior impact recipes for G1. Interrupted and unsuccessful attempts consume their registered slot. Returning to the same cohort starts only its remaining slots.
+
+An evaluator must be able to replay the original physics evidence, verify a distinct Octos request and measurement for every case, and see the denominator, required count, successes, guard bypasses and individual failures. Approval requires a qualifying result. Rejection is available after verification, including for a below-threshold result. Both decisions require a trusted signer and a rationale. The latest signed decision governs simulation handoff, and export checks the selected controller and raw evidence again. A hardware operator needs a separate device-specific record.
+
+The standalone G1 package passed all 20 preregistered impacts with 40,000 two-foot-supported steps, zero guard bypasses and a worst settled wrist error of 5.15 mm. The original cohort awaits independent review. The Nano controller and all 50 layout commitments were recorded in the same push before the first case. [Reference implementations, commitments, measured verdicts and reproduction](environment/skill-qualification/README.md)
+
 ### Remaining product release gates
 
 | Order | Owner and decision | Acceptance evidence |
 | --- | --- | --- |
-| 1 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Verify the matching implementation on the physical vendor node, link held-out simulation evidence and reviewer approval to it, then pair a supervised hardware run with its simulation. Verify calibration, sensor-loss response and operator stop on each device. [Simulation package handoff](environment/spec-skills.md) |
+| 1 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Obtain independent reviewer approval for the measured simulation package, identify and verify the implementation on the physical vendor node, then pair an authorized supervised device run with its simulation. Verify calibration, sensor-loss response and operator stop on each device. [Simulation package handoff](environment/spec-skills.md) |
 
 ## Capability comparison and release decisions
 

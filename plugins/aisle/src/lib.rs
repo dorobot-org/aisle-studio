@@ -235,17 +235,22 @@ script_mod! {
     }
     mod.widgets.AisleEvidence=Page{
         Bar{ev_heading := Title{width:Fill text:"Run evidence"} ev_mode := mod.widgets.ux.ToolButton{text:"Experiment trials"} qa_mode := mod.widgets.ux.ToolButton{text:"Skill qualification"}}
-        qa_panel := Card{width:Fill height:Fill visible:false
-            Section{text:"Registered simulation cohort"}
-            Bar{qa_selector := DropDown{width:Fill labels:["No registrations"]} qa_refresh := mod.widgets.ux.ToolButton{text:"Refresh"}}
-            qa_scope := Body{} qa_identity := Body{}
-            Bar{qa_register := mod.widgets.ux.ToolButton{text:"Register current controller"} qa_run := mod.widgets.ux.PrimaryButton{text:"Run remaining cases"} qa_verify := mod.widgets.ux.ToolButton{text:"Verify measurements"}}
-            qa_result := Body{}
-            qa_failure_scroll := ScrollYView{width:Fill height:72 flow:Down qa_failures := Body{max_lines:180}}
-            Section{text:"Reviewer decision"}
-            Bar{qa_reviewer := TextInput{width:Fill height:36 empty_text:"Trusted signer identity"} qa_reason := TextInput{width:Fill height:36 empty_text:"Reason for this decision"}}
-            Bar{qa_approve := mod.widgets.ux.ToolButton{text:"Approve simulation"} qa_reject := mod.widgets.ux.ToolButton{text:"Reject simulation"} qa_export := mod.widgets.ux.ToolButton{text:"Export signed handoff"}}
-            qa_decision := Body{} qa_status := Body{}
+        qa_panel := ScrollYView{width:Fill height:Fill flow:Down spacing:10 visible:false
+            qa_cohort_card := Card{width:Fill height:Fit
+                Bar{Title{width:Fill text:"Registered simulation cohort"} qa_refresh := mod.widgets.ux.ToolButton{text:"Refresh"}}
+                qa_scope := Body{}
+                Bar{Section{width:100 text:"Registration"} qa_selector := DropDown{width:Fill labels:["No registrations"]}}
+                qa_identity := Body{}
+                Bar{qa_register := mod.widgets.ux.ToolButton{text:"Register current controller"} qa_run := mod.widgets.ux.PrimaryButton{text:"Run remaining cases"} qa_verify := mod.widgets.ux.ToolButton{text:"Verify measurements"}}
+            }
+            qa_review_card := Card{width:Fill height:Fit
+                qa_result := Title{}
+                qa_failure_scroll := ScrollYView{width:Fill height:72 flow:Down qa_failures := Body{max_lines:180}}
+                Section{text:"Reviewer decision"} qa_decision := Body{}
+                Bar{Section{width:100 text:"Reviewer"} qa_reviewer := TextInput{width:Fill height:36 empty_text:"Trusted signer identity"} Section{width:62 text:"Reason"} qa_reason := TextInput{width:Fill height:36 empty_text:"Reason for this decision"}}
+                Bar{qa_approve := mod.widgets.ux.ToolButton{text:"Approve simulation"} qa_reject := mod.widgets.ux.ToolButton{text:"Reject simulation"} qa_export := mod.widgets.ux.ToolButton{text:"Export signed handoff"}}
+                qa_status := Body{}
+            }
         }
         ev_catalog := TrialEvidence{visible:false}
         standard_evidence := View{width:Fill height:Fill flow:Down spacing:6
@@ -633,20 +638,6 @@ impl PluginPanel for Panel {
             );
             return;
         };
-        if self.page=="aisle_evidence" {
-            self.root.widget(cx,ids!(qa_panel)).set_visible(cx,self.qualification.open);
-            self.root.widget(cx,ids!(standard_evidence)).set_visible(cx,!self.trial_catalog_open && !self.qualification.open);
-            self.root.widget(cx,ids!(ev_catalog)).set_visible(cx,self.trial_catalog_open);
-            self.root.button(cx,ids!(ev_mode)).set_text(cx,if self.trial_catalog_open {"Run evidence"}else{"Experiment trials"});
-            self.label(cx,ids!(ev_heading),if self.trial_catalog_open {"Experiment trials"}else{"Run evidence"});
-            self.root.button(cx,ids!(qa_mode)).set_text(cx,if self.qualification.open {"Run evidence"}else{"Skill qualification"});
-            if self.qualification.open {
-                self.label(cx,ids!(ev_heading),"Skill qualification");
-                self.qualification_sync(cx,w);
-                return;
-            }
-            if self.trial_catalog_open {self.root.trial_evidence(cx,ids!(ev_catalog)).update(cx,w);return;}
-        }
         let light = frame::light_mode();
         if self.light != Some(light) {
             frame::apply_light(
@@ -661,6 +652,17 @@ impl PluginPanel for Panel {
                     (ids!(photo_card), Themed::Bg),
                     (ids!(cohort), Themed::Bg),
                     (ids!(device), Themed::Bg),
+                    (ids!(qa_cohort_card), Themed::Bg),
+                    (ids!(qa_review_card), Themed::Bg),
+                    (ids!(qa_register), Themed::Both),
+                    (ids!(qa_run), Themed::Both),
+                    (ids!(qa_verify), Themed::Both),
+                    (ids!(qa_approve), Themed::Both),
+                    (ids!(qa_reject), Themed::Both),
+                    (ids!(qa_export), Themed::Both),
+                    (ids!(qa_refresh), Themed::Both),
+                    (ids!(qa_mode), Themed::Both),
+                    (ids!(ev_mode), Themed::Both),
                     (ids!(decision_card), Themed::Bg),
                     (ids!(survey_card), Themed::Bg),
                     (ids!(joint_card), Themed::Bg),
@@ -670,6 +672,20 @@ impl PluginPanel for Panel {
                 light,
             );
             self.light = Some(light);
+        }
+        if self.page=="aisle_evidence" {
+            self.root.widget(cx,ids!(qa_panel)).set_visible(cx,self.qualification.open);
+            self.root.widget(cx,ids!(standard_evidence)).set_visible(cx,!self.trial_catalog_open && !self.qualification.open);
+            self.root.widget(cx,ids!(ev_catalog)).set_visible(cx,self.trial_catalog_open);
+            self.root.button(cx,ids!(ev_mode)).set_text(cx,if self.trial_catalog_open {"Run evidence"}else{"Experiment trials"});
+            self.label(cx,ids!(ev_heading),if self.trial_catalog_open {"Experiment trials"}else{"Run evidence"});
+            self.root.button(cx,ids!(qa_mode)).set_text(cx,if self.qualification.open {"Run evidence"}else{"Skill qualification"});
+            if self.qualification.open {
+                self.label(cx,ids!(ev_heading),"Skill qualification");
+                self.qualification_sync(cx,w);
+                return;
+            }
+            if self.trial_catalog_open {self.root.trial_evidence(cx,ids!(ev_catalog)).update(cx,w);return;}
         }
         let kind = match self.page.as_str() {
             "aisle_evidence" => &w.evidence["kind"],

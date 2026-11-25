@@ -1,0 +1,17 @@
+{
+  "cases": 20,
+  "controller_sha256": "8c8296fb96e49a24645fb0aa8ea5253c18875e1aa72a1bd0dc87297df8403818",
+  "failed_cases": [],
+  "guard_bypasses": 0,
+  "package_sha256": "48b58d3d4c140fb4aa34a020c8a9386c0512c730f4fcba4dc97279814a279a28",
+  "qualified": true,
+  "registration_sha256": "a31e1870b2417161f0510d8913e039712b8ae581cdde49bc5da5f5c245267cd9",
+  "required": 20,
+  "robot": "G1",
+  "rows_sha256": "e2c6b84e059465b980016a7b48b5f577c2a4a8616f05b478c17be5f4dce5da08",
+  "scope": "Nexus simulation",
+  "successes": 20,
+  "verified": 20,
+  "verifier_sha256": "c5225a02c8f6c185df8555b1640c438375fd3cac274491b50c8a7ef5348256e2",
+  "version": 1
+}

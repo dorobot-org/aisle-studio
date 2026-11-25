@@ -200,7 +200,7 @@ impl Panel {
         ));
         let result = if r.is_object() {
             format!(
-                "{} / {} passed · {} verified · {} guard bypasses · {}\nFailed case indices {}",
+                "{} / {} passed · {} verified · {} guard bypasses · {}",
                 r["successes"],
                 r["cases"],
                 r["verified"],
@@ -209,8 +209,7 @@ impl Panel {
                     "Simulation gate met"
                 } else {
                     "Below simulation gate"
-                },
-                r["failed_cases"]
+                }
             )
         } else if reg {
             format!("{finished} of {cases} finished · {started} started")
@@ -244,6 +243,15 @@ impl Panel {
             String::new()
         };
         self.label(cx, ids!(qa_decision), &decision);
+        self.root
+            .widget(cx, ids!(qa_review_card))
+            .set_visible(cx, reg);
+        self.root
+            .widget(cx, ids!(qa_export))
+            .set_visible(cx, s(review, "disposition") == "approve");
+        self.root
+            .widget(cx, ids!(qa_run))
+            .set_visible(cx, reg && started < cases);
         self.label(
             cx,
             ids!(qa_status),
