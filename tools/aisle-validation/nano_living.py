@@ -313,20 +313,7 @@ class LivingSimulation:
             room_settings.get("ambient_rgb", [0.6] * 3),
         )
         self.specs = room_specs(seed) if specs is None else specs
-        self.bodies = [
-            self.scene.add_box(
-                s["name"],
-                s["size"],
-                s["position"],
-                fixed=s["fixed"],
-                friction=room_settings.get("floor_friction", 0.7)
-                if s["name"] == "floor"
-                else 0.7,
-                density=500,
-                color=s["color"],
-            )
-            for s in self.specs
-        ]
+        self.bodies = [self.add_body(spec, room_settings) for spec in self.specs]
         nx = self.scene.nexus3d
         native = self.scene.state.load_urdf_robot(
             0,
@@ -376,6 +363,10 @@ class LivingSimulation:
         self.targets = parked.copy()
         self.cube_start = self.object_positions()
         self.root_pose_writes = 0
+
+    def add_body(self, spec, settings):
+        from nexus_box import add_scene_box
+        return add_scene_box(self.scene,spec,settings)
 
     def room_readback(self):
         """Read imported fixed bodies from Nexus after physics has settled."""

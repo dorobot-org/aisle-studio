@@ -28,6 +28,7 @@ serde = { workspace = true }
 serde_json = { workspace = true, features = ["float_roundtrip"] }
 sha2 = "0.10"
 tempfile = "3"
+fastrand = "2"
 urdf-rs = "0.9"
 
 # File dialogs
@@ -45,3 +46,8 @@ ffmpeg-next = { workspace = true, optional = true }
 [features]
 default = ["video"]
 video = ["ffmpeg-next"]
+
+[dependencies.image]
+version = "0.25.10"
+default-features = false
+features = ["png", "jpeg"]

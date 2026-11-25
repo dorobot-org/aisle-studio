@@ -10,3 +10,4 @@ dorobot-studio-plugin = { path = "../../crates/dorobot-studio-plugin" }
 dorobot-ux = { workspace = true }
 makepad-urdf-player = { git = "https://github.com/dorobot-org/makepad-urdf-viewer", rev = "283d303df6d3e158bac2c281a190ac1f749b5bd5" }
 serde_json.workspace = true
+rfd.workspace = true

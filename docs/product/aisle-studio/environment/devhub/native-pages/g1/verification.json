@@ -1,0 +1,95 @@
+{
+  "backend": "headless",
+  "task_sha256": "13689a6d1ac7bade22b26622497b85c642bcf58b595c1334a232a161302b04db",
+  "areas": {
+    "object-red": {
+      "support": null,
+      "bounds_m": [
+        [
+          0.65,
+          -0.5
+        ],
+        [
+          1.0,
+          -0.25
+        ]
+      ]
+    },
+    "object-blue": {
+      "support": {
+        "instance": "object-oak",
+        "surface": "Landing area"
+      },
+      "bounds_m": [
+        [
+          0.15,
+          -0.2
+        ],
+        [
+          0.45,
+          0.1
+        ]
+      ]
+    }
+  },
+  "trials": [
+    {
+      "seed": 42,
+      "layout_sha256": "a4a88d6505cc164306262c2a0f37bd39cb1d7dda876ac6ff15f7787c524d0762",
+      "physics_steps": 2000,
+      "placements": {
+        "object-red": {
+          "sampled_local_xy_m": [
+            0.8948033369142148,
+            -0.4087908439767189
+          ],
+          "measured_local_xy_m": [
+            0.8948034048080444,
+            -0.4087909758090973
+          ],
+          "bottom_to_support_m": -1.02043151861686e-06
+        },
+        "object-blue": {
+          "sampled_local_xy_m": [
+            0.28458951016175493,
+            -0.06233079102980478
+          ],
+          "measured_local_xy_m": [
+            0.284589550434135,
+            -0.06233084567342614
+          ],
+          "bottom_to_support_m": -1.0854005813576428e-06
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "layout_sha256": "9c2f909829f03f0cb235ffc422232a58f87a19c79990ba049f695bfba8b60ffc",
+      "physics_steps": 2000,
+      "placements": {
+        "object-red": {
+          "sampled_local_xy_m": [
+            0.8796426218394828,
+            -0.28211512135476324
+          ],
+          "measured_local_xy_m": [
+            0.8796426653862,
+            -0.28211525082588196
+          ],
+          "bottom_to_support_m": -1.02043151861686e-06
+        },
+        "object-blue": {
+          "sampled_local_xy_m": [
+            0.2182480582185966,
+            -0.13592448193726744
+          ],
+          "measured_local_xy_m": [
+            0.21824807027551804,
+            -0.13592460124564842
+          ],
+          "bottom_to_support_m": -1.0854005813576428e-06
+        }
+      }
+    }
+  ]
+}

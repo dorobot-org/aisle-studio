@@ -53,11 +53,11 @@ def source_hashes():
     }
 
 
-def capture(output, meta, seed, room_hash, obstacles, settings):
+def capture(output, meta, seed, room_hash, obstacles, settings, *, authored=None):
     from run_rgb_approach import approach_scene, camera_config, sensor_packet
 
     model = Path(meta["model"])
-    sim = approach_scene(model, seed, obstacles, settings)
+    sim = approach_scene(model, seed, obstacles, settings, authored=authored)
     config = camera_config(sim, model)
     config.pop("model")
     payload, head = sensor_packet(sim, output, save_frame=False)

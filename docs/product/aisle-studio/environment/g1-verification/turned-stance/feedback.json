@@ -1,0 +1,20 @@
+{
+  "robot": "G1",
+  "joint": "left_shoulder_pitch_joint",
+  "requested_delta": 0.1,
+  "measured_delta": 0.09999996423721313,
+  "within_limits": true,
+  "task_success": false,
+  "controller_hash": "9c8e5298e62facb82f7fc1e3577b877bf7d871e4dcf0d12d741b7307c74caf54",
+  "bound_task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+  "standing_measurements": {
+    "both_feet_loaded_steps": 2000,
+    "scored_steps": 2000,
+    "wrist_error_m": 0.00304948883397369,
+    "stable_recovery_s": null,
+    "contact_links": [],
+    "prior_trunk_pitch_rad": -0.1,
+    "prior_trunk_yaw_rad": 0.0,
+    "guard_excursion_rad": 0.0
+  }
+}

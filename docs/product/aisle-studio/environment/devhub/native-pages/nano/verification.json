@@ -1,0 +1,260 @@
+{
+  "batch_id": "f789fa24-3a40-487e-b8d7-460c8a6b4efd",
+  "configuration": {
+    "base_seed": 42,
+    "controller_sha256": "791ab603a76a158cf924644f08d2f479f25621eb9b49e646bfbaff0c19e39f92",
+    "name": "Chair spacing",
+    "overrides": {
+      "2": {
+        "robot_trace": true
+      },
+      "3": {
+        "agent_history": true
+      },
+      "4": {
+        "agent_history": true,
+        "robot_trace": true
+      }
+    },
+    "parameters": [
+      {
+        "binding": {
+          "axis": "x",
+          "instances": [
+            "chair-left",
+            "chair-right"
+          ],
+          "kind": "spacing"
+        },
+        "default": 2.4,
+        "name": "Chair spacing",
+        "range": [
+          1.9,
+          2.8
+        ],
+        "type": "number",
+        "unit": "m"
+      }
+    ],
+    "record_cameras": false,
+    "recording": {
+      "agent_history": false,
+      "robot_trace": false
+    },
+    "repeat_count": 5,
+    "scene": {
+      "id": "scene-living-room",
+      "revision": 1
+    },
+    "seed_mode": "sequence"
+  },
+  "completed": [
+    {
+      "run_id": "1ed9b049-5be5-45a9-8090-a7cea46e8cad",
+      "seed": 42,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "f3b429fe2555fef7f97ef09bac5390bdffa2006c79b3c4dd1611a379800050d3",
+      "measured_chair_spacing_m": 1.9317463636398315,
+      "channels": {
+        "robot_trace": {
+          "requested": false,
+          "present": false,
+          "status": "disabled"
+        },
+        "agent_history": {
+          "requested": false,
+          "present": false,
+          "status": "disabled"
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "cdcee19e0979a8d7d8653c3b9f26e46599597179be1d16996cf8b00a4ce8deb5",
+        "physics_ticks": 11266
+      }
+    },
+    {
+      "run_id": "2f77a8e7-b76b-4662-89a3-0bee1b334af7",
+      "seed": 43,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "06661348c851aabbb44a7d7159f62244aa74fbaa62fd61bd8089ef11540efe9e",
+      "measured_chair_spacing_m": 2.76474928855896,
+      "channels": {
+        "robot_trace": {
+          "requested": true,
+          "present": true,
+          "bytes": 12243785,
+          "sha256": "398b2ec9fb56769499d0cc85b84afe96a391df212c15500785b92ab1320391d3",
+          "file": "robot-trace.jsonl",
+          "status": "complete"
+        },
+        "agent_history": {
+          "requested": false,
+          "present": false,
+          "status": "disabled"
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "fcce8433d213a915f561a2682f91d6921eed010108b60ad65fafafdc9c83f4e7",
+        "physics_ticks": 11266
+      }
+    },
+    {
+      "run_id": "311faf92-7cd8-4969-bf14-7b49d3fa5434",
+      "seed": 44,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "5e8837ad779a802d75ecf136798f5c3fd8e27a902eaa019d1fe82364343d12db",
+      "measured_chair_spacing_m": 2.4637508392333984,
+      "channels": {
+        "robot_trace": {
+          "requested": false,
+          "present": false,
+          "status": "disabled"
+        },
+        "agent_history": {
+          "requested": true,
+          "present": true,
+          "bytes": 700,
+          "sha256": "d0f2b0249d89d31012e66b2056dca590b8ada31f474bdda8c1ea8b26033b2b3c",
+          "file": "agent-history.jsonl",
+          "status": "complete"
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "fe1234b71dea78052a231ee679e58dcfd4d52670cc9ec3b801ea2b5923ba1508",
+        "physics_ticks": 11266
+      }
+    },
+    {
+      "run_id": "bd040b09-1c71-4706-b6bf-2e3ee1d381b1",
+      "seed": 45,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "20800b9b500ec5eb778b90593edfd426d794529da8f9db2f9281d9a4379cbbdc",
+      "measured_chair_spacing_m": 2.2102699279785156,
+      "channels": {
+        "robot_trace": {
+          "requested": true,
+          "present": true,
+          "bytes": 12243785,
+          "sha256": "7d4a4cac303e6a6cbbbd434b2c170325f79f0d0bef226ab616df146c0c23f7be",
+          "file": "robot-trace.jsonl",
+          "status": "complete"
+        },
+        "agent_history": {
+          "requested": true,
+          "present": true,
+          "bytes": 700,
+          "sha256": "be8137906a53dd8735e0c79f94d6d11ac326944f0f31be4331fda3b8802d71d0",
+          "file": "agent-history.jsonl",
+          "status": "complete"
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "51aa30109d9afaaa065ab14f8b72e4c9b0e3fc9068519fa869bf9a3c799f22b9",
+        "physics_ticks": 11266
+      }
+    }
+  ],
+  "cancelled": {
+    "run_id": "bcbc137a-192a-4752-9402-b3bf2cb43ffd",
+    "batch_id": "f789fa24-3a40-487e-b8d7-460c8a6b4efd",
+    "repetition": 5,
+    "scene": {
+      "id": "scene-living-room",
+      "revision": 1
+    },
+    "task_sha256": "3a9ff59914fa94c4ad3d885869243e7669925aa013ce8017dc502f879702a83e",
+    "controller_sha256": "791ab603a76a158cf924644f08d2f479f25621eb9b49e646bfbaff0c19e39f92",
+    "robot": "Nano",
+    "robot_model_sha256": "a03319b78dcf338cbd64bed7bdc2062066af6f8a189cdb2cb67f9ba1e9b6b627",
+    "seed": 46,
+    "recording": {
+      "agent_history": false,
+      "robot_trace": false
+    },
+    "status": "cancelled",
+    "parent_run_id": null,
+    "created": "2026-11-25T05:40:04.399815+00:00",
+    "started": null,
+    "ended": "2026-11-25T05:46:24.292798+00:00",
+    "nexus_version": "0.2.1",
+    "asset_revisions": [
+      {
+        "id": "asset-blue",
+        "revision": 1
+      },
+      {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      {
+        "id": "asset-red",
+        "revision": 1
+      },
+      {
+        "id": "fixture-chair",
+        "revision": 1
+      }
+    ],
+    "sample_sha256": "4dc438bf57d4e31e0113d2d73c9040fe7d106cda6e1153ad7ef3bc0eb1861c03",
+    "sampled_values": {
+      "Chair spacing": {
+        "value": 2.786193006041713,
+        "type": "number",
+        "unit": "m",
+        "binding": {
+          "axis": "x",
+          "instances": [
+            "chair-left",
+            "chair-right"
+          ],
+          "kind": "spacing"
+        }
+      }
+    },
+    "reason": "Operator cancelled this repetition",
+    "channels": {
+      "robot_trace": {
+        "requested": false,
+        "present": false,
+        "status": "disabled"
+      },
+      "agent_history": {
+        "requested": false,
+        "present": false,
+        "status": "disabled"
+      }
+    }
+  },
+  "previews": [
+    {
+      "seed": 42,
+      "digest_prefix": "f3b429fe2555fef7",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 1.9317 m"
+    },
+    {
+      "seed": 43,
+      "digest_prefix": "06661348c851aabb",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.7647 m"
+    },
+    {
+      "seed": 44,
+      "digest_prefix": "5e8837ad779a802d",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.4638 m"
+    },
+    {
+      "seed": 45,
+      "digest_prefix": "20800b9b500ec5eb",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.2103 m"
+    }
+  ],
+  "backend": "headless",
+  "provider": "reference"
+}

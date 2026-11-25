@@ -93,10 +93,10 @@ def evaluate_pose(sim, cube):
     return base, xy
 
 
-def approach_scene(model, seed, room_objects, room_settings):
+def approach_scene(model, seed, room_objects, room_settings, *, authored=None):
     return LivingSimulation(
         model,
-        specs=[*scene_recipe(seed), *room_objects],
+        specs=authored.specs if authored else [*scene_recipe(seed), *room_objects],
         room_settings=room_settings,
         resolution=(480, 360),
         posture=NAVIGATION_POSTURE | dict(head_pan_joint=0, head_tilt_joint=0.35),

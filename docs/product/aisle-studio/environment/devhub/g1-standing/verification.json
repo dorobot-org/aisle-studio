@@ -1,0 +1,13 @@
+{
+  "studio_commit": "5d862a1e931bd669237ebbced0a6101e1c3fee73",
+  "studio_binary_sha256": "5d175bf0e1a867892f1f077f0315993a67612c730eaf88b1c1c69d25407876dd",
+  "backend": "headless",
+  "checks": {
+    "g1-revision": {
+      "receipt": "g1-revision/verification.json",
+      "sha256": "50bbfd587762cfa5a87a8aa7db6734f23719844197ba3a7c564cd99414819a40",
+      "wall_seconds": 49.32
+    }
+  },
+  "binary_verified_after_checks": true
+}

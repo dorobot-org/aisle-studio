@@ -1,0 +1,69 @@
+{
+  "first_preparation": {
+    "operator_request": "Stand and track a positive left shoulder displacement of 0.10 radians. Use a 30-degree left waist turn with neutral trunk pitch.",
+    "previous_runs": 0,
+    "passed": true,
+    "controller_sha256": "34d211fc353b26837446cb3859c9469a08363e1a08e5f839de9bb502d2d76b40",
+    "settled_yaw_rad": 0.5223690760135651
+  },
+  "provider": "octos-deepseek",
+  "model": "deepseek-v4-flash",
+  "backend": "headless",
+  "task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+  "prior_controller_sha256": "9c8e5298e62facb82f7fc1e3577b877bf7d871e4dcf0d12d741b7307c74caf54",
+  "controller_sha256": "9468686f6e8f7c6ab812929acd2cd224dd574341a5f580ef9ec4d89e4ff1e99d",
+  "prior_impact_case": 14,
+  "prior_passed": false,
+  "prior_stance": {
+    "both_feet_loaded_steps": 2000,
+    "scored_steps": 2000,
+    "wrist_error_m": 0.00304948883397369,
+    "stable_recovery_s": null,
+    "contact_links": [],
+    "prior_trunk_pitch_rad": -0.1,
+    "prior_trunk_yaw_rad": 0.0,
+    "guard_excursion_rad": 0.0
+  },
+  "revision_instruction": "Keep the saved left shoulder reach. Try a 30-degree left waist turn with neutral pitch for the next simulation.",
+  "nominal_impact": {
+    "contacts": 3,
+    "normal_impulse_sum_ns": 0.08232317166402936,
+    "links": [
+      "torso_link"
+    ],
+    "recovery_s": 0.5,
+    "last_contact_step": 611,
+    "recovered_step": 711,
+    "passed": true
+  },
+  "reach": {
+    "link": "left_wrist_yaw_link",
+    "frame": "world",
+    "start_m": [
+      0.11170946061611176,
+      0.22365494072437286,
+      0.05952753871679306
+    ],
+    "target_m": [
+      0.08756049639797597,
+      0.21715152462654283,
+      0.04542803840779066
+    ],
+    "final_m": [
+      0.08400726318359375,
+      0.21924132108688354,
+      0.04850860685110092
+    ],
+    "requested_travel_m": 0.028709977407059658,
+    "final_error_m": 0.005146126451551752,
+    "max_final_100_error_m": 0.005146189770023281,
+    "tolerance_m": 0.01,
+    "passed": true,
+    "trace_sha256": "bdbf9f2452beabf6bff7b0071dc1f67cc41c10f34c21576ea23eefd553749e6d"
+  },
+  "settled_trunk_yaw_rad": 0.5223690038919448,
+  "two_foot_steps": 2000,
+  "passed": true,
+  "original_preserved": true,
+  "restored": true
+}

@@ -38,6 +38,8 @@ python3 tools/check_headless.py --studio target/debug/aisle-studio \
   --remote "$(command -v makepad-remote)" --session /tmp/aisle-g1-smoke
 ```
 
+For the complete Survey, Scene, Task, Run and Evidence workflows, submit the native suite to a registered Makepad DevHub worker. A separate focused job exercises both authenticated photo-review providers. [DevHub commands and qualification](docs/product/aisle-studio/environment/devhub/README.md)
+
 ## Screen recording
 
 Build `makepad-remote` from the same Makepad revision as `Cargo.lock`. To record a fresh Codex-authored three-cube transfer, run the following in the environment above. Choose a new session directory and output filename for each take.

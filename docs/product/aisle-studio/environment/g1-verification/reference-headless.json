@@ -1,0 +1,471 @@
+{
+  "backend": "headless",
+  "provider": "reference",
+  "scene": {
+    "id": "scene-living-room",
+    "revision": 1,
+    "name": "Surveyed living room"
+  },
+  "task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+  "model_sha256": "c0ae739c640c3e2c00d1bdd8810b5d6e59601487bd1a3995859f9543269ee5c8",
+  "controller_sha256": "4d6ee65df88e42b5f9609449c7aa7499348a6b0783aa248859d603ffca905c8f",
+  "result_sha256": "6e3fe930bede86ebfe361ea1fc43c187b2d95b7b577157bcc0e7ba5e4fcfd5f4",
+  "standing": {
+    "joint": "left_shoulder_pitch_joint",
+    "delta_rad": 0.1,
+    "impact": {
+      "mass_kg": 0.23,
+      "speed_m_s": 1.17,
+      "lateral_m": 0.0
+    }
+  },
+  "both_feet_loaded_steps": 2000,
+  "wrist": {
+    "link": "left_wrist_yaw_link",
+    "frame": "world",
+    "start_m": [
+      0.20476217567920685,
+      0.1490585207939148,
+      0.05083126574754715
+    ],
+    "target_m": [
+      0.18012569245155546,
+      0.15415889134795632,
+      0.03694743203277785
+    ],
+    "final_m": [
+      0.17849119007587433,
+      0.1541091650724411,
+      0.04299866780638695
+    ],
+    "requested_travel_m": 0.028735534173462765,
+    "final_error_m": 0.0062682952312722445,
+    "max_final_100_error_m": 0.006268521706887117,
+    "tolerance_m": 0.01,
+    "passed": true,
+    "trace_sha256": "abf4418fa30e1ba388952e472f36be765e5a24399b83673ecdb33ab11d401443"
+  },
+  "impact": {
+    "contacts": 2,
+    "normal_impulse_sum_ns": 0.09314375463873148,
+    "links": [
+      "torso_link"
+    ],
+    "recovery_s": 0.5,
+    "last_contact_step": 610,
+    "recovered_step": 710,
+    "passed": true
+  },
+  "room_contacts": {},
+  "measured_bodies": [
+    {
+      "name": "floor",
+      "instance": null,
+      "asset": null,
+      "collider": null,
+      "physics_body": 0,
+      "measured_center_m": [
+        0.0,
+        0.0,
+        -0.8438637256622314
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        12.0,
+        10.0,
+        0.1
+      ],
+      "fixed": true,
+      "friction": 0.8,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "north_wall",
+      "instance": null,
+      "asset": null,
+      "collider": null,
+      "physics_body": 1,
+      "measured_center_m": [
+        0.0,
+        5.050000190734863,
+        0.5561362504959106
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        12.0,
+        0.1,
+        2.7
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "south_wall",
+      "instance": null,
+      "asset": null,
+      "collider": null,
+      "physics_body": 2,
+      "measured_center_m": [
+        0.0,
+        -5.050000190734863,
+        0.5561362504959106
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        12.0,
+        0.1,
+        2.7
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "east_wall",
+      "instance": null,
+      "asset": null,
+      "collider": null,
+      "physics_body": 3,
+      "measured_center_m": [
+        6.050000190734863,
+        0.0,
+        0.5561362504959106
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.1,
+        10.0,
+        2.7
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "west_wall",
+      "instance": null,
+      "asset": null,
+      "collider": null,
+      "physics_body": 4,
+      "measured_center_m": [
+        -6.050000190734863,
+        0.0,
+        0.5561362504959106
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.1,
+        10.0,
+        2.7
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-object-oak-collider-0",
+      "instance": "object-oak",
+      "asset": {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      "collider": "top",
+      "physics_body": 5,
+      "measured_center_m": [
+        0.0,
+        1.0,
+        -0.25956374406814575
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        1.4,
+        0.8,
+        0.08
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-object-oak-collider-1",
+      "instance": "object-oak",
+      "asset": {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      "collider": "leg-0",
+      "physics_body": 6,
+      "measured_center_m": [
+        -0.6600000262260437,
+        0.6399999856948853,
+        -0.5467137694358826
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.08,
+        0.08,
+        0.4943
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-object-oak-collider-2",
+      "instance": "object-oak",
+      "asset": {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      "collider": "leg-1",
+      "physics_body": 7,
+      "measured_center_m": [
+        0.6600000262260437,
+        0.6399999856948853,
+        -0.5467137694358826
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.08,
+        0.08,
+        0.4943
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-object-oak-collider-3",
+      "instance": "object-oak",
+      "asset": {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      "collider": "leg-2",
+      "physics_body": 8,
+      "measured_center_m": [
+        -0.6600000262260437,
+        1.3600000143051147,
+        -0.5467137694358826
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.08,
+        0.08,
+        0.4943
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-object-oak-collider-4",
+      "instance": "object-oak",
+      "asset": {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      "collider": "leg-3",
+      "physics_body": 9,
+      "measured_center_m": [
+        0.6600000262260437,
+        1.3600000143051147,
+        -0.5467137694358826
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.08,
+        0.08,
+        0.4943
+      ],
+      "fixed": true,
+      "friction": 0.7,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-object-red-collider-0",
+      "instance": "object-red",
+      "asset": {
+        "id": "asset-red",
+        "revision": 1
+      },
+      "collider": "body",
+      "physics_body": 10,
+      "measured_center_m": [
+        0.7300000786781311,
+        0.19999989867210388,
+        -0.77386474609375
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        -7.324098660888012e-09,
+        -1.0082136014943899e-08,
+        1.7387142392522037e-08
+      ],
+      "size_m": [
+        0.04,
+        0.04,
+        0.04
+      ],
+      "fixed": false,
+      "friction": 0.7,
+      "mass_kg": 0.032,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-object-blue-collider-0",
+      "instance": "object-blue",
+      "asset": {
+        "id": "asset-blue",
+        "revision": 1
+      },
+      "collider": "body",
+      "physics_body": 11,
+      "measured_center_m": [
+        0.8400000333786011,
+        -0.3200001120567322,
+        -0.77386474609375
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        -6.500130211861688e-09,
+        9.810747769734007e-09,
+        1.6853284989792883e-08
+      ],
+      "size_m": [
+        0.04,
+        0.04,
+        0.04
+      ],
+      "fixed": false,
+      "friction": 0.7,
+      "mass_kg": 0.032,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-chair-left-collider-0",
+      "instance": "chair-left",
+      "asset": {
+        "id": "fixture-chair",
+        "revision": 1
+      },
+      "collider": "body",
+      "physics_body": 12,
+      "measured_center_m": [
+        -1.2000000476837158,
+        -1.7000000476837158,
+        -0.3938637375831604
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.42,
+        0.43,
+        0.8
+      ],
+      "fixed": true,
+      "friction": 0.6,
+      "mass_kg": null,
+      "restitution": 0.0
+    },
+    {
+      "name": "instance-chair-right-collider-0",
+      "instance": "chair-right",
+      "asset": {
+        "id": "fixture-chair",
+        "revision": 1
+      },
+      "collider": "body",
+      "physics_body": 13,
+      "measured_center_m": [
+        1.2000000476837158,
+        -1.7000000476837158,
+        -0.3938637375831604
+      ],
+      "measured_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size_m": [
+        0.42,
+        0.43,
+        0.8
+      ],
+      "fixed": true,
+      "friction": 0.6,
+      "mass_kg": null,
+      "restitution": 0.0
+    }
+  ],
+  "positive_work_j": 0.5047290139392696,
+  "max_excursion_rad": 0.0,
+  "operator_frames": 100,
+  "root_pose_writes": 0
+}

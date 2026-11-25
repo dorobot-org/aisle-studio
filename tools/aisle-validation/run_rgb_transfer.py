@@ -70,18 +70,34 @@ class LiveCameraFrames:
 
 
 class Judge:
-    def __init__(self, sim, colors, record_labels=False, trace_fingers=False):
+
+    def __init__(
+        self, sim, colors, record_labels=False, trace_fingers=False, authored=None
+    ):
         self.colors = colors
         self.airborne_in_jaw = {n: False for n in colors} if record_labels else None
         objects = {s["name"]: b for s, b in zip(sim.specs, sim.bodies)}
-        self.cubes = {name: objects[name] for name in colors}
-        self.table = objects["coffee_table"]
-        self.size = next(
-            np.array(s["size"]) for s in sim.specs if s["name"] == "coffee_table"
+        names = (
+            {authored.cube: authored.color}
+            if authored
+            else {name: name for name in colors}
         )
+        self.cubes = {cue: objects[name] for name, cue in names.items()}
+        self.table_name = authored.tabletop if authored else "coffee_table"
+        self.table = objects[self.table_name]
+        self.size = next(
+            np.array(s["size"]) for s in sim.specs if s["name"] == self.table_name
+        )
+        self.surface = authored.surface if authored else None
+        self.cube_sizes = {
+            names[s["name"]]: np.array(s["size"])
+            for s in sim.specs
+            if s["name"] in names
+        }
         self.initial = {n: b.get_pos().copy() for n, b in self.cubes.items()}
         self.object_ids = {
-            sim.scene.gpu_index(0, b.handles[0]): k for k, b in objects.items()
+            sim.scene.gpu_index(0, b.handles[0]): names.get(k, k)
+            for k, b in objects.items()
         }
         self.links = {
             sim.scene.gpu_index(0, sim.robot.link_bodies[0][link.index]): link.name
@@ -94,9 +110,7 @@ class Judge:
             for name in ("left_finger_a", "left_finger_b")
         ]
         self.radii = {
-            s["name"]: np.linalg.norm(s["size"]) / 2
-            for s in sim.specs
-            if s["name"] in colors
+            n: float(np.linalg.norm(size) / 2) for n, size in self.cube_sizes.items()
         }
         self.wheels = {f"wheel_{i}" for i in (1, 2, 3)}
         self.grasped = Counter()
@@ -136,7 +150,7 @@ class Judge:
                 self.object_ids.get(row["body_b"]),
             }
             other_support.update(pair.intersection(self.colors))
-            if "coffee_table" in pair:
+            if self.table_name in pair:
                 table_support.update(pair.intersection(self.colors))
         for row in state.debug_multibody_contact_impulses(viewer):
             if row["kind"] != "normal" or row["impulse"] <= 1e-6:
@@ -213,7 +227,12 @@ class Judge:
 
     def result(self, sim):
         table = self.table.get_pos()
-        top = float(table[2] + self.size[2] / 2)
+        rot = quat_wxyz_to_matrix(self.table.get_quat())
+        region = self.size[:2]
+        if self.surface:
+            table = table + rot @ self.surface["center_offset_m"]
+            region = np.array(self.surface["size_m"])
+        top = float(table[2] if self.surface else table[2] + self.size[2] / 2)
         cubes = {}
         for n in self.colors:
             tail = list(self.tail[n])
@@ -226,16 +245,23 @@ class Judge:
             pos = positions[-1]
             # A 40 mm cube can project half its space diagonal onto either horizontal axis.
             edge_clearance = float(
-                np.min(self.size[:2] / 2 - np.abs(pos[:2] - table[:2]))
+                np.min(region / 2 - np.abs((rot.T @ (pos - table))[:2]))
             )
-            inside = edge_clearance > 0.035
+            inset = self.radii[n] + 0.00036 if self.surface else 0.035
+            inside = edge_clearance > inset
+            half_z = self.cube_sizes[n][2] / 2.0
+            low, high = (
+                (half_z - 0.005, self.radii[n] + 0.003)
+                if self.surface
+                else (0.015, 0.037)
+            )
             travel = float(np.linalg.norm(np.ptp(positions, axis=0)))
             passed = (
                 self.grasped[n] >= 20
                 and contacts == 100
                 and detached
                 and inside
-                and top + 0.015 <= pos[2] <= top + 0.037
+                and top + low <= pos[2] <= top + high
                 and travel < 0.003
             )
             cubes[n] = dict(
@@ -247,7 +273,7 @@ class Judge:
                 min_finger_clearance_tail_m=min_gap,
                 cube_center_over_table=inside,
                 nearest_table_edge_m=edge_clearance,
-                required_table_inset_m=0.035,
+                required_table_inset_m=inset,
                 settle_motion_m=travel,
             )
         return dict(
@@ -262,7 +288,13 @@ class Judge:
         )
 
 
-def execute(*args, visual_profile="original", **kwargs):
+def execute(*args, visual_profile="original", trace_manifest=None, **kwargs):
+    if trace_manifest is not None:
+        out=args[0] if args else kwargs["out"]
+        with (out/"robot-trace.jsonl").open("x",buffering=1) as stream:
+            kwargs["trace"]=(stream,trace_manifest)
+            return execute(*args, visual_profile=visual_profile, **kwargs)
+
     if visual_profile == "original":
         return _execute(*args, **kwargs)
     from aisle.sim.nexus_backend import _ensure_nexus, load_nexus_physics
@@ -287,6 +319,9 @@ def _execute(
     colors,
     record=False,
     room_objects=(),
+    authored=None,
+    trace=None,
+    runtime_options=None,
     room_settings=None,
     observation_progress=False,
     live_preview=False,
@@ -301,12 +336,14 @@ def _execute(
 
     controller = out / "controller.json"
     plan = json.loads(controller.read_bytes()) if controller.is_file() else {}
+    if runtime_options and "wrist_clearance" in runtime_options:
+        plan=plan | {"wrist_clearance":runtime_options["wrist_clearance"]}
     detector = parameters(plan)
     if detector is not None and plan["model_hash"] != worker.digest(MODEL):
         raise ValueError("Nano grasp checkpoint requires its training URDF")
     sim = LivingSimulation(
         MODEL,
-        specs=[*scene_recipe(seed), *room_objects],
+        specs=authored.specs if authored else [*scene_recipe(seed), *room_objects],
         resolution=(480, 360),
         posture=POSTURE,
         visual_profile=visual_profile,
@@ -330,6 +367,8 @@ def _execute(
             "calibration_source", "Nominal URDF-mounted simulation optics"
         ),
     )
+    if authored:
+        config["table_appearance"] = authored.surface["appearance"]
     if "wrist_clearance" in plan or "max_forward_speed_m_s" in plan:
         worker.validate(plan, worker.describe("Nano"))
     config["wrist_clearance"] = plan.get("wrist_clearance", False)
@@ -369,6 +408,7 @@ def _execute(
         colors,
         record_labels=record or detector is not None,
         trace_fingers=target_motion != "stationary",
+        authored=authored,
     )
     envelope = MotorEnvelope(MODEL, sim.names, sim.scene.dt)
     journal = out / "motor-targets.f64"
@@ -379,7 +419,7 @@ def _execute(
         source_path,
         source
         | dict(
-            recipe=RECIPE,
+            recipe="studio-authored-scene-v1" if authored else RECIPE,
             **(
                 {"grasp_motion": target_motion} if target_motion != "stationary" else {}
             ),
@@ -508,6 +548,15 @@ def _execute(
         sim.scene.step()
         sim.tick += 1
         judge.tick(sim)
+        if trace:
+            from experiment_recording import line
+            stream,manifest=trace
+            line(stream,dict(run_id=manifest["run_id"],physics_step=sim.tick,
+                             sim_time_ns=round(sim.tick*sim.scene.dt*1e9),joints=sim.names,
+                             positions_rad=np.asarray(sim.robot.get_qpos())[sim.dofs].tolist(),commanded=sim.targets.tolist(),
+                             phase=judge.phase,wheel_supported=not(judge.unsupported_ranges and judge.unsupported_ranges[-1]["last_step"]==sim.tick),
+                             tabletop_contact=any(v and v[-1][1] for v in judge.tail.values()),
+                             rejected_motor_writes=motors.rejected,collision_count=sum(judge.collisions.values())))
         if slide:
             slide.after_step(*judge.pick_contacts[active_color], applied)
         rgb = None
@@ -855,6 +904,7 @@ def _execute(
         wrist_timing=wrist.result(),
         wrist_clearance=config["wrist_clearance"],
         measured_room_bodies=sim.room_readback(),
+        **({"scene_execution": authored.readback(sim.scene, sim.specs, sim.bodies)} if authored else {}),
         actuator_audit=audit,
         rejected_motor_writes=motors.rejected,
         frames=len(samples),

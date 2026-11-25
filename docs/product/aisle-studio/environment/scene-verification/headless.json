@@ -1,0 +1,181 @@
+{
+  "backend": "headless",
+  "base": {
+    "id": "scene-sqSvnv",
+    "revision": 1,
+    "parent": null,
+    "name": "Living room",
+    "room_m": [
+      6.0,
+      4.0
+    ],
+    "instances": [
+      {
+        "id": "object-dc1ad80e038831ca9e8bb66b28d79963",
+        "name": "Coffee table",
+        "asset": {
+          "id": "fixture-coffee-table",
+          "revision": 1
+        },
+        "position_m": [
+          -2.4000000000000004,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-e1340958590badf4a6dc5f34ba2a02ac",
+        "name": "Chair",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          -0.850000000000001,
+          0.65,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-fb730990f31c85ae91aac965c8c12354",
+        "name": "Chair 2",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          0.0,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-2889e9f682a8edc27da611313813d22c",
+        "name": "Cube",
+        "asset": {
+          "id": "fixture-cube",
+          "revision": 1
+        },
+        "position_m": [
+          0.3,
+          0.17549999999999918,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-fc7358d294f26c2e3157fe46dbd9a5ce",
+        "name": "Ottoman",
+        "asset": {
+          "id": "fixture-ottoman",
+          "revision": 1
+        },
+        "position_m": [
+          2.0999999999999988,
+          1.5195000000000003,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      }
+    ]
+  },
+  "variant": {
+    "id": "scene-D0uuS9",
+    "revision": 1,
+    "parent": {
+      "id": "scene-sqSvnv",
+      "revision": 1
+    },
+    "name": "Living room variant",
+    "room_m": [
+      6.0,
+      4.0
+    ],
+    "instances": [
+      {
+        "id": "object-dc1ad80e038831ca9e8bb66b28d79963",
+        "name": "Coffee table",
+        "asset": {
+          "id": "fixture-coffee-table",
+          "revision": 1
+        },
+        "position_m": [
+          -2.4000000000000004,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-e1340958590badf4a6dc5f34ba2a02ac",
+        "name": "Chair",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          2.719999999999999,
+          1.5195000000000003,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-fb730990f31c85ae91aac965c8c12354",
+        "name": "Chair 2",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          0.0,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-2889e9f682a8edc27da611313813d22c",
+        "name": "Cube",
+        "asset": {
+          "id": "fixture-cube",
+          "revision": 1
+        },
+        "position_m": [
+          0.3,
+          0.17549999999999918,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-fc7358d294f26c2e3157fe46dbd9a5ce",
+        "name": "Ottoman",
+        "asset": {
+          "id": "fixture-ottoman",
+          "revision": 1
+        },
+        "position_m": [
+          2.0999999999999988,
+          1.5195000000000003,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      }
+    ]
+  },
+  "restored_base_sha256": "b83b9d958cdf1f15b21d21fbc4b6db93a4e30fec09bff37c3f42a415a47f8263"
+}

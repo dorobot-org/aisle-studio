@@ -1,0 +1,38 @@
+{
+  "joint": "left_shoulder_pitch_joint",
+  "delta_rad": 0.1,
+  "trunk_yaw_rad": 0.52359878,
+  "kind": "standing-inspection",
+  "bound_task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+  "bound_scene": {
+    "id": "scene-living-room",
+    "revision": 1,
+    "name": "Surveyed living room"
+  },
+  "previous_trial": {
+    "robot": "G1",
+    "joint": "left_shoulder_pitch_joint",
+    "requested_delta": 0.1,
+    "measured_delta": 0.09999996423721313,
+    "within_limits": true,
+    "task_success": false,
+    "controller_hash": "9c8e5298e62facb82f7fc1e3577b877bf7d871e4dcf0d12d741b7307c74caf54",
+    "bound_task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+    "standing_measurements": {
+      "both_feet_loaded_steps": 2000,
+      "scored_steps": 2000,
+      "wrist_error_m": 0.00304948883397369,
+      "stable_recovery_s": null,
+      "contact_links": [],
+      "prior_trunk_pitch_rad": -0.1,
+      "prior_trunk_yaw_rad": 0.0,
+      "guard_excursion_rad": 0.0
+    }
+  },
+  "revision_instruction": "Keep the saved left shoulder reach. Try a 30-degree left waist turn with neutral pitch for the next simulation.",
+  "robot": "G1",
+  "task": "Stand and track a positive left shoulder displacement of 0.10 radians.",
+  "provider": "octos-deepseek",
+  "policy_model": "deepseek-v4-flash",
+  "model_hash": "c0ae739c640c3e2c00d1bdd8810b5d6e59601487bd1a3995859f9543269ee5c8"
+}

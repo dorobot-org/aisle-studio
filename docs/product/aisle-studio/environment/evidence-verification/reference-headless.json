@@ -1,0 +1,58 @@
+{
+  "backend": "headless",
+  "parent": "7d6654f3-9976-481c-8578-0a1aed8c8d5b",
+  "child": "59e127ae-2756-423e-a2b3-f9e2574ec589",
+  "original_rerun_id": "95036b79-31f9-4792-9b1a-96cd7fe06b51",
+  "original_rerun_outcome": {
+    "passed": true,
+    "result_sha256": "dee7ae3dc251b90298774ff39a6b3cbb76b29c958ab2486c0c245955aefdf1fc",
+    "physics_ticks": 6848
+  },
+  "original_rerun_sample_sha256": "f3b429fe2555fef7f97ef09bac5390bdffa2006c79b3c4dd1611a379800050d3",
+  "parent_verdict": {
+    "passed": true,
+    "result_sha256": "dee7ae3dc251b90298774ff39a6b3cbb76b29c958ab2486c0c245955aefdf1fc",
+    "physics_ticks": 6848
+  },
+  "child_verdict": {
+    "passed": true,
+    "result_sha256": "eb0b353e91763a91a1635f444af117ffb3e4179e2f69c53eff7ee5b4bbea1b9f",
+    "physics_ticks": 6848
+  },
+  "original_sample_sha256": "f3b429fe2555fef7f97ef09bac5390bdffa2006c79b3c4dd1611a379800050d3",
+  "variant_sample_sha256": "f1354cabe5f9756e7a3b1f6e8b2df988d58428f2853360d005da96b71b471ae1",
+  "variant_id": "43593dd1-e2ba-4526-8427-e4ccee185ad9",
+  "frozen_artifact_count": 1088,
+  "frozen_tree_sha256": "fad795f516b21973bbc601e7bf9fe75e9f4a8a56aef06c72825261fd283c2357",
+  "recorded_frames_per_camera": 342,
+  "named_cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "replayed_placement_step": 4620,
+  "measured_chair_original_m": [
+    -0.9658731818199158,
+    -1.7000000476837158,
+    0.36570000648498535
+  ],
+  "measured_chair_variant_m": [
+    -0.9658731818199158,
+    -2.0,
+    0.36570000648498535
+  ],
+  "notes": {
+    "name": "Verified living-room pickup",
+    "notes": "Watch left wrist at placement",
+    "tags": [
+      "living-room",
+      "review"
+    ],
+    "fields": {
+      "operator_check": "tabletop"
+    },
+    "revision": 1,
+    "run_id": "7d6654f3-9976-481c-8578-0a1aed8c8d5b",
+    "updated": "2026-11-25T04:23:20.579606+00:00"
+  }
+}

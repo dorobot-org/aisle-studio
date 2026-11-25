@@ -1,0 +1,13 @@
+{
+  "profile": "g1-standing-reach-v1",
+  "manifest_sha256": "7ee4333faf51949a2914ed9f939528006d6088f87d1ee43a4bdac1b497c62fd9",
+  "cases": 20,
+  "successes": 20,
+  "verified": 20,
+  "verified_guard_bypasses": 0,
+  "qualified": true,
+  "split": "bounded-impact",
+  "requirement": 20,
+  "archive_sha256": "b4141fa231d9ff78790bacaf21cdb12a9c37a844a2e5d7eb6b94f283f0e4df14",
+  "failures": []
+}

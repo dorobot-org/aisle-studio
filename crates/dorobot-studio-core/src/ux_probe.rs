@@ -25,6 +25,7 @@ pub fn write(cx: &mut Cx, ui: &WidgetRef, state: serde_json::Value, paths: &[&st
             serde_json::json!({
                 "visible": widget.visible(),
                 "text": widget.text(),
+                "selected_label": widget.borrow::<DropDown>().map(|d| d.selected_item_label()),
                 "enabled": widget.borrow::<Button>().map(|b| b.enabled()),
                 "rect": [rect.pos.x, rect.pos.y, rect.size.x, rect.size.y]
             }),

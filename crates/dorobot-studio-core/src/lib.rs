@@ -41,3 +41,5 @@ pub fn register_ui(vm: &mut makepad_widgets::ScriptVm) -> makepad_widgets::Scrip
     playback_controls::script_mod(vm);
     ui::script_mod(vm)
 }
+
+pub mod survey;

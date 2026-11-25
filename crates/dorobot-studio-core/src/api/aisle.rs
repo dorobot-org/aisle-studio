@@ -12,6 +12,38 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
+pub fn python_command(studio:&Path)->io::Result<Command>{
+        let python = std::env::var_os("DOROBOT_AISLE_PYTHON")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let local = studio.join(".venv-aisle/bin/python");
+                if local.is_file() {
+                    local
+                } else {
+                    PathBuf::from("python3")
+                }
+            });
+        let mut cmd = Command::new(python);
+        let repo = std::env::var_os("DOROBOT_AISLE_ROOT")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| studio.join("../AISLE"));
+        if repo.join("src/aisle").is_dir() {
+            let mut paths = vec![repo.join("src")];
+            paths.extend(std::env::split_paths(
+                &std::env::var_os("PYTHONPATH").unwrap_or_default(),
+            ));
+            cmd.env(
+                "PYTHONPATH",
+                std::env::join_paths(paths).map_err(io::Error::other)?,
+            );
+        } else if std::env::var_os("DOROBOT_AISLE_ROOT").is_some() {
+            return Err(io::Error::other(
+                "DOROBOT_AISLE_ROOT must point to an AISLE checkout containing src/aisle",
+            ));
+        }
+        Ok(cmd)
+}
+
 pub const REFERENCE: &str = "Inspect the left shoulder with a small positive joint movement.";
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Robot {
@@ -907,6 +939,7 @@ impl Workbench {
         Ok(())
     }
 
+    pub fn prepared_digest(&self)->Option<&str>{self.prepared_sha256.as_deref()}
     pub fn revision_index(&self) -> Option<usize> {
         self.revisions
             .iter()
@@ -1116,40 +1149,13 @@ impl Workbench {
                 "Install the AISLE workbench source checkout and its Python environment",
             ));
         }
-        let python = std::env::var_os("DOROBOT_AISLE_PYTHON")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| {
-                let local = studio.join(".venv-aisle/bin/python");
-                if local.is_file() {
-                    local
-                } else {
-                    PathBuf::from("python3")
-                }
-            });
-        let mut cmd = Command::new(python);
+        let mut cmd=python_command(&studio)?;
         cmd.arg(worker)
             .arg(if op == "fleet-watch" { "fleet" } else { op })
             .arg("--out")
             .arg(&dir)
             .arg("--robot")
             .arg(robot_name);
-        let repo = std::env::var_os("DOROBOT_AISLE_ROOT")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| studio.join("../AISLE"));
-        if repo.join("src/aisle").is_dir() {
-            let mut paths = vec![repo.join("src")];
-            paths.extend(std::env::split_paths(
-                &std::env::var_os("PYTHONPATH").unwrap_or_default(),
-            ));
-            cmd.env(
-                "PYTHONPATH",
-                std::env::join_paths(paths).map_err(io::Error::other)?,
-            );
-        } else if std::env::var_os("DOROBOT_AISLE_ROOT").is_some() {
-            return Err(io::Error::other(
-                "DOROBOT_AISLE_ROOT must point to an AISLE checkout containing src/aisle",
-            ));
-        }
         if let Some(run) = feedback.as_ref().filter(|_| op != "export") {
             cmd.arg("--feedback").arg(run);
         }
@@ -1267,7 +1273,18 @@ impl Workbench {
                 }
             }
         }
-        if op == "room" || ((op == "run" || submitting) && mobile) || capture_onboard {
+        let active_bound=if op=="prepare" || op=="run" || submitting {
+            crate::survey::Survey::new(self.root.join("survey")).active_task_for(self.robot.name()).map_err(io::Error::other)?
+        }else{None};
+        if let Some((sha,path))=&active_bound {
+            if op!="prepare" && self.plan["bound_task_sha256"].as_str()!=Some(sha.as_str()){
+                return Err(io::Error::other("Prepare a controller for the selected scene task first"));
+            }
+            cmd.arg("--bound-task").arg(path).arg("--bound-task-sha256").arg(sha);
+        }else if (op=="run"||submitting) && self.plan["bound_task_sha256"].is_string(){
+            return Err(io::Error::other("Select this controller’s scene task or prepare a controller for the built-in scene"));
+        }
+        if active_bound.is_none() && (op == "room" || ((op == "run" || submitting) && mobile) || capture_onboard) {
             if let Some(path) = &self.room_path {
                 cmd.arg("--room-revision").arg(path).arg("--room-hash").arg(
                     self.room_selection["sha256"]

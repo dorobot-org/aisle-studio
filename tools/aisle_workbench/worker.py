@@ -358,6 +358,24 @@ def measured_feedback(path, meta, output=None):
                 path / "actions.jsonl", previous["requested"]
             ),
         }
+    if previous.get("kind") == "standing-inspection":
+        disturbance = previous.get("disturbance") or {}
+        return {k: previous[k] for k in (
+            "robot", "joint", "requested_delta", "measured_delta", "within_limits",
+            "task_success", "controller_hash"
+        )} | {
+            "bound_task_sha256": previous.get("bound_task_sha256"),
+            "standing_measurements": {
+                "both_feet_loaded_steps": previous["both_feet_loaded_steps"],
+                "scored_steps": previous["steps"],
+                "wrist_error_m": previous["wrist_reach"]["max_final_100_error_m"],
+                "stable_recovery_s": disturbance.get("recovery_s"),
+                "contact_links": disturbance.get("links", []),
+                "prior_trunk_pitch_rad": previous.get("trunk_pitch_target_rad", 0.0),
+                "prior_trunk_yaw_rad": previous.get("trunk_yaw_target_rad", 0.0),
+                "guard_excursion_rad": previous["max_joint_excursion_rad"],
+            },
+        }
     if previous.get("kind") == "visual-approach":
         return {
             k: previous[k]
@@ -469,17 +487,22 @@ def octos_controller(prompt, schema, directory, output):
     return actual, usage
 
 
-def request_controller(provider, prompt, schema, output, *, camera_input=None):
+def request_controller(provider, prompt, schema, output, *, camera_input=None, survey_input=None):
     output = output.resolve()
     save(output / "schema.json", schema)
     request = {"provider": provider, "instruction": prompt, "output_schema": schema}
     image_args = []
-    if camera_input is not None:
-        request["onboard_input"] = camera_input
-        for image in camera_input["images"]:
+    if camera_input is not None and survey_input is not None:
+        raise ValueError("Choose one image source for this request")
+    for role, attachment in (("onboard_input", camera_input), ("survey_photo", survey_input)):
+        if attachment is None:
+            continue
+        request[role] = attachment
+        for image in attachment["images"]:
             path = output / image["file"]
             if provider != "codex" or path.parent != output or digest(path) != image["sha256"]:
-                raise ValueError("Onboard image differs from the requested attachment")
+                label = "Onboard image" if role == "onboard_input" else "Survey photo"
+                raise ValueError(f"{label} differs from the requested attachment")
             image_args.extend(["--image", str(path)])
     save(output / "controller-request.json", request)
     model_name = None
@@ -549,20 +572,54 @@ def room_for_mobile(args, meta):
     return revision["obstacles"], revision.get("settings")
 
 
+def matches_bound(bound, plan):
+    if bound.document["robot"]=="G1":
+        reach=bound.document["standing"]
+        return plan.get("kind")=="standing-inspection" and plan.get("joint")==reach["joint"] and abs(plan.get("delta_rad",0)-reach["delta_rad"])<1e-7
+    return plan.get("kind")=="table-transfer" and plan.get("color_order")==bound.color
+
+
 def prepare(args, meta):
+    bound = None
+    controller_instruction = None
+    path = getattr(args, "bound_task", None)
+    if path is not None:
+        from authored_scene import load
+
+        if getattr(args, "room_revision", None):
+            raise ValueError("Choose one scene for this task")
+        bound = load(path, getattr(args, "bound_task_sha256", None))
+        if bound.document["robot"]!=args.robot:
+            raise ValueError("Select the robot pinned by this scene task")
+        if (args.robot == "G1" and args.provider != "reference"
+                and args.task.strip() not in ("", REFERENCE, bound.document["instruction"])):
+            controller_instruction = args.task.strip()
+        args.task = bound.document["instruction"]
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != bound.sha256:
+            raise ValueError("Task changed during preparation")
+        (args.out / "bound-task.json").write_bytes(raw)
     observation = None
     feedback = (
         measured_feedback(args.feedback, meta, args.out) if args.feedback else None
     )
+    if bound and args.robot == "G1" and feedback and feedback.get("bound_task_sha256") != bound.sha256:
+        raise ValueError("Choose a standing trial from this saved G1 task for revision")
     model_name = None
     required_tracking = None
     moving_color = None
     if args.provider == "reference":
-        if args.task.strip() != REFERENCE:
+        if bound and args.robot=="G1":
+            target=bound.document["standing"]
+            plan=dict(kind="standing-inspection",joint=target["joint"],delta_rad=target["delta_rad"])
+        elif bound:
+            plan = dict(kind="table-transfer", color_order=bound.color)
+        elif args.task.strip() != REFERENCE:
             raise ValueError(
                 "Choose an agent for custom instructions or restore the reference task"
             )
-        plan = dict(joint=meta["allowed_joints"][0], delta_rad=0.10)
+        else:
+            plan = dict(joint=meta["allowed_joints"][0], delta_rad=0.10)
     else:
         schema = dict(
             type="object",
@@ -585,7 +642,7 @@ def prepare(args, meta):
             + args.task
         )
         if args.robot == "Nano":
-            named = named_cube_transfer(args.task)
+            named = bound.color if bound else named_cube_transfer(args.task)
             moving_color = named_cube_transfer(args.task, moving=True)
             if moving_color:
                 named = moving_color
@@ -672,9 +729,10 @@ def prepare(args, meta):
                 args.out,
                 meta,
                 args.seed,
-                getattr(args, "room_hash", None),
+                bound.sha256 if bound else getattr(args, "room_hash", None),
                 obstacles,
                 settings,
+                **({"authored": bound} if bound else {}),
             )
             observation["author_input"] = author_input(args.out, observation, args.provider)
             calibration = json.loads((args.out / CALIBRATION).read_bytes())
@@ -728,6 +786,32 @@ def prepare(args, meta):
                 "is within 0.035 m of the unique left-wrist candidate. Both modes keep the other geometry "
                 "and actuator checks. Choose inherit to retain the measured rule, or for a different capability. "
                 "Explain your choice from the listed base-frame positions."
+            )
+        if bound and args.robot=="G1":
+            target=bound.document["standing"]
+            prompt=(f"The Studio operator selected the G1 standing-reach capability in an authored room. "
+                f"The controller must hold its stance and track {target['joint']} by {target['delta_rad']} radians. "
+                "The evaluator applies a separate bounded disturbance. The controller does not generate it. "
+                "Choose supported=true and kind=standing-inspection when the operator instruction describes this capability. "
+                "Choose supported=false if the instruction demands walking, hardware actuation or incompatible motion. "
+                "Use zero trunk yaw and neutral trunk pitch for the baseline. "
+                "For a revision, consider the measured prior posture, foot support, wrist error and recovery. "
+                "An alternate upright pitch is -0.10 rad with zero yaw. A left waist turn of 20 or 30 degrees uses neutral pitch "
+                "(trunk_yaw_rad=0.34906585 or 0.52359878). The 30-degree preset previously passed a separate standing fixture. "
+                "If the previous posture missed recovery, choose a different supported posture for evaluation. "
+                "Keep the requested shoulder target unchanged. The runtime observes encoders and an IMU. "
+                f"Saved reach task: {args.task}")
+            if controller_instruction:
+                prompt += (
+                    "\nOperator's controller request: " + controller_instruction
+                    + "\nUse the requested supported posture and preserve the saved joint and displacement. "
+                    "Reject a request that conflicts with the saved reach."
+                )
+        elif bound:
+            prompt += (
+                "\nThe operator selected one "
+                + bound.color
+                + " cube and a tabletop in Studio. Use this visual cue in the controller. Use only onboard RGB and encoders during execution."
             )
         if feedback:
             prompt += "\nPrevious measured trial to revise: " + json.dumps(feedback)
@@ -791,6 +875,8 @@ def prepare(args, meta):
                 "Only a tracked Nano pickup can change its RGB association method"
             )
     validated = validate(plan | {"task": args.task}, meta)
+    if bound and not matches_bound(bound,validated):
+        raise ValueError("Controller does not match the selected scene task")
     if observation and validated.get("kind") in ("visual-approach", "table-transfer"):
         selected = (
             [validated["color"]]
@@ -801,8 +887,20 @@ def prepare(args, meta):
             raise ValueError("Onboard cameras could not localize each selected target")
     return dict(
         **validated,
+        **(
+            {
+                "bound_task_sha256": bound.sha256,
+                "bound_scene": {
+                    k: bound.document["scene"][k] for k in ("id", "revision", "name")
+                },
+            }
+            if bound
+            else {}
+        ),
         **({"scene_observation": observation} if observation else {}),
         **({"previous_trial": feedback} if feedback else {}),
+        **({"revision_instruction" if feedback else "preparation_instruction": controller_instruction}
+           if controller_instruction else {}),
         **({"pickup_revision": revision} if revision else {}),
         robot=args.robot,
         task=args.task,
@@ -830,6 +928,40 @@ def simulate(args, meta):
     if plan["model_hash"] != meta["model_hash"] or plan["robot"] != args.robot:
         raise ValueError("Controller and robot model differ")
     control = validate(plan, meta)
+    experiment_run=getattr(args,"experiment_run",None)
+    request=json.loads(experiment_run.read_bytes()) if experiment_run else None
+    realized=None
+    trace_manifest=None
+    if request and not plan.get("bound_task_sha256"):
+        raise ValueError("This experiment requires a controller bound to a saved scene")
+    bound = None
+    bound_sha = plan.get("bound_task_sha256")
+    if getattr(args, "bound_task_sha256", None) and args.bound_task_sha256 != bound_sha:
+        raise ValueError("Prepare a controller for the selected scene task")
+    if bound_sha:
+        from authored_scene import load
+
+        if getattr(args, "room_revision", None):
+            raise ValueError("The controller is pinned to an authored scene")
+        path = args.controller.with_name("bound-task.json")
+        if request:
+            from experiment import sample,sha,encode
+            from experiment_recording import history
+            manifest=request["manifest"]
+            if manifest["task_sha256"]!=bound_sha or manifest["controller_sha256"]!=hashlib.sha256(original).hexdigest() or manifest["robot_model_sha256"]!=meta["model_hash"] or args.seed!=manifest["seed"]:
+                raise ValueError("Experiment inputs differ from the frozen manifest")
+            realized=sample(json.loads(path.read_bytes()),request["configuration"],args.seed)
+            if sha(encode(realized))!=manifest["sample_sha256"]: raise ValueError("Realized parameters differ from the scheduled inputs")
+            save(args.out/"sampled-layout.json",realized)
+            if manifest["recording"]["agent_history"]:history(args.controller.parent,args.out/"agent-history.jsonl",manifest,plan)
+            if manifest["recording"]["robot_trace"]:trace_manifest=manifest
+        bound = load(path, bound_sha,realized)
+        if args.robot!=bound.document["robot"] or not matches_bound(bound,control):
+            raise ValueError("Saved controller and task bindings differ")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != bound_sha:
+            raise ValueError("Task changed during simulation setup")
+        (args.out / "bound-task.json").write_bytes(raw)
     if "pickup_revision" in plan:
         revision = plan["pickup_revision"]
         parent = plan.get("previous_trial") or {}
@@ -850,13 +982,15 @@ def simulate(args, meta):
             args.controller.parent,
             args.out,
             plan["scene_observation"],
-            getattr(args, "seed", 0),
-            getattr(args, "room_hash", None),
+            plan["scene_observation"]["layout"] if request else getattr(args, "seed", 0),
+            bound_sha or getattr(args, "room_hash", None),
         )
     (args.out / "controller.json").write_bytes(original)
     from visual_profile import validate_profile
 
     visual_profile = getattr(args, "visual_profile", "original")
+    if realized:
+        visual_profile=realized["controller"].get("visual_profile",visual_profile)
     validate_profile(visual_profile, plan)
     mobile = control.get("kind") in ("visual-approach", "table-transfer")
     fixture = (
@@ -865,7 +999,7 @@ def simulate(args, meta):
         else "fixed-base, zero-gravity inspection"
     )
     standing = control.get("kind") == "standing-inspection"
-    impact = args.fixture == "impact"
+    impact = args.fixture == "impact" or (standing and bound is not None)
     impact_recipe = getattr(args, "impact_recipe", None)
     if impact_recipe is not None and not (standing and impact):
         raise ValueError("A bounded impact recipe requires a standing G1 impact trial")
@@ -936,6 +1070,7 @@ def simulate(args, meta):
             observation_period_s=getattr(args, "observation_period_s", 1),
             observation_clock=getattr(args, "observation_clock", "simulation"),
             parameters=json.loads(impact_recipe.read_text()) if impact_recipe else None,
+            authored=bound, trace_manifest=trace_manifest, sampled=realized,
         ) | dict(
             **(
                 {
@@ -946,12 +1081,16 @@ def simulate(args, meta):
                 else {}
             ),
             robot=args.robot,
+            **({"bound_task_sha256":bound.sha256} if bound else {}),
             controller_hash=hashlib.sha256(original).hexdigest(),
             model_hash=meta["model_hash"],
         )
     if mobile:
         sys.path.insert(0, str(ROOT / "tools/aisle-validation"))
         room_objects, room_settings = room_for_mobile(args, meta)
+        if realized:
+            room_settings=(room_settings or {}) | realized["environment"]
+
         room_path = getattr(args, "room_revision", None)
         if room_path is not None:
             import shutil
@@ -983,12 +1122,15 @@ def simulate(args, meta):
                 target_motion=getattr(args, "target_motion", "stationary"),
                 observation_period_s=getattr(args, "observation_period_s", 1),
                 observation_clock=getattr(args, "observation_clock", "simulation"),
+                **({"trace_manifest":trace_manifest,"runtime_options":realized["controller"]} if realized else {}),
                 room_objects=room_objects,
+                **({"authored": bound} if bound else {}),
                 room_settings=room_settings,
             )
             return result | dict(
                 robot=args.robot,
-                fixture="living-room",
+                fixture="authored-scene" if bound else "living-room",
+                **({"bound_task_sha256": bound.sha256} if bound else {}),
                 controller_hash=hashlib.sha256(original).hexdigest(),
                 model_hash=meta["model_hash"],
                 kind=control["kind"],
@@ -1199,6 +1341,9 @@ def main():
         choices=["stationary", "slide-positive", "slide-negative"],
         default="stationary",
     )
+    p.add_argument("--experiment-run", type=Path)
+    p.add_argument("--bound-task", type=Path)
+    p.add_argument("--bound-task-sha256")
     p.add_argument("--room-source", type=Path)
     p.add_argument("--room-revision", type=Path)
     p.add_argument("--room-hash")
@@ -1258,7 +1403,12 @@ def main():
     if args.seed < 0:
         p.error("Scene seed must be nonnegative")
     args.out = args.out.resolve()
-    if args.reserved:
+    if args.reserved and args.experiment_run is not None:
+        expected={"worker.log","manifest.json","sampled-layout.json","request.json"}
+        if args.experiment_run.resolve()!=args.out/"request.json" or {p.name for p in args.out.iterdir()}!=expected:
+            raise ValueError("Experiment worker needs a newly reserved repetition directory")
+        save(args.out/"worker-pid.json",{"pid":os.getpid()})
+    elif args.reserved:
         # Studio alone holds the write end. A separate observer can terminate the
         # owned group even while the physics engine blocks inside native code.
         if os.name == "posix":

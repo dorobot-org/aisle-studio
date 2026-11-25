@@ -34,6 +34,8 @@ def companion_names(plan):
     from onboard_scene import observation_files
 
     names = set()
+    if "bound_task_sha256" in plan:
+        names.add("bound-task.json")
     if "scene_observation" in plan:
         names.update(observation_files(plan["scene_observation"]))
     if "pickup_revision" in plan:
@@ -114,6 +116,8 @@ def payload(request):
     names = companion_names(plan)
     room_hash = request.get("room_sha256")
     if room_hash is not None:
+        if "bound_task_sha256" in plan:
+            raise ValueError("A submitted controller pins one scene")
         if plan.get("kind") not in ("table-transfer", "visual-approach"):
             raise ValueError("Room revisions require a mobile Nano simulation")
         names.update("room/" + n for n in ROOM_FILES)
@@ -128,6 +132,11 @@ def payload(request):
             and hashes[name] != plan["scene_observation"]["files"][name]
         ):
             raise ValueError("The captured observation file has changed")
+    if (
+        "bound_task_sha256" in plan
+        and hashes["bound-task.json"] != plan["bound_task_sha256"]
+    ):
+        raise ValueError("The bound scene task changed before fleet submission")
     if (room_hash is not None and hashes["room/room.json"] != room_hash) or (
         "reach_checkpoint" in plan
         and hashes["reach-checkpoint.json"] != plan["reach_checkpoint"]

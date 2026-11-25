@@ -1,0 +1,226 @@
+[
+  {
+    "page": "survey",
+    "width": 1024,
+    "height": 768,
+    "controls": {
+      "aisle_scene.project_survey.save_asset": [
+        720.0,
+        589.0,
+        157.03399658203125,
+        32.0
+      ],
+      "aisle_scene.project_survey.photo_canvas": [
+        16.0,
+        354.79998779296875,
+        688.0,
+        309.8666687011719
+      ]
+    },
+    "image": "survey-1024.png"
+  },
+  {
+    "page": "survey",
+    "width": 1440,
+    "height": 900,
+    "controls": {
+      "aisle_scene.project_survey.save_asset": [
+        1136.0,
+        721.0,
+        157.03399658203125,
+        32.0
+      ],
+      "aisle_scene.project_survey.photo_canvas": [
+        16.0,
+        354.79998779296875,
+        1104.0,
+        441.8666687011719
+      ]
+    },
+    "image": "survey-1440.png"
+  },
+  {
+    "page": "scene",
+    "width": 1024,
+    "height": 768,
+    "controls": {
+      "aisle_scene.composer.save": [
+        810.997314453125,
+        221.8000030517578,
+        113.91667175292969,
+        32.0
+      ],
+      "aisle_scene.composer.canvas": [
+        16.0,
+        347.4666748046875,
+        701.0,
+        264.20001220703125
+      ]
+    },
+    "image": "scene-1024.png"
+  },
+  {
+    "page": "scene",
+    "width": 1440,
+    "height": 900,
+    "controls": {
+      "aisle_scene.composer.save": [
+        1226.997314453125,
+        221.8000030517578,
+        113.91667175292969,
+        32.0
+      ],
+      "aisle_scene.composer.canvas": [
+        16.0,
+        347.4666748046875,
+        1117.0,
+        396.20001220703125
+      ]
+    },
+    "image": "scene-1440.png"
+  },
+  {
+    "page": "task",
+    "width": 1024,
+    "height": 768,
+    "controls": {
+      "aisle_task.project_task.activate": [
+        16.0,
+        675.3333740234375,
+        112.92000579833984,
+        32.0
+      ],
+      "aisle_task.project_task.viewport": [
+        16.0,
+        265.9666748046875,
+        650.0,
+        358.70001220703125
+      ]
+    },
+    "image": "task-1024.png"
+  },
+  {
+    "page": "task",
+    "width": 1440,
+    "height": 900,
+    "controls": {
+      "aisle_task.project_task.activate": [
+        16.0,
+        807.3333740234375,
+        112.92000579833984,
+        32.0
+      ],
+      "aisle_task.project_task.viewport": [
+        16.0,
+        265.9666748046875,
+        1066.0,
+        490.70001220703125
+      ]
+    },
+    "image": "task-1440.png"
+  },
+  {
+    "page": "run",
+    "width": 1024,
+    "height": 768,
+    "controls": {
+      "aisle_run.experiment_pane.exp_save": [
+        749.9586791992188,
+        213.96665954589844,
+        153.27732849121094,
+        32.0
+      ],
+      "aisle_run.experiment_pane.exp_start": [
+        908.2359619140625,
+        213.96665954589844,
+        99.76399230957031,
+        32.0
+      ],
+      "aisle_run.experiment_pane.exp_next": [
+        133.8280029296875,
+        619.2666625976562,
+        85.0286636352539,
+        32.0
+      ]
+    },
+    "image": "run-1024.png"
+  },
+  {
+    "page": "run",
+    "width": 1440,
+    "height": 900,
+    "controls": {
+      "aisle_run.experiment_pane.exp_save": [
+        1165.9586181640625,
+        213.96665954589844,
+        153.27732849121094,
+        32.0
+      ],
+      "aisle_run.experiment_pane.exp_start": [
+        1324.2359619140625,
+        213.96665954589844,
+        99.76399230957031,
+        32.0
+      ],
+      "aisle_run.experiment_pane.exp_next": [
+        133.8280029296875,
+        751.2666625976562,
+        85.0286636352539,
+        32.0
+      ]
+    },
+    "image": "run-1440.png"
+  },
+  {
+    "page": "evidence",
+    "width": 1024,
+    "height": 768,
+    "controls": {
+      "aisle_evidence.ev_catalog.ev_play": [
+        16.0,
+        533.933349609375,
+        49.624000549316406,
+        32.0
+      ],
+      "aisle_evidence.ev_catalog.ev_image": [
+        16.0,
+        286.76666259765625,
+        600.0,
+        181.6666717529297
+      ],
+      "aisle_evidence.ev_catalog.ev_search": [
+        16.0,
+        121.76666259765625,
+        835.7486572265625,
+        44.0
+      ]
+    },
+    "image": "evidence-1024.png"
+  },
+  {
+    "page": "evidence",
+    "width": 1440,
+    "height": 900,
+    "controls": {
+      "aisle_evidence.ev_catalog.ev_play": [
+        16.0,
+        688.3333740234375,
+        49.624000549316406,
+        32.0
+      ],
+      "aisle_evidence.ev_catalog.ev_image": [
+        16.0,
+        286.76666259765625,
+        1016.0,
+        336.0666809082031
+      ],
+      "aisle_evidence.ev_catalog.ev_search": [
+        16.0,
+        121.76666259765625,
+        1251.7486572265625,
+        44.0
+      ]
+    },
+    "image": "evidence-1440.png"
+  }
+]

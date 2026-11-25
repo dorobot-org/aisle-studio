@@ -15,6 +15,13 @@ use dorobot_ux::kit::SparkWidgetRefExt;
 use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
+mod experiment;
+mod trial_evidence;
+use trial_evidence::TrialEvidenceWidgetRefExt;
+use experiment::ExperimentPaneWidgetRefExt;
+mod survey;
+pub mod scene_editor;
+pub mod task_binding;
 
 pub struct AislePlugin;
 const PAGES: &[PanelDescriptor] = &[
@@ -49,6 +56,11 @@ impl StudioPlugin for AislePlugin {
         }
     }
     fn register(&self, vm: &mut ScriptVm) {
+        survey::script_mod(vm);
+        scene_editor::script_mod(vm);
+        task_binding::script_mod(vm);
+        experiment::script_mod(vm);
+        trial_evidence::script_mod(vm);
         script_mod(vm);
     }
     fn create(&self, panel: &str, vm: &mut ScriptVm) -> Result<Box<dyn PluginPanel>, String> {
@@ -71,6 +83,10 @@ impl StudioPlugin for AislePlugin {
             detailed_trial: None,
             joint_robot: None,
             joint_index: 0,
+            survey_open: false,
+            composer_open: false,
+            experiment_open:false,
+            trial_catalog_open:false,
         }))
     }
     fn can_disable(&self, b: &dyn Backend) -> Result<(), String> {
@@ -91,15 +107,17 @@ script_mod! {
     let Bar=View{width:Fill height:Fit flow:Right spacing:8.0 align:Align{y:0.5}}
     let Page=View{width:Fill height:Fill flow:Down padding:16.0 spacing:12.0}
     mod.widgets.AisleTask=Page{
-        Title{text:"Robot task"}
+        Bar{task_heading := Title{width:Fill text:"Robot task"} select_scene := mod.widgets.ux.ToolButton{text:"Select scene"}}
         context_label := Section{}
+        binding_status := Body{visible:false max_lines:2}
+        project_task := TaskBinding{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             editor := Card{width:Fill height:Fill
                 Section{text:"Robot profile"}
                 Bar{nano := mod.widgets.ux.ToolButton{text:"Adora Nano"} g1 := mod.widgets.ux.ToolButton{text:"Unitree G1"}}
                 Section{text:"Task instruction"}
                 instruction := TextInput{width:Fill height:64 is_multiline:true empty_text:"Inspect a shoulder or approach a colored cube with Nano"}
-                Bar{reference := mod.widgets.ux.ToolButton{text:"Use reference task"} onboard := mod.widgets.ux.ToolButton{text:"Onboard RGB off"}}
+                Bar{reference := mod.widgets.ux.ToolButton{text:"Use reference task"} onboard := mod.widgets.ux.ToolButton{text:"Onboard RGB off"} turned_stance := mod.widgets.ux.ToolButton{visible:false text:"30° left stance"}}
                 Bar{octos := mod.widgets.ux.PrimaryButton{text:"DeepSeek via Octos"} codex := mod.widgets.ux.ToolButton{text:"Ask Codex"}}
                 Section{text:"Prepared controller"}
                 controller_scroll := ScrollYView{width:Fill height:Fill flow:Down
@@ -116,8 +134,10 @@ script_mod! {
         status := Body{}
     }
     mod.widgets.AisleScene=Page{
-        Title{text:"Simulation scene"} context_label := Section{}
-        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"}}
+        scene_heading := Title{text:"Simulation scene"} context_label := Section{}
+        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"} composer_mode := mod.widgets.ux.ToolButton{text:"Scene editor"} create_bound_task := mod.widgets.ux.ToolButton{visible:false text:"Create task"}}
+        project_survey := SurveyPane{visible:false}
+        composer := SceneEditorPane{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             model_card := Card{width:Fill height:Fill Section{text:"URDF model"} robot := RobotView{width:Fill height:Fill keyboard_controls:false tint_selected_links:true}}
             photo_card := Card{width:Fill height:Fill photo_label := Section{text:"Floor footprint"} photo := VideoPlayer{width:Fill height:Fill}}
@@ -179,7 +199,9 @@ script_mod! {
         status := Body{}
     }
     mod.widgets.AisleRun=Page{
-        Title{text:"Live simulation"} context_label := Section{}
+        Bar{run_heading := Title{width:Fill text:"Live simulation"} experiment_mode := mod.widgets.ux.ToolButton{text:"Repeat experiment"}} context_label := Section{}
+        experiment_pane := ExperimentPane{visible:false}
+        normal_run := View{width:Fill height:Fill flow:Down spacing:10
         Bar{local_run := mod.widgets.ux.ToolButton{text:"Simulation"} workers := mod.widgets.ux.ToolButton{text:"Workers"}}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             viewport := Card{width:Fill height:Fill camera_label := Section{} camera := VideoPlayer{width:Fill height:Fill}}
@@ -202,8 +224,12 @@ script_mod! {
         }
         status := Body{}
     }
+    }
     mod.widgets.AisleEvidence=Page{
-        Title{text:"Run evidence"} context_label := Section{}
+        Bar{ev_heading := Title{width:Fill text:"Run evidence"} ev_mode := mod.widgets.ux.ToolButton{text:"Experiment trials"}}
+        ev_catalog := TrialEvidence{visible:false}
+        standard_evidence := View{width:Fill height:Fill flow:Down spacing:6
+        context_label := Section{}
         Bar{trial_mode := mod.widgets.ux.ToolButton{text:"Trial"} evaluation_mode := mod.widgets.ux.ToolButton{text:"Batch evaluation"} device_mode := mod.widgets.ux.ToolButton{text:"Device preflight"} room_baseline := mod.widgets.ux.ToolButton{text:"Use as room baseline"} room_details := mod.widgets.ux.ToolButton{text:"Trial details"}}
         device := Card{width:Fill height:Fill
             device_title := Title{}
@@ -238,6 +264,7 @@ script_mod! {
             folder := mod.widgets.ux.ToolButton{text:"Open run folder"}
             export := mod.widgets.ux.PrimaryButton{text:"Export episode"} replay := mod.widgets.ux.PrimaryButton{text:"Open in Replay"} train_reach := mod.widgets.ux.ToolButton{text:"Train shoulder correction"} train_grasp := mod.widgets.ux.ToolButton{text:"Train grasp detector"}}
         status := Body{}
+        }
     }
 }
 struct Panel {
@@ -252,6 +279,10 @@ struct Panel {
     detailed_trial: Option<PathBuf>,
     joint_robot: Option<Robot>,
     joint_index: usize,
+    survey_open: bool,
+    composer_open: bool,
+    experiment_open:bool,
+    trial_catalog_open:bool,
 }
 impl Panel {
     fn label(&self, cx: &mut Cx, id: &[LiveId], s: &str) {
@@ -463,6 +494,16 @@ impl Panel {
         }
     }
     fn run(&mut self, cx: &mut Cx, w: &Workbench) {
+        self.root.widget(cx,ids!(normal_run)).set_visible(cx,!self.experiment_open);
+        self.root.widget(cx,ids!(experiment_pane)).set_visible(cx,self.experiment_open);
+        self.root.button(cx,ids!(experiment_mode)).set_text(cx,if self.experiment_open {"Live simulation"}else{"Repeat experiment"});
+        self.label(cx,ids!(run_heading),if self.experiment_open {"Repeat experiment"}else{"Live simulation"});
+        if self.experiment_open {
+            self.label(cx,ids!(context_label),"AISLE · Nexus   /   Experiments");
+            self.root.experiment_pane(cx,ids!(experiment_pane)).update(cx,w);
+            return;
+        }
+
         self.root
             .button(cx, ids!(workers))
             .set_enabled(cx, !w.busy() && !w.workers_open);
@@ -570,6 +611,13 @@ impl PluginPanel for Panel {
             );
             return;
         };
+        if self.page=="aisle_evidence" {
+            self.root.widget(cx,ids!(standard_evidence)).set_visible(cx,!self.trial_catalog_open);
+            self.root.widget(cx,ids!(ev_catalog)).set_visible(cx,self.trial_catalog_open);
+            self.root.button(cx,ids!(ev_mode)).set_text(cx,if self.trial_catalog_open {"Run evidence"}else{"Experiment trials"});
+            self.label(cx,ids!(ev_heading),if self.trial_catalog_open {"Experiment trials"}else{"Run evidence"});
+            if self.trial_catalog_open {self.root.trial_evidence(cx,ids!(ev_catalog)).update(cx,w);return;}
+        }
         let light = frame::light_mode();
         if self.light != Some(light) {
             frame::apply_light(
@@ -626,6 +674,9 @@ impl PluginPanel for Panel {
         self.label(cx, ids!(status), &w.status);
         match self.page.as_str() {
             "aisle_task" => {
+                let stance = self.root.button(cx, ids!(turned_stance));
+                stance.set_visible(cx, w.robot == Robot::G1);
+                stance.set_enabled(cx, !w.busy());
                 let capture = w.plan["scene_observation"]["files"]["onboard-head.rgb"].is_string();
                 let reviewing = w.controller_diff.is_some();
                 let review = self.root.button(cx, ids!(review_controller));
@@ -724,6 +775,11 @@ impl PluginPanel for Panel {
                     )
                 };
                 let mut detail = detail;
+                if let Some(request) = w.plan["revision_instruction"].as_str() {
+                    detail.push_str(&format!("\nRevision request · {request}"));
+                } else if let Some(request) = w.plan["preparation_instruction"].as_str() {
+                    detail.push_str(&format!("\nRequested posture · {request}"));
+                }
                 if w.plan["track_grasp"] == true {
                     detail.push_str("\nWrist-guided interception during descent");
                 }
@@ -818,6 +874,21 @@ impl PluginPanel for Panel {
                 }
             }
             "aisle_scene" => {
+                self.root.widget(cx, ids!(project_survey)).set_visible(cx, self.survey_open);
+                self.root.widget(cx,ids!(create_bound_task)).set_visible(cx,self.composer_open);
+                self.root.widget(cx, ids!(composer)).set_visible(cx, self.composer_open);
+                self.root.button(cx, ids!(composer_mode)).set_enabled(cx,!self.composer_open);
+                self.root.widget(cx, ids!(row)).set_visible(cx, !self.survey_open && !self.composer_open);
+                self.root.button(cx, ids!(asset_mode)).set_enabled(cx, !self.survey_open);
+                self.label(cx,ids!(scene_heading),if self.survey_open {"Survey & assets"}else if self.composer_open {"Scene editor"}else{"Simulation scene"});
+                if self.survey_open || self.composer_open {
+                    let context = if self.composer_open {"Project scene library"} else {"Project photo survey"};
+                    self.label(cx,ids!(context_label),&format!("{}   /   AISLE · Nexus   /   {context}",w.robot.name()));
+                    for id in [ids!(room_mode) as &[LiveId], ids!(robot_mode), ids!(joint_mode)] {
+                        self.root.button(cx, id).set_enabled(cx, true);
+                    }
+                    return;
+                }
                 if self.joint_robot != Some(w.robot) {
                     self.joint_robot = None;
                 }
@@ -1833,6 +1904,24 @@ impl PluginPanel for Panel {
         }
     }
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
+        if self.page=="aisle_evidence" && self.root.button(cx,ids!(ev_mode)).clicked(actions){self.trial_catalog_open=!self.trial_catalog_open;return true;}
+        if self.page=="aisle_run" && self.root.button(cx,ids!(experiment_mode)).clicked(actions){self.experiment_open=!self.experiment_open;return true;}
+        if self.page == "aisle_scene" {
+            if self.root.button(cx, ids!(composer_mode)).clicked(actions) {
+                self.composer_open = true;
+                self.survey_open = false;
+                return true;
+            }
+            if self.root.button(cx, ids!(asset_mode)).clicked(actions) {
+                self.survey_open = true;
+                self.composer_open = false;
+                return true;
+            }
+            if [ids!(room_mode) as &[LiveId], ids!(robot_mode), ids!(joint_mode)].iter().any(|id| self.root.button(cx, id).clicked(actions)) {
+                self.survey_open = false;
+                self.composer_open = false;
+            }
+        }
         if self.page == "aisle_scene" && self.handle_joint_inspector(cx, actions, b) {
             return true;
         }
@@ -2016,6 +2105,21 @@ impl PluginPanel for Panel {
             b.dispatch(Intent::Aisle(Action::ImportRoom { source, edit }));
             return true;
         }
+        if self.root.button(cx, ids!(turned_stance)).clicked(actions) {
+            let input = self.root.text_input(cx, ids!(instruction));
+            let base = active_scene_instruction(b).unwrap_or_else(|| {
+                let existing = input.text();
+                if existing.is_empty() || existing == REFERENCE {
+                    "Stand and track a positive left shoulder displacement of 0.10 radians.".into()
+                } else {
+                    existing
+                }
+            });
+            let posture = "Use a 30-degree left waist turn with neutral trunk pitch.";
+            let text = if base.ends_with(posture) { base } else { format!("{base} {posture}") };
+            input.set_text(cx, &text);
+            return true;
+        }
         let reference = self.root.button(cx, ids!(reference)).clicked(actions);
         let revise_deepseek = self.root.button(cx, ids!(revise)).clicked(actions);
         let revise = revise_deepseek || self.root.button(cx, ids!(revise_codex)).clicked(actions);
@@ -2023,7 +2127,8 @@ impl PluginPanel for Panel {
         if reference || revise || octos || self.root.button(cx, ids!(codex)).clicked(actions) {
             let input = self.root.text_input(cx, ids!(instruction));
             if reference {
-                input.set_text(cx, REFERENCE);
+                let text=active_scene_instruction(b).unwrap_or_else(||REFERENCE.to_string());
+                input.set_text(cx, &text);
             }
             b.dispatch(Intent::Aisle(Action::Prepare {
                 task: input.text(),
@@ -2040,4 +2145,13 @@ impl PluginPanel for Panel {
         }
         false
     }
+}
+
+
+fn active_scene_instruction(b:&dyn Backend)->Option<String> {
+    let w=b.aisle()?;
+    let store=dorobot_studio_core::survey::Survey::new(dorobot_studio_core::runtime::user_data().join("aisle/survey"));
+    let (_,path)=store.active_task_for(w.robot.name()).ok()??;
+    let t:dorobot_studio_core::survey::task::BoundTask=serde_json::from_slice(&std::fs::read(path).ok()?).ok()?;
+    Some(t.instruction)
 }

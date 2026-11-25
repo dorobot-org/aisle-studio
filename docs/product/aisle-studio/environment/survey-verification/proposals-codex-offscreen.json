@@ -1,0 +1,111 @@
+{
+  "backend": "offscreen",
+  "provider": "codex",
+  "unscaled_table": {
+    "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+    "photo_sha256": "2c8bbbe09869b67503ab65467188631eaff35a419d8311df5565389924d6028f",
+    "provider": "codex",
+    "model": "gpt-6.2-astra",
+    "input_mode": "survey RGB and region measurements",
+    "request_sha256": "b329b5c7647c853b136d675219f122487e247dad4361873569188d8a8deb6be7",
+    "outline": [
+      [
+        188.00000000000006,
+        327.0
+      ],
+      [
+        510.0,
+        214.0
+      ],
+      [
+        1353.0,
+        279.0
+      ],
+      [
+        1223.0000000000002,
+        438.0
+      ]
+    ],
+    "reason": "The outline follows the rectangular tabletop. All four legs and the open space beneath the top are visible, so both the identity and collision shape are clear.",
+    "fields": [
+      {
+        "field": "name",
+        "value": "Coffee table",
+        "status": "corrected",
+        "applied": "Annotated coffee table"
+      },
+      {
+        "field": "shape",
+        "value": "four_leg_table",
+        "status": "pending"
+      }
+    ]
+  },
+  "calibrated_plate": {
+    "photo": "bf2dda159cf8714b2fa6a87ab00b12e3d3343244356297e791ba66109a5b04a1",
+    "photo_sha256": "0aa172e07cdbefc944a97eb70d96b636dfaf7a16db39a245c6b33e5150acf542",
+    "provider": "codex",
+    "model": "gpt-6.2-astra",
+    "input_mode": "survey RGB and region measurements",
+    "request_sha256": "aef3d8309727b11b4685ff4b2636481831b938ad5df94d424e40f9dcaed911c2",
+    "outline": [
+      [
+        240.0,
+        160.0
+      ],
+      [
+        720.0,
+        160.0
+      ],
+      [
+        720.0,
+        480.0
+      ],
+      [
+        240.0,
+        480.0
+      ]
+    ],
+    "reason": "The operator outline matches the blue rectangular plate. A thin box fits its rectangular face, though the front-on view does not show its thickness.",
+    "flat_reference": {
+      "axis": 0,
+      "length_m": 0.12,
+      "endpoints": [
+        [
+          240.0,
+          535.0
+        ],
+        [
+          480.0,
+          535.0
+        ]
+      ]
+    },
+    "fields": [
+      {
+        "field": "name",
+        "value": "Calibration plate",
+        "status": "discarded"
+      },
+      {
+        "field": "shape",
+        "value": "box",
+        "status": "pending"
+      },
+      {
+        "field": "width",
+        "value": "0.24",
+        "status": "accepted",
+        "applied": "0.24"
+      }
+    ]
+  },
+  "width_m": 0.24,
+  "reference_expected_width_m": 0.24,
+  "edited_outline_point": [
+    261.0,
+    171.00000000000006
+  ],
+  "restored": true,
+  "previous_revisions_intact": true
+}
