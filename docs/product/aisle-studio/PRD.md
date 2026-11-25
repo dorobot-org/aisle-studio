@@ -1,6 +1,6 @@
 # AISLE Studio product requirements
 
-Version 1.0 · 2026-11-23 · Proposed product specification
+Version 1.1 · 2026-11-24 · Proposed product specification for standalone AISLE Studio
 
 ## Purpose and users
 
@@ -21,12 +21,74 @@ For Nano's beta, the entire three-object task must succeed on at least 45 of 50 
 
 | Page | Main user decisions and actions | Data, feedback and acceptance |
 | --- | --- | --- |
-| Task | Select robot, enter task, author or revise a controller, inspect the change, choose a revision. Offer a runnable reference controller for first use | Bind robot, task text, controller version and capabilities. Show invalid or unsupported requests. New drafts retain earlier results. Any model-generated command is constrained by the profile |
-| Scene | Inspect the selected robot and physical scene. Search every movable joint and locate it on the model. Show parent and child links, position bounds, speed and effort with units. Identify continuous rotation. Load a versioned simulation recipe. In beta import calibrated camera poses, reference photos and obstacles and preview changes | Resolve URDF and meshes before running. Record input hashes. Missing meshes or an unknown joint identify the failed input. Scene edits start a new revision. Private evaluator geometry stays outside policy input |
-| Run | Start the selected task in Nexus, see the latest measured RGB image and joint feedback, cancel, return to another page and resume viewing | One local simulation per workbench session initially. Show starting, running, finished, stopped and failed states. Drop stale preview frames while retaining complete evidence. Termination closes the worker. A second launch cannot overwrite the first |
-| Evidence | Open the latest recorded trial, see measured outcome, request and actual displacement, limits, frame counts and artifacts. Compare revisions on matched layouts in beta | Distinguish process completion from task success. Keep the camera frame, measured trajectory, controller, robot identity and verdict under a unique run directory. Failed or cancelled jobs remain inspectable on restart |
+| Scene | Start a survey, upload room and object photos, annotate physical assets, compose a scene by dragging objects or describing it, then save or reopen a revision | Scene is directly accessible before a task exists. Show scale, physics properties and validation errors beside the affected item. Retain robot model and joint-limit inspection |
+| Task | Select a saved scene, robot and task instruction. Bind the objects and surfaces the instruction refers to. Author, review or revise the controller, or start with a reference controller | Show the chosen scene revision, robot capabilities, controller version and success criteria. Flag ambiguous or missing targets before running |
+| Run | Combine a scene, task, robot and controller. Configure repeats, randomization, custom features and recording. Start, watch or cancel a local or fleet simulation | Show one row per repetition, its realized parameters, live status and result. Keep watching independent of execution. Preserve completed and interrupted trials across restart |
+| Evidence | Find a run or batch, replay a trial, inspect recordings, edit its display metadata, save a variant and rerun it | Keep measured results associated with the exact execution. Show which channels were recorded, what was edited and which earlier trial a new result came from |
 
-Existing Data workspace handles episode curation and replay. The full product links AISLE episode IDs to LeRobot datasets, training selections, checkpoints and subsequent evaluations. The existing SO-101 ACT pipeline supplies the integration pattern.
+Evidence opens exported LeRobot episodes in the standalone replay view. Episode IDs link runs to datasets, training selections, checkpoints and later evaluations.
+
+## Environment authoring and experiment management
+
+**Release scope.** The standalone app already runs a prepared Nano task in the built-in living room. The earlier photo workflow accepted a calibrated image and fitted a box-shaped obstacle. The requirements below extend that workflow to reusable assets, multi-object scenes, configurable experiments and editable run records. Their acceptance tests are pending. [Standalone recording](../../../media/nano-three-cubes-3x.mp4) · [Earlier photo-draft trial](https://github.com/dorobot-org/dorobot-studio/blob/e490c9f73ce2a6d63416880e33305cfbdcc50a2b/docs/product/aisle-studio/validation/photo-room/README.md)
+
+**Reference workflow.** A lab operator photographs a room, a coffee table, a chair, an ottoman and a cube. They measure the furniture once. In Scene they request “Place one coffee table and two chairs in the room,” drag the ottoman against the wall, and place the cube on the floor. They save *Living room v1*. In Task they ask Nano to pick up the cube and put it on the coffee table. In Run they repeat the task with different cube positions. In Evidence they open a failed trial, inspect its recordings, and rerun a variant with the chair moved. The original trial remains available for comparison.
+
+### Survey and asset library
+
+| Operator action | Product requirement |
+| --- | --- |
+| Import photographs | Provide a file picker and drop area for multiple room photographs and close-ups of individual objects. Accept JPEG and PNG. Show thumbnails, filenames and import errors per file. Associate each photo with a room, an asset, or both. Copy originals into the project so a saved survey reopens if the source files move |
+| Annotate directly on a photo | Let the operator draw or adjust an object outline, name the object, mark floor reference points and draw a dimension line between two visible points. Enter a known length and unit. Link views of the same object across photos. Preserve image coordinates, units, measurements and the original image when an annotation changes |
+| Define a physical asset | Give each asset a reusable ID, display name, category and photos. Expose width, depth, height, shape, material, friction, restitution and fixed or movable behavior. For movable objects expose mass. Distinguish measured values, operator entries, model suggestions and defaults. Show scale and orientation in a 3D preview. Values with unknown scale stay editable until a metric reference is supplied |
+| Define geometry that affects the task | Let the operator edit the visible shape, collision geometry and named surfaces or regions used in tasks. A coffee table can have a tabletop and separate leg colliders with open space beneath. A cube can be graspable and movable. An ottoman can be a fixed obstacle. Preview collisions and the tabletop placement area before saving an asset revision |
+| Review generated suggestions | When Codex or DeepSeek proposes a name, dimension or shape, show its source photo and projected outline beside editable values. Let the operator accept, correct or discard each proposal. An occluded leg or unknown material can be supplied manually. The local annotation and editing tools work without an agent |
+
+### Scene library and 3D editor
+
+The scene library supports **New**, **Open**, **Rename**, **Save** and **Save As**. A scene can begin as an empty measured room, an imported survey or a saved scene. The editor presents an asset palette, a central 3D viewport with a top-down view, an object list and a properties inspector. Selection stays synchronized between the list and viewport. At smaller desktop sizes the palette and inspector can collapse while the selected object and primary action remain accessible.
+
+1. **Place and edit objects.** Drag an asset into the viewport. Move and rotate it with handles or numeric values, snap to the floor or a named support surface, duplicate it, and delete it. Support keyboard selection, deletion, undo and redo. Two chairs can share one asset revision while retaining separate names, poses and instance IDs. Deleting a chair from a scene preserves the library asset.
+2. **Compose using natural language.** Resolve “one coffee table and two chairs” against the project library. Preview the proposed additions, quantities and poses in the viewport and object list. Ask for a choice when several assets match. Show unresolved items and permit manual placement. Applying the proposal creates the same editable instances as drag and drop. A later instruction such as “move the left chair beside the ottoman” previews an edit to that instance.
+3. **Check and persist the scene.** Show room scale, world axes and units. Flag missing dimensions, unsupported colliders, objects intersecting the floor or each other, and an obstructed robot start pose. Navigate from each issue to the object. Save an unfinished draft with its issues. A runnable revision must resolve blocking errors. Save and reload must preserve asset versions, instance IDs, poses, physics, custom fields and randomization rules. Saving a changed asset or scene creates a revision. **Save As** creates a separately named scene.
+
+### Scene-bound tasks
+
+From either **Scene → Create task** or **Task → Select scene**, choose a saved scene revision and robot profile. For “Pick up the cube and put it on the coffee table,” highlight the cube instance and the table’s placement surface in the viewport. Let the operator resolve “the cube” when several cubes exist. Store the task text, bindings, controller revision, required observations and measurable success criteria. Renaming a bound object preserves its identity. Deleting it or removing its placement surface identifies the broken reference when the operator chooses the revised scene.
+
+For the Nano reference task, the judge checks grasp, release and settled support on the selected tabletop, plus wheel support, joint limits and collision criteria. Authored geometry and exact object poses are available to the simulator and evaluator. The Nano controller locates objects using its allowed onboard observations. G1 tasks use the selected G1 profile and its standing-reach criteria.
+
+### Run configuration, randomization and recording
+
+| Control | Required behavior |
+| --- | --- |
+| Run configuration | Select scene revision, task revision, robot, controller and local or fleet worker. Show these together before launch. Validate object bindings and worker capabilities. Save a named configuration for reuse |
+| Repeats and randomization | Enter the repeat count and choose identical settings, a seed list, or a base seed that generates a reproducible sequence. Scene authors can expose per-instance pose ranges, permitted support areas, lighting and physical parameters such as friction. Select active rules for the run. Preview a sampled layout. Show invalid combinations and retain the reason when a repetition cannot start |
+| Custom features | Define named, typed parameters with units or allowed values and defaults. For example, a customer can define a chair-spacing parameter in metres and bind it to the chair layout. Show which scene, controller or evaluator consumes it. Descriptive tags remain searchable metadata. Flag a missing runtime binding before launching a configuration that depends on it |
+| Batch execution | Show planned, running, completed, failed, cancelled and skipped repetitions with reasons and progress. Allow cancellation and retry of a selected repeat. A retry gets its own ID and links to the earlier attempt. Retain counts and outcomes when returning to Run or reopening Studio |
+| Per-run recording | Offer independent **Save robot trace** and **Save agent prompt history** switches. Apply batch defaults and allow overrides per repetition before launch. Show the effective choices on Run and Evidence. Identify the camera or video recording available for replay separately from the two logs |
+
+Every launched repetition gets a manifest containing a run ID, batch and repetition IDs, pinned scene, asset, task and controller revisions, robot and engine versions, seed, sampled values, custom settings, recording choices, timestamps and outcome. Rerunning with a recorded seed restores the sampled inputs. Evidence reports the measured outcome of each execution independently.
+
+With robot tracing enabled, export `robot-trace.jsonl` with timestamped physics steps, joint state, commanded actions and available contact or guard events. With agent history enabled, export `agent-history.jsonl` with timestamped prompts, model/provider identity, returned responses, tool calls and results observed by Studio, and references to supplied images. Associate events with the authoring or execution stage and the controller and run IDs. Reusing a prepared controller links to its available authoring record and identifies any stage with no new agent call. Exclude credentials. Describe missing or partial logs explicitly, including interruption. Turning a switch off omits that optional log from the trial. The manifest and verdict are retained in all modes. Qualification suites continue to declare the recordings needed to verify their claims.
+
+### Evidence, replay and revisions
+
+- **Find and replay.** Browse by run name, scene, task, robot, tag or outcome. A batch opens to its individual trials. Play, pause and scrub the recorded episode. Where available, synchronize camera frames, robot traces and agent events on one timeline and jump to a grasp, release or failure. Show what replay supports when a recording channel was disabled.
+- **Edit a record.** Rename a run and edit notes, tags and user-defined metadata. Preserve the edit history across restart. Record annotations separately from the measured verdict, raw artifacts, sampled parameters and execution IDs.
+- **Save As and rerun.** From a trial, **Save As** creates a named run configuration derived from that trial. The operator can change the scene or task revision, object placement through the scene editor, controller, seeds, repeat count, features or recording options. Show the changes against the source. **Rerun original** reuses the frozen inputs. **Run edited version** creates a new execution and links it to its parent. Open the results side by side with their configuration differences and measured outcomes.
+
+### End-to-end release acceptance
+
+| Test | Observable pass condition |
+| --- | --- |
+| Survey to asset | Starting with an empty project, import room and object photos through the native UI, annotate the coffee table’s dimensions and tabletop, and set the cube’s mass. Reopen the project after moving the originals. The images, dimensions, units, sources and colliders are intact |
+| Language and direct editing | Request one table and two chairs. Apply the preview and verify three instances with distinct IDs. Drag in the cube and ottoman, move a chair, delete and undo the deletion. Save, reopen and change the layout with **Save As**. The original scene still opens with its original poses |
+| Scene to executable task | Bind Nano’s pickup to the selected cube and tabletop. Demonstrate ambiguity resolution with a second cube and detection of a deleted target in a new revision. Run the valid scene in Nexus. Verify that the instantiated objects, tabletop support and measured placement correspond to the saved scene and task |
+| Repeat and capture | Run four repetitions covering all four combinations of the two logging switches. Check the manifests, seeded layouts, a bound custom chair-spacing parameter and the actual presence and contents of each JSONL file. Reproduce a selected repetition’s sampled inputs. Show a cancelled or failed repetition in the batch after restart |
+| Evidence to revised experiment | Replay a recorded trial, rename it and edit metadata. Save a variant, move a chair, and rerun it. Verify the new run ID and parent link, visible configuration change, and independently measured result. The original measurements and artifact hashes still match |
+
+Exercise the workflow through native Makepad input against the AISLE/Nexus backend. Use headless checks for state and persistence and offscreen captures for photo annotations, viewport selection, drag-and-drop placement and synchronized replay. Record UX scores for these new surfaces under the existing 90/100 design gate.
 
 ## Functional acceptance by operator action
 
@@ -53,7 +115,7 @@ Existing Data workspace handles episode curation and replay. The full product li
 
 ## Design and release gates
 
-Use the established Studio sidebar, compact horizontal page tabs, native typography and controls. Show a single primary next action per stage. Use text for robot, source, running state and verdict. Use a readable layout at 1024 by 768 and 1440 by 900. Keep errors close to the action and preserve draft input after errors.
+Keep Task, Scene, Run and Evidence in the standalone app’s top navigation. Use the Scene page’s side panels for the asset library and selected object. Show a single primary next action per stage. Use text for robot, source, running state and verdict. Use a readable layout at 1024 by 768 and 1440 by 900. Keep errors close to the action and preserve draft input after errors.
 
 Score designs before implementation and actual UI separately. Each item is worth ten points: consistency with the shell, page identity, next-action clarity, robot identity, simulation context, state visibility, task-result separation, readable typography, grouping and spacing, artifact discoverability. Record each deduction and the reviewed image. Pass requires at least 90/100. Functional evidence is separate: instrument actual native page selection, robot switching, authoring, execution, cancellation, recovery and opening results. Headless event evidence and offscreen raster evidence answer different questions.
 
@@ -66,6 +128,9 @@ Score designs before implementation and actual UI separately. Each item is worth
 | G1 whole-body | Qualified controller, floating-base scene and disturbance evaluation | Reproducible standing and tracking suite with foot-contact evidence |
 | Agent iteration and transfer | Multi-round diagnosis, scene authoring, paired regressions, datasets and real devices | Trace from request through modified program to verified outcome on each supported robot |
 | Fleet | Remote workers, quotas, cancellation, reconnect and live view | End-to-end throughput with inference, streams and recording active |
+| Survey and asset library | Native photo import, annotation, dimensions, physical properties and named support surfaces | Survey-to-asset acceptance, including reopen and source-image relocation |
+| Scene authoring | Scene library, 3D editor, natural-language composition, asset revisions and scene-bound tasks | Direct-editing and scene-to-task acceptance on the operator-authored living room |
+| Repeatable experiments | Configurable repeats, seeds, custom features, per-trial recording, editable metadata and reruns | Repeat-and-capture and Evidence acceptance, including all recording combinations and a linked rerun |
 
 Studio owns pages and artifact navigation. AISLE owns execution and scoring. Robot adapters own units, calibration and physical stop behavior. An unmet hardware or qualification gate remains visible in the release record.
 
