@@ -11,6 +11,14 @@ Prepare a controller for a saved scene in **Task**. Open **Run → Repeat experi
 
 Robot traces contain measured and commanded joint values, physics steps and contact or guard information. Agent history identifies which provider prepared the controller and when a run reused it. The reference controller yields an explicit reference event. Camera, trace and agent history can therefore have different availability for one trial.
 
+## Limit an object's starting position
+
+1. Open **Scene → Scene editor**, select the object, and scroll to **Randomized start area**. Choose the floor or a named asset surface. Enter X and Y limits in metres relative to the support centre, or leave all four fields empty to use the full support. When the support rotates, its local X and Y axes rotate with it.
+2. Choose **Set start area**. The viewport outlines the permitted region. Studio checks room or surface edges and the object's rotated collider footprint. Save the scene revision and bind it in Task. The original pose remains the starting pose until the rule is enabled for a run. [Native area editor](experiment-verification/tabletop-area.png)
+3. In **Run → Repeat experiment → Scene start areas**, select each object to vary and choose **Enable area**. Open **Preview layout** to inspect the outlines and sampled world coordinates. Start the batch to retain each object's sampled local and world positions with that repetition. The saved configuration restores the rule selections when Studio reopens. [G1 room preview](experiment-verification/area-preview.png)
+
+The two native checks authored a floor region for the red cube and a named tabletop region for the blue cube. They rejected an out-of-bounds region, retained the original scene revision and ran G1 for 2,000 steps on each of two seeds. In the 20° rotated tabletop frame the blue cube settled at (0.2846, −0.0623) m and (0.2182, −0.1359) m. Both backends reproduced the same layout digests. The measured cube bottoms were within 0.002 mm of their support planes in Nexus. These measurements describe simulator geometry. [Offscreen measurements](experiment-verification/start-areas-offscreen.json) · [Headless measurements](experiment-verification/start-areas-headless.json)
+
 ## Measured runs
 
 Each native test selected the two chairs and configured five repetitions. The first four placed the selected red cube on the named tabletop. The operator cancelled the fifth before execution and reopened Studio during the batch. Every recorded robot row was checked for its simulation timestamp, 17 joint values, commands and wheel support. Each retained history was checked against the frozen controller and run ID.
@@ -33,4 +41,6 @@ python3 tools/check_experiment.py --studio target/debug/aisle-studio \
   --remote "$(command -v makepad-remote)" --session /tmp/nano-repeat-headless --backend headless
 python3 tools/check_experiment.py --studio target/debug/aisle-studio \
   --remote "$(command -v makepad-remote)" --session /tmp/nano-repeat-octos --backend offscreen --provider octos
+python3 tools/check_start_areas.py --studio target/debug/aisle-studio \
+  --remote "$(command -v makepad-remote)" --session /tmp/g1-start-areas --backend headless
 ```

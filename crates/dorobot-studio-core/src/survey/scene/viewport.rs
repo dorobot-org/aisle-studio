@@ -112,6 +112,28 @@ pub struct Viewport {
 }
 
 impl Viewport {
+    pub fn outline(&mut self, camera: Camera, corners: [[f64; 3]; 4]) {
+        let p = corners.map(|point| camera.project(point));
+        for i in 0..4 {
+            let (a, b) = (p[i], p[(i + 1) % 4]);
+            let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+            let steps = dx.abs().max(dy.abs()).ceil().clamp(1., (2 * WIDTH) as f64) as u32;
+            for step in 0..=steps {
+                let t = f64::from(step) / f64::from(steps);
+                let x = (a[0] + t * dx).round() as i64;
+                let y = (a[1] + t * dy).round() as i64;
+                if x < -1 || x >= i64::from(WIDTH) || y < -1 || y >= i64::from(HEIGHT) {
+                    continue;
+                }
+                for (u, v) in [(x, y), (x + 1, y), (x, y + 1)] {
+                    if (0..i64::from(WIDTH)).contains(&u) && (0..i64::from(HEIGHT)).contains(&v) {
+                        self.image
+                            .put_pixel(u as u32, v as u32, Rgb([14, 129, 105]));
+                    }
+                }
+            }
+        }
+    }
     pub fn at(&self, x: f64, y: f64) -> Option<usize> {
         if !(0.0..WIDTH as f64).contains(&x) || !(0.0..HEIGHT as f64).contains(&y) {
             return None;

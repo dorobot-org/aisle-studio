@@ -128,13 +128,25 @@ impl ExperimentPane {
                     .as_str()
                     .ok_or("Missing layout digest")?;
                 let seed = result["seed"].as_u64().ok_or("Missing layout seed")?;
-                let view = Viewport::render(&scene, &assets, Camera::new(scene.room_m, true), None);
+                let camera = Camera::new(scene.room_m, true);
+                let mut view = Viewport::render(&scene, &assets, camera, None);
+                for object in &scene.instances {
+                    if result["placements"].get(&object.id).is_some() {
+                        if let Some(area) = &object.start_area {
+                            let corners = scene
+                                .start_area_outline(object, area, &assets)
+                                .map_err(|e| e.to_string())?;
+                            view.outline(camera, corners);
+                        }
+                    }
+                }
                 let mut values = vec![format!(
                     "{} objects · {} × {} m",
                     scene.instances.len(),
                     scene.room_m[0],
                     scene.room_m[1]
                 )];
+                values.extend(super::placement_labels(&result["placements"]));
                 for (name, sample) in result["values"]
                     .as_object()
                     .ok_or("Missing sampled values")?

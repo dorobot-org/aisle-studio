@@ -1,5 +1,5 @@
 {
-  "batch_id": "ef6854ca-7c09-43dd-904e-fdcc91b231ad",
+  "batch_id": "4c64c252-6450-413c-b0a1-5ec3e7bb2bf5",
   "configuration": {
     "base_seed": 42,
     "controller_sha256": "8b7903563eab3bfee9b0f8b6dea391ed2b609bc9baa784b087bf8a4dc890cf92",
@@ -50,7 +50,7 @@
   },
   "completed": [
     {
-      "run_id": "a05ad233-a462-4c06-a388-289f8d23909f",
+      "run_id": "c168271f-f658-459e-aa7c-f764f186b0bb",
       "seed": 42,
       "status": "completed",
       "physics_ticks": 11266,
@@ -59,11 +59,13 @@
       "channels": {
         "robot_trace": {
           "requested": false,
-          "present": false
+          "present": false,
+          "status": "disabled"
         },
         "agent_history": {
           "requested": false,
-          "present": false
+          "present": false,
+          "status": "disabled"
         }
       },
       "outcome": {
@@ -73,7 +75,7 @@
       }
     },
     {
-      "run_id": "d2bb13e9-9eac-41d9-83b8-b4d0be08ca3f",
+      "run_id": "3ad73460-39a4-4545-86ee-e1a7800180ec",
       "seed": 43,
       "status": "completed",
       "physics_ticks": 11266,
@@ -84,12 +86,14 @@
           "requested": true,
           "present": true,
           "bytes": 12243785,
-          "sha256": "6301880f5c3964e3bae7b96ba34af9b9bc6e55d8813f4ee3041167985c2ab31c",
-          "file": "robot-trace.jsonl"
+          "sha256": "473793d06e65752e35183ec30e2c49836e9998410624e04f38b71f996db73f1a",
+          "file": "robot-trace.jsonl",
+          "status": "complete"
         },
         "agent_history": {
           "requested": false,
-          "present": false
+          "present": false,
+          "status": "disabled"
         }
       },
       "outcome": {
@@ -99,7 +103,7 @@
       }
     },
     {
-      "run_id": "36d95041-e762-4e6c-9755-611203d9d12b",
+      "run_id": "20a001ce-e8eb-48b2-b72b-993811e6f937",
       "seed": 44,
       "status": "completed",
       "physics_ticks": 11266,
@@ -108,14 +112,16 @@
       "channels": {
         "robot_trace": {
           "requested": false,
-          "present": false
+          "present": false,
+          "status": "disabled"
         },
         "agent_history": {
           "requested": true,
           "present": true,
-          "bytes": 2563,
-          "sha256": "2e0ee533ae2ee436728ea456fc7fc62cda0bc7b756172c433a76abbe24547146",
-          "file": "agent-history.jsonl"
+          "bytes": 2576,
+          "sha256": "ca901370b6a21ee121d15ebc461d1f5b2d0c140215e463adecf6d371e59ed416",
+          "file": "agent-history.jsonl",
+          "status": "complete"
         }
       },
       "outcome": {
@@ -125,7 +131,7 @@
       }
     },
     {
-      "run_id": "c2c51f1d-e89f-4007-b766-1106afa9fa39",
+      "run_id": "588c12da-fe9e-490f-ad87-2974df6a1ff3",
       "seed": 45,
       "status": "completed",
       "physics_ticks": 11266,
@@ -136,15 +142,17 @@
           "requested": true,
           "present": true,
           "bytes": 12243785,
-          "sha256": "27a4638969a12d8df19745589beae999c07d20c26e88a7523090d811d5fa05a0",
-          "file": "robot-trace.jsonl"
+          "sha256": "9c5ce46048be6293239f41a92071899b8e2f61ac357a675f7343928915cae5c0",
+          "file": "robot-trace.jsonl",
+          "status": "complete"
         },
         "agent_history": {
           "requested": true,
           "present": true,
-          "bytes": 2563,
-          "sha256": "893898cd6312558ab6571374fe9bf8ef542cb4c2cd5c9a4dca1f6ee31f9573a0",
-          "file": "agent-history.jsonl"
+          "bytes": 2576,
+          "sha256": "96e9de1e7cab54449bf0b49dad02bf82fbcb67f17b70c3dee9de86609f5b5a3e",
+          "file": "agent-history.jsonl",
+          "status": "complete"
         }
       },
       "outcome": {
@@ -155,8 +163,8 @@
     }
   ],
   "cancelled": {
-    "run_id": "f7ff3681-4caa-44ca-84c8-af4e5648348f",
-    "batch_id": "ef6854ca-7c09-43dd-904e-fdcc91b231ad",
+    "run_id": "0450c52c-7ff7-4500-bce4-94c26c48c3f5",
+    "batch_id": "4c64c252-6450-413c-b0a1-5ec3e7bb2bf5",
     "repetition": 5,
     "scene": {
       "id": "scene-living-room",
@@ -173,9 +181,9 @@
     },
     "status": "cancelled",
     "parent_run_id": null,
-    "created": "2026-11-25T04:04:48.830657+00:00",
+    "created": "2026-11-25T05:03:05.340815+00:00",
     "started": null,
-    "ended": "2026-11-25T04:11:22.582154+00:00",
+    "ended": "2026-11-25T05:09:27.655860+00:00",
     "nexus_version": "0.2.1",
     "asset_revisions": [
       {
@@ -215,14 +223,38 @@
     "channels": {
       "robot_trace": {
         "requested": false,
-        "present": false
+        "present": false,
+        "status": "disabled"
       },
       "agent_history": {
         "requested": false,
-        "present": false
+        "present": false,
+        "status": "disabled"
       }
     }
   },
+  "previews": [
+    {
+      "seed": 42,
+      "digest_prefix": "f3b429fe2555fef7",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 1.9317 m"
+    },
+    {
+      "seed": 43,
+      "digest_prefix": "06661348c851aabb",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.7647 m"
+    },
+    {
+      "seed": 44,
+      "digest_prefix": "5e8837ad779a802d",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.4638 m"
+    },
+    {
+      "seed": 45,
+      "digest_prefix": "20800b9b500ec5eb",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.2103 m"
+    }
+  ],
   "backend": "offscreen",
   "provider": "octos"
 }

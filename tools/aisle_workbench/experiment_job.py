@@ -97,6 +97,7 @@ def preview(config, source, expected, repetition):
         seed=seed,
         scene=layout["scene"],
         values=layout["values"],
+        placements=layout.get("placements", {}),
         sample_sha256=sha(encode(layout)),
     )
 
@@ -146,6 +147,8 @@ def prepare_row(folder, job, row):
         realized = sample(read(task_file), job["configuration"], row["seed"])
         row["sample_sha256"] = sha(encode(realized))
         row["sampled_values"] = realized["values"]
+        if "placements" in realized:
+            row["placements"] = realized["placements"]
         write(path / "sampled-layout.json", realized)
         compile_task(task_file, row["task_sha256"], realized)
     except (ValueError, TypeError, KeyError, IndexError) as e:

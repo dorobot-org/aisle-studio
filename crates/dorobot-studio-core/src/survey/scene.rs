@@ -36,6 +36,16 @@ pub struct Instance {
     pub yaw_deg: f64,
     #[serde(default)]
     pub support: Option<validation::Support>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub start_area: Option<StartArea>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StartArea {
+    /// None selects the room floor. Coordinates are relative to the support centre and yaw.
+    pub support: Option<validation::Support>,
+    /// Local XY minimum and maximum in metres. None selects the complete surface.
+    pub bounds_m: Option<[[f64; 2]; 2]>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -90,6 +100,7 @@ impl Scene {
             position_m,
             yaw_deg: 0.,
             support: None,
+            start_area: None,
         });
         Ok(id)
     }

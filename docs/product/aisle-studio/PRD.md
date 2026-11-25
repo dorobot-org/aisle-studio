@@ -147,6 +147,8 @@ Studio owns pages and artifact navigation. AISLE owns execution and scoring. Rob
 
 The comparison uses the official [release](https://developers.googleblog.com/gemini-hydrogen-for-robotics/), [plugin skills at the reviewed revision](https://github.com/google-deepmind/robotics-antigravity-plugin/tree/3dde33820355c70fe8d8e33e42707cdcb742ceb4/plugins/robotics/skills), [repository license](https://github.com/google-deepmind/robotics-antigravity-plugin/blob/3dde33820355c70fe8d8e33e42707cdcb742ceb4/LICENSE) and [Antigravity feature documentation](https://antigravity.google/docs/features). The reference workbench now includes a grounded Nano transfer trial and a floating-base G1 shoulder-tracking trial. [G1 development evidence](https://github.com/dorobot-org/dorobot-studio/blob/e490c9f73ce2a6d63416880e33305cfbdcc50a2b/docs/product/aisle-studio/validation/g1-standing.md). The hardware gate requires physical devices, measured calibration and an operator.
 
+The Run preview and batch sampler now reproduce the same seeded layouts on both native backends. Scene authors can define a floor region or a named support region for each object. Run can enable the rules individually and restore them after reopening. In four G1 simulations Nexus measured the selected objects on the floor and a 20° rotated tabletop. [Operator workflow and measured start positions](environment/experiments.md#limit-an-objects-starting-position)
+
 ### Review of the 23 November Dorobot × Antigravity comparison
 
 The ecosystem comparison covers the AISLE household example, Octos bridges and the predecessor Studio. The standalone Studio feature branch has separate implementation and qualification records. The following requirements apply to the Nano and G1 reference profiles.

@@ -65,6 +65,74 @@ impl Bounds {
 }
 
 impl Scene {
+    pub fn start_area_outline(
+        &self,
+        object: &Instance,
+        area: &super::StartArea,
+        assets: &HashMap<Revision, Asset>,
+    ) -> Result<[[f64; 3]; 4]> {
+        let (extent, yaw, center) = match &area.support {
+            Some(link) => {
+                ensure!(
+                    link.instance != object.id,
+                    "Choose another object as the support"
+                );
+                let (parent, surface) = self.support(link, assets)?;
+                (
+                    surface.size_m,
+                    parent.yaw_deg,
+                    world(parent, surface.center_m),
+                )
+            }
+            None => (self.room_m, 0., [0.; 3]),
+        };
+        let [lo, hi] = area
+            .bounds_m
+            .unwrap_or([extent.map(|n| -n / 2.), extent.map(|n| n / 2.)]);
+        for axis in 0..2 {
+            ensure!(
+                lo[axis].is_finite() && hi[axis].is_finite() && lo[axis] < hi[axis],
+                "Each area minimum must be below its maximum"
+            );
+            ensure!(
+                lo[axis] >= -extent[axis] / 2. - 1e-7 && hi[axis] <= extent[axis] / 2. + 1e-7,
+                "Start area extends beyond the support edges"
+            );
+        }
+        let asset = assets
+            .get(&object.asset)
+            .context("Missing object geometry")?;
+        ensure!(
+            !asset.geometry.colliders.is_empty(),
+            "Measure the object first"
+        );
+        let basis = axes(yaw);
+        for axis in 0..2 {
+            let mut low = f64::INFINITY;
+            let mut high = f64::NEG_INFINITY;
+            for c in &asset.geometry.colliders {
+                let b = Bounds::new(object, c);
+                let center = dot([b.center[0], b.center[1]], basis[axis]);
+                low = low.min(center - b.extent(basis[axis]));
+                high = high.max(center + b.extent(basis[axis]));
+            }
+            ensure!(
+                high - low <= hi[axis] - lo[axis] + 1e-7,
+                "Object footprint is larger than its start area"
+            );
+        }
+        let [u, v] = axes(yaw);
+        Ok(
+            [[lo[0], lo[1]], [hi[0], lo[1]], hi, [lo[0], hi[1]]].map(|[x, y]| {
+                [
+                    center[0] + x * u[0] + y * v[0],
+                    center[1] + x * u[1] + y * v[1],
+                    center[2],
+                ]
+            }),
+        )
+    }
+
     fn support<'a>(
         &'a self,
         target: &Support,
@@ -138,6 +206,11 @@ impl Scene {
             };
             if asset.geometry.colliders.is_empty() {
                 issue("Measure this asset to generate its collision geometry".into());
+            }
+            if let Some(area) = &item.start_area {
+                if let Err(err) = self.start_area_outline(item, area, assets) {
+                    issue(err.to_string());
+                }
             }
             if item.position_m[2] < -1e-7 {
                 issue("Object intersects the floor".into());

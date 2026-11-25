@@ -1,5 +1,5 @@
 {
-  "batch_id": "90ba3017-3b39-48bd-80dd-2a146a4f81a5",
+  "batch_id": "bc55f2c6-1adf-4850-919a-d5f7530cacbd",
   "configuration": {
     "base_seed": 42,
     "controller_sha256": "791ab603a76a158cf924644f08d2f479f25621eb9b49e646bfbaff0c19e39f92",
@@ -50,7 +50,7 @@
   },
   "completed": [
     {
-      "run_id": "b63ad78a-55b5-4cbe-85e1-40fcdc051462",
+      "run_id": "9a377e08-0dcb-4e46-afba-915f9ca3aa07",
       "seed": 42,
       "status": "completed",
       "physics_ticks": 6848,
@@ -75,7 +75,7 @@
       }
     },
     {
-      "run_id": "89177dfd-3893-4a77-8b38-6e6f48066524",
+      "run_id": "185f8ad9-855b-4d4d-b525-6fb59fefc658",
       "seed": 43,
       "status": "completed",
       "physics_ticks": 6848,
@@ -86,7 +86,7 @@
           "requested": true,
           "present": true,
           "bytes": 7341771,
-          "sha256": "1221f24c0fb34951058d79f5bceb35e10461d84e33ccf0faaa48b45d4e86ee95",
+          "sha256": "5ffd3015225913b6a06e04bbcb27672ea7c82f59cfae4e73ab050eab6f4cbfa0",
           "file": "robot-trace.jsonl",
           "status": "complete"
         },
@@ -103,7 +103,7 @@
       }
     },
     {
-      "run_id": "7832dd8c-e75f-42c4-b197-6c96502edce3",
+      "run_id": "e3e57093-728b-4c1e-b904-dec4d4a7eb1e",
       "seed": 44,
       "status": "completed",
       "physics_ticks": 6848,
@@ -119,7 +119,7 @@
           "requested": true,
           "present": true,
           "bytes": 700,
-          "sha256": "a08beaa7330e9233dcb465e0563beb57ad5e9ac942f365ecfabd3898c55e036d",
+          "sha256": "dfe5bf412924acbb0a4ec7cd8b4197389e74b1637f32c040eb0e11fffd7bf2d0",
           "file": "agent-history.jsonl",
           "status": "complete"
         }
@@ -131,7 +131,7 @@
       }
     },
     {
-      "run_id": "ec9dcec7-805b-4498-94ed-95216bcd2dba",
+      "run_id": "61f75eec-717f-4f5e-b326-a49a8960f5c4",
       "seed": 45,
       "status": "completed",
       "physics_ticks": 6848,
@@ -142,7 +142,7 @@
           "requested": true,
           "present": true,
           "bytes": 7341771,
-          "sha256": "a28f2f2fd229fcf65f41dd3ad832b27636ebf1bc5c1206269d0803e8e12a50b6",
+          "sha256": "f95d6bb73a9cb55ec9deb624e4db31dbf61d9584c859014d4eb4a359fdd6b952",
           "file": "robot-trace.jsonl",
           "status": "complete"
         },
@@ -150,7 +150,7 @@
           "requested": true,
           "present": true,
           "bytes": 700,
-          "sha256": "afba76d7028c4dc7c10b7d00f941ae951ce5d0b1c4362cbc6fcd19196c8b6d1d",
+          "sha256": "58fecdfd055e51bed82da868a92a123f6423d879766d29c27d527e96c4f278b4",
           "file": "agent-history.jsonl",
           "status": "complete"
         }
@@ -163,8 +163,8 @@
     }
   ],
   "cancelled": {
-    "run_id": "3307017c-f065-43ea-a00e-ac01e0fe02dc",
-    "batch_id": "90ba3017-3b39-48bd-80dd-2a146a4f81a5",
+    "run_id": "4db3a20f-ae2a-4b09-b187-c1ef2313042b",
+    "batch_id": "bc55f2c6-1adf-4850-919a-d5f7530cacbd",
     "repetition": 5,
     "scene": {
       "id": "scene-living-room",
@@ -181,9 +181,9 @@
     },
     "status": "cancelled",
     "parent_run_id": null,
-    "created": "2026-11-25T04:10:52.049956+00:00",
+    "created": "2026-11-25T05:03:12.844624+00:00",
     "started": null,
-    "ended": "2026-11-25T04:17:51.241922+00:00",
+    "ended": "2026-11-25T05:09:40.494033+00:00",
     "nexus_version": "0.2.1",
     "asset_revisions": [
       {
@@ -233,6 +233,28 @@
       }
     }
   },
+  "previews": [
+    {
+      "seed": 42,
+      "digest_prefix": "f3b429fe2555fef7",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 1.9317 m"
+    },
+    {
+      "seed": 43,
+      "digest_prefix": "06661348c851aabb",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.7647 m"
+    },
+    {
+      "seed": 44,
+      "digest_prefix": "5e8837ad779a802d",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.4638 m"
+    },
+    {
+      "seed": 45,
+      "digest_prefix": "20800b9b500ec5eb",
+      "description": "5 objects \u00b7 12 \u00d7 10 m  \u00b7  Chair spacing 2.2103 m"
+    }
+  ],
   "backend": "headless",
   "provider": "reference"
 }

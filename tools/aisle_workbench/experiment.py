@@ -190,7 +190,8 @@ def sample(task, config, seed):
             if axis not in ("x", "y", "z"):
                 raise ValueError("Position edits need an x, y or z axis")
             obj["position_m"]["xyz".index(axis)] = value
-    return dict(
+            occupied.add((identifier, "xyz".index(axis)))
+    layout = dict(
         seed=seed,
         scene=effective["scene"],
         materials=materials,
@@ -198,6 +199,17 @@ def sample(task, config, seed):
         controller=controller,
         values=values,
     )
+    selected = config.get("active_start_areas", [])
+    if selected:
+        from start_areas import sample_areas
+
+        def region_seed(identifier):
+            return int(sha(encode(["start-area", seed, identifier])), 16)
+
+        layout["placements"] = sample_areas(
+            effective["scene"], effective["assets"], selected, region_seed, occupied
+        )
+    return layout
 
 
 def recordings(config, index):

@@ -46,6 +46,10 @@ script_mod! {
                 Line{Label{text:"Name"} exp_name := Field{empty_text:"Experiment name"}}
                 Line{Label{text:"Repeats"} exp_count := Field{text:"4"} exp_seed_mode := DropDown{width:175}}
                 Line{Label{text:"Seeds"} exp_seed := Field{text:"42" empty_text:"Base seed or comma-separated seeds"}}
+                exp_areas := View{visible:false width:Fill height:Fit flow:Down spacing:5
+                    Text{text:"Scene start areas"}
+                    Line{exp_area := DropDown{width:Fill} exp_area_toggle := Tool{text:"Enable area"}}
+                }
                 Text{text:"Recording channels"}
                 exp_scope := DropDown{width:Fill}
                 Line{exp_trace := Tool{text:"Robot trace · off"} exp_history := Tool{text:"Agent history · off"}}
@@ -104,6 +108,22 @@ fn json_file(p: &Path) -> io::Result<Value> {
 }
 fn names(values: &[&str]) -> Vec<String> {
     values.iter().map(|s| s.to_string()).collect()
+}
+fn placement_labels(placements: &Value) -> Vec<String> {
+    let mut values = Vec::new();
+    for placement in placements.as_object().into_iter().flatten().map(|(_, v)| v) {
+        let pos = &placement["position_m"];
+        let coords: Vec<_> = (0..3)
+            .filter_map(|i| pos[i].as_f64().map(|n| format!("{n:.3}")))
+            .collect();
+        let support = placement["support"]["surface"].as_str().unwrap_or("floor");
+        values.push(format!(
+            "{} on {support} · ({}) m",
+            placement["name"].as_str().unwrap_or("Object"),
+            coords.join(", ")
+        ));
+    }
+    values
 }
 const MODES: [&str; 3] = ["sequence", "explicit", "identical"];
 const TYPES: [&str; 4] = ["number", "integer", "boolean", "enum"];
@@ -206,6 +226,10 @@ impl ExperimentPane {
                 .as_ref()
                 .and_then(|p| fs::read(p.with_file_name("bound-task.json")).ok())
                 .and_then(|d| serde_json::from_slice(&d).ok());
+            if let Some(config) = self.config.as_object_mut() {
+                config.remove("active_start_areas");
+            }
+            self.area_choices(cx);
             let rows = self
                 .task
                 .as_ref()
@@ -301,6 +325,44 @@ impl ExperimentPane {
         self.scopes(cx);
         self.channels(cx);
         self.feature_names(cx);
+        self.area_choices(cx);
+    }
+    fn area_instances(
+        &self,
+    ) -> impl Iterator<Item = &dorobot_studio_core::survey::scene::Instance> {
+        self.task
+            .iter()
+            .flat_map(|t| t.scene.instances.iter())
+            .filter(|i| i.start_area.is_some())
+    }
+    fn area_choices(&self, cx: &mut Cx) {
+        let names = self
+            .area_instances()
+            .map(|i| i.name.clone())
+            .collect::<Vec<_>>();
+        self.view
+            .widget(cx, ids!(exp_areas))
+            .set_visible(cx, !names.is_empty());
+        self.view
+            .drop_down(cx, ids!(exp_area))
+            .set_labels(cx, names);
+        self.area_button(cx);
+    }
+    fn area_button(&self, cx: &mut Cx) {
+        let choice = self.area_instances().nth(self.sel(cx, ids!(exp_area)));
+        let active = choice.is_some_and(|i| {
+            self.config["active_start_areas"]
+                .as_array()
+                .is_some_and(|v| v.iter().any(|id| id.as_str() == Some(&i.id)))
+        });
+        self.view.button(cx, ids!(exp_area_toggle)).set_text(
+            cx,
+            if active {
+                "Disable area"
+            } else {
+                "Enable area"
+            },
+        );
     }
     fn scopes(&self, cx: &mut Cx) {
         let count = self
@@ -522,6 +584,7 @@ impl ExperimentPane {
                     .unwrap_or_else(|| v["value"].to_string());
                 format!("{k} {value} {}", v["unit"].as_str().unwrap_or(""))
             })
+            .chain(placement_labels(&selected["placements"]))
             .collect::<Vec<_>>()
             .join(" · ");
         self.view.label(cx, ids!(exp_detail)).set_text(
@@ -761,6 +824,34 @@ impl ExperimentPane {
             } else {
                 self.close_preview(cx);
             }
+            return Ok(());
+        }
+        if self
+            .view
+            .drop_down(cx, ids!(exp_area))
+            .selected(a)
+            .is_some()
+        {
+            self.area_button(cx);
+        }
+        if clicked!(ids!(exp_area_toggle)) {
+            let id = self
+                .area_instances()
+                .nth(self.sel(cx, ids!(exp_area)))
+                .map(|i| json!(i.id))
+                .ok_or("Select a scene start area")?;
+            let mut active = self.config["active_start_areas"]
+                .as_array()
+                .cloned()
+                .unwrap_or_default();
+            if let Some(index) = active.iter().position(|v| v == &id) {
+                active.remove(index);
+            } else {
+                active.push(id);
+            }
+            self.config["active_start_areas"] = Value::Array(active);
+            self.close_preview(cx);
+            self.area_button(cx);
             return Ok(());
         }
         if clicked!(ids!(exp_preview_prev)) || clicked!(ids!(exp_preview_next)) {

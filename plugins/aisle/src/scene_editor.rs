@@ -5,7 +5,7 @@ use dorobot_studio_core::{
         scene::{
             validation::Support,
             viewport::{Camera, Viewport, HEIGHT, WIDTH},
-            Revision, Scene, SceneEditor,
+            Revision, Scene, SceneEditor, StartArea,
         },
         Survey,
     },
@@ -52,6 +52,13 @@ script_mod! {
                 Row{support := DropDown{width:Fill} snap := Tool{text:"Snap"}}
                 Row{validation := Caption{} next_issue := Tool{text:"Inspect issue"}}
                 discard := Tool{text:"Reopen saved layout"}
+                Caption{text:"Randomized start area"}
+                area_support := DropDown{width:Fill}
+                Caption{text:"Bounds from support centre in metres. Leave blank for the whole surface."}
+                Row{area_x_min := Field{empty_text:"Min X"} area_x_max := Field{empty_text:"Max X"}}
+                Row{area_y_min := Field{empty_text:"Min Y"} area_y_max := Field{empty_text:"Max Y"}}
+                Row{area_save := Tool{text:"Set start area"} area_clear := Tool{text:"Remove area"}}
+                area_status := Caption{}
             }
         }
         feedback := Caption{}
@@ -165,12 +172,24 @@ impl SceneEditorPane {
         Camera::new(self.visible_scene().room_m, self.top)
     }
     fn draw_frame(&mut self, cx: &mut Cx) {
-        let image = Viewport::render(
+        let mut image = Viewport::render(
             self.visible_scene(),
             &self.pinned,
             self.camera(),
             self.selected.as_deref(),
         );
+        let scene = self.visible_scene();
+        if let Some(object) = scene
+            .instances
+            .iter()
+            .find(|o| Some(&o.id) == self.selected.as_ref())
+        {
+            if let Some(area) = &object.start_area {
+                if let Ok(corners) = scene.start_area_outline(object, area, &self.pinned) {
+                    image.outline(self.camera(), corners);
+                }
+            }
+        }
         VideoPlayerWidgetRefExt::as_video_player(&self.view.widget(cx, ids!(canvas))).set_frame(
             cx,
             WIDTH as usize,
@@ -205,7 +224,36 @@ impl SceneEditorPane {
         let support = self.view.drop_down(cx, ids!(support));
         let mut labels = vec!["Floor".to_string()];
         labels.extend(supports.iter().map(|(label, _)| label.clone()));
-        support.set_labels(cx, labels);
+        support.set_labels(cx, labels.clone());
+        let area = item.and_then(|i| i.start_area.as_ref());
+        let selector = self.view.drop_down(cx, ids!(area_support));
+        selector.set_labels(cx, labels);
+        selector.set_selected_item(
+            cx,
+            area.and_then(|a| a.support.as_ref())
+                .and_then(|link| supports.iter().position(|(_, s)| s == link))
+                .map_or(0, |i| i + 1),
+        );
+        for (id, edge, axis) in [
+            (ids!(area_x_min) as &[LiveId], 0, 0),
+            (ids!(area_x_max), 1, 0),
+            (ids!(area_y_min), 0, 1),
+            (ids!(area_y_max), 1, 1),
+        ] {
+            let value = area
+                .and_then(|a| a.bounds_m)
+                .map(|b| b[edge][axis].to_string())
+                .unwrap_or_default();
+            self.view.text_input(cx, id).set_text(cx, &value);
+        }
+        self.view.label(cx, ids!(area_status)).set_text(
+            cx,
+            if area.is_some() {
+                "Area defined · available in Run"
+            } else {
+                "No start area"
+            },
+        );
         support.set_selected_item(
             cx,
             item.and_then(|i| i.support.as_ref())
@@ -318,7 +366,13 @@ impl SceneEditorPane {
         for id in [ids!(apply) as &[LiveId], ids!(cancel)] {
             self.view.widget(cx, id).set_visible(cx, pending);
         }
-        for id in [ids!(remove) as &[LiveId], ids!(duplicate), ids!(update)] {
+        for id in [
+            ids!(remove) as &[LiveId],
+            ids!(duplicate),
+            ids!(update),
+            ids!(area_save),
+            ids!(area_clear),
+        ] {
             self.view
                 .button(cx, id)
                 .set_enabled(cx, !pending && item.is_some());
@@ -489,6 +543,53 @@ impl SceneEditorPane {
             self.commit(cx, next);
             return Ok(());
         }
+        if click(ids!(area_save)) || click(ids!(area_clear)) {
+            let id = self.selected.as_ref().ok_or("Select an object")?;
+            let mut next = self.editor.scene.clone();
+            let index = next
+                .instances
+                .iter()
+                .position(|i| &i.id == id)
+                .ok_or("Select an object")?;
+            let area = if click(ids!(area_save)) {
+                let fields = [
+                    ids!(area_x_min) as &[LiveId],
+                    ids!(area_y_min),
+                    ids!(area_x_max),
+                    ids!(area_y_max),
+                ];
+                let bounds_m = if fields.iter().all(|f| self.text(cx, f).is_empty()) {
+                    None
+                } else {
+                    let n = |field| self.number(cx, field, "area boundary in metres");
+                    Some([
+                        [n(fields[0])?, n(fields[1])?],
+                        [n(fields[2])?, n(fields[3])?],
+                    ])
+                };
+                let support = self
+                    .view
+                    .drop_down(cx, ids!(area_support))
+                    .selected_item()
+                    .checked_sub(1)
+                    .map(|i| {
+                        self.supports()
+                            .get(i)
+                            .map(|(_, s)| s.clone())
+                            .ok_or("Select a support")
+                    })
+                    .transpose()?;
+                let area = StartArea { support, bounds_m };
+                next.start_area_outline(&next.instances[index], &area, &self.pinned)
+                    .map_err(|e| e.to_string())?;
+                Some(area)
+            } else {
+                None
+            };
+            next.instances[index].start_area = area;
+            self.commit(cx, next);
+            return Ok(());
+        }
         if click(ids!(next_issue)) {
             let issues = self.editor.scene.issues(&self.pinned);
             let i = issues
@@ -565,7 +666,9 @@ impl SceneEditorPane {
                 s.place(a, [x + 0.15, y + 0.15, z])
                     .map_err(|e| e.to_string())?,
             );
-            s.instances.last_mut().unwrap().yaw_deg = original.yaw_deg;
+            let duplicate = s.instances.last_mut().unwrap();
+            duplicate.yaw_deg = original.yaw_deg;
+            duplicate.start_area = original.start_area;
         } else {
             return Ok(());
         }
