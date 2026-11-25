@@ -54,7 +54,20 @@ script_mod! {
                 form_scroll := ScrollYView{width:Fill height:Fill spacing:6 flow:Down
                 Line{older_asset := Tool{text:"Previous asset"} next_asset := Tool{text:"Next"} new_asset := Tool{text:"New"}}
                 asset_name := Field{empty_text:"Asset name"} category := Field{empty_text:"Category"}
-                Line{edit_marks := Tool{text:"Photo marks"} edit_physics := Tool{text:"Physics"}}
+                Line{edit_marks := Tool{text:"Photo marks"} edit_physics := Tool{text:"Physics"} edit_suggestions := Tool{text:"Suggestions"}}
+                suggest_panel := View{visible:false width:Fill height:Fit flow:Down spacing:5
+                    suggest_instruction := Field{empty_text:"Describe the target in the selected photo"}
+                    suggest_scale := Field{empty_text:"Coplanar ruler length (m), optional"}
+                    suggest_axis := Caption{}
+                    Line{suggest_codex := Tool{text:"Ask Codex"} suggest_octos := Tool{text:"Ask DeepSeek"}}
+                    suggest_groups := DropDown{width:Fill}
+                    suggest_source := Caption{}
+                    Line{suggest_photo := Tool{text:"Show source photo"} suggest_outline := Tool{text:"Edit outline"}}
+                    suggest_fields := DropDown{width:Fill}
+                    suggest_value := Field{empty_text:"Review or correct this value"}
+                    Line{suggest_apply := Tool{text:"Use value"} suggest_reject := Tool{text:"Discard value"}}
+                    suggest_status := Caption{}
+                }
                 marks_panel := View{width:Fill height:Fit flow:Down spacing:5
                     Line{outline := Tool{text:"Outline"} floor_ref := Tool{text:"Floor points"} dimension := Tool{text:"Ruler"}}
                     mark_hint := Caption{}
@@ -115,6 +128,7 @@ fn project() -> Survey {
 
 impl SurveyPane {
     fn show(&mut self, cx: &mut Cx) {
+        self.update_scale_context(cx);
         self.view
             .widget(cx, ids!(thumb_bar))
             .set_visible(cx, !self.photos.is_empty());
@@ -194,6 +208,13 @@ impl SurveyPane {
                 if self.editor.open {
                     if let Some(mark) = self.editor.asset.photos.get(&p.id) {
                         mark.paint(&mut rgb, p, self.editor.axis);
+                    }
+                    if let Some(outline) = self.editor.proposed_outline(&p.id) {
+                        let overlay = dorobot_studio_core::survey::asset::Markup {
+                            outline: outline.to_vec(),
+                            ..Default::default()
+                        };
+                        overlay.paint_with_outline(&mut rgb, p, self.editor.axis, [237, 178, 21]);
                     }
                 }
                 player.set_frame(

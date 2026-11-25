@@ -476,17 +476,22 @@ def octos_controller(prompt, schema, directory, output):
     return actual, usage
 
 
-def request_controller(provider, prompt, schema, output, *, camera_input=None):
+def request_controller(provider, prompt, schema, output, *, camera_input=None, survey_input=None):
     output = output.resolve()
     save(output / "schema.json", schema)
     request = {"provider": provider, "instruction": prompt, "output_schema": schema}
     image_args = []
-    if camera_input is not None:
-        request["onboard_input"] = camera_input
-        for image in camera_input["images"]:
+    if camera_input is not None and survey_input is not None:
+        raise ValueError("Choose one image source for this request")
+    for role, attachment in (("onboard_input", camera_input), ("survey_photo", survey_input)):
+        if attachment is None:
+            continue
+        request[role] = attachment
+        for image in attachment["images"]:
             path = output / image["file"]
             if provider != "codex" or path.parent != output or digest(path) != image["sha256"]:
-                raise ValueError("Onboard image differs from the requested attachment")
+                label = "Onboard image" if role == "onboard_input" else "Survey photo"
+                raise ValueError(f"{label} differs from the requested attachment")
             image_args.extend(["--image", str(path)])
     save(output / "controller-request.json", request)
     model_name = None

@@ -59,6 +59,12 @@ impl Unit {
 pub enum Origin {
     Default,
     Operator,
+    Suggested {
+        photo: String,
+        provider: String,
+        model: String,
+        request_sha256: String,
+    },
     Measured {
         photo: String,
         endpoints: [Pixel; 2],
@@ -164,6 +170,12 @@ pub struct Asset {
     pub dimensions: [Option<Dimension>; 3],
     pub physics: PhysicalAsset,
     pub geometry: Geometry,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub suggestions: Vec<super::suggestion::Suggestion>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_origin: Option<Origin>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shape_origin: Option<Origin>,
 }
 impl Asset {
     pub fn set_dimension(
@@ -320,6 +332,13 @@ impl Survey {
                 "Enter a positive mass for a movable asset"
             );
         }
+        ensure!(
+            draft
+                .suggestions
+                .iter()
+                .all(|s| draft.photos.contains_key(&s.photo)),
+            "A proposal is missing its source photo"
+        );
         for (id, mark) in &draft.photos {
             ensure!(
                 id.len() == 64 && id.bytes().all(|c| c.is_ascii_hexdigit()),
@@ -329,6 +348,9 @@ impl Survey {
                 &fs::read(self.photos().join(id).join("photo.json"))
                     .context("Source photo is missing")?,
             )?;
+            for suggestion in draft.suggestions.iter().filter(|s| s.photo == *id) {
+                suggestion.validate(&photo)?;
+            }
             for point in mark
                 .outline
                 .iter()
@@ -405,6 +427,15 @@ impl Survey {
 impl Markup {
     /// Render only into a disposable preview; all stored points remain in original image pixels.
     pub fn paint(&self, preview: &mut image::RgbImage, photo: &Photo, axis: usize) {
+        self.paint_with_outline(preview, photo, axis, [0, 174, 195]);
+    }
+    pub fn paint_with_outline(
+        &self,
+        preview: &mut image::RgbImage,
+        photo: &Photo,
+        axis: usize,
+        outline_color: [u8; 3],
+    ) {
         let scale = [
             preview.width() as f64 / photo.width as f64,
             preview.height() as f64 / photo.height as f64,
@@ -450,7 +481,7 @@ impl Markup {
                 dot(p[0], p[1], 2, [255, 255, 255]);
             }
         };
-        stroke(&self.outline, [0, 174, 195], true);
+        stroke(&self.outline, outline_color, true);
         for p in &self.floor {
             stroke(std::slice::from_ref(p), [160, 79, 224], false);
         }

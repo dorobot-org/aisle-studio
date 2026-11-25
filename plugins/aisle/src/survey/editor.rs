@@ -27,6 +27,8 @@ impl Tool {
     }
 }
 
+mod suggestions;
+
 #[derive(Default)]
 pub(super) struct AssetEditor {
     pub open: bool,
@@ -38,6 +40,7 @@ pub(super) struct AssetEditor {
     dirty: bool,
     drag: Option<usize>,
     rotation: usize,
+    review: suggestions::Review,
 }
 
 impl SurveyPane {
@@ -48,6 +51,7 @@ impl SurveyPane {
         self.view.text_input(cx, id).text().trim().to_string()
     }
     fn load_asset(&mut self, cx: &mut Cx, asset: Asset) {
+        self.editor.review = Default::default();
         self.editor.asset = asset;
         self.editor.axis = 0;
         self.editor.tool = Tool::Outline;
@@ -113,7 +117,10 @@ impl SurveyPane {
             .set_text(cx, e.tool.hint());
         self.view
             .widget(cx, ids!(marks_panel))
-            .set_visible(cx, !e.physics);
+            .set_visible(cx, !e.physics && !e.review.open);
+        self.view
+            .widget(cx, ids!(suggest_panel))
+            .set_visible(cx, e.review.open);
         self.view
             .widget(cx, ids!(physics_panel))
             .set_visible(cx, e.physics);
@@ -169,6 +176,7 @@ impl SurveyPane {
                         Origin::Measured { .. } => "measured",
                         Origin::Operator => "entered",
                         Origin::Default => "default",
+                        Origin::Suggested { .. } => "suggested",
                     }
                 ),
                 None => format!("{axis}   Unmeasured"),
@@ -278,7 +286,11 @@ impl SurveyPane {
     }
     fn save_revision(&mut self, cx: &mut Cx) {
         let mut a = self.editor.asset.clone();
-        a.name = self.field(cx, ids!(asset_name));
+        let name = self.field(cx, ids!(asset_name));
+        if name != a.name {
+            a.name_origin = Some(Origin::Operator);
+        }
+        a.name = name;
         a.category = self.field(cx, ids!(category));
         match self.physics_fields(cx) {
             Ok(p) => a.physics = p,
@@ -300,6 +312,7 @@ impl SurveyPane {
     }
 
     pub(super) fn handle_editor(&mut self, cx: &mut Cx, event: &Event, actions: &Actions) {
+        self.poll_suggestions(cx);
         let clicked = |id: &[LiveId]| self.view.button(cx, id).clicked(actions);
         if clicked(ids!(edit_assets)) {
             self.editor.open = !self.editor.open;
@@ -346,9 +359,23 @@ impl SurveyPane {
             self.save_revision(cx);
             return;
         }
-        if clicked(ids!(edit_marks)) || clicked(ids!(edit_physics)) {
+        if clicked(ids!(edit_marks))
+            || clicked(ids!(edit_physics))
+            || clicked(ids!(edit_suggestions))
+        {
             self.editor.physics = clicked(ids!(edit_physics));
+            self.editor.review.open = clicked(ids!(edit_suggestions));
+            if self.editor.review.open {
+                self.suggestion_labels(cx);
+            }
             self.editor_labels(cx);
+            self.show_photo(cx);
+            return;
+        }
+        if self.editor.review.open {
+            if let Err(e) = self.suggestion_actions(cx, actions) {
+                self.note(cx, &e);
+            }
             return;
         }
         if clicked(ids!(preview_physics)) {
@@ -393,6 +420,7 @@ impl SurveyPane {
             return;
         }
         if clicked(ids!(asset_shape)) {
+            self.editor.asset.shape_origin = Some(Origin::Operator);
             let p = &mut self.editor.asset.physics;
             p.shape = if p.shape == Shape::Box {
                 Shape::FourLegTable
