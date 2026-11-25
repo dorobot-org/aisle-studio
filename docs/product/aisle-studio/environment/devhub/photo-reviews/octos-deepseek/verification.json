@@ -1,0 +1,111 @@
+{
+  "backend": "headless",
+  "provider": "octos-deepseek",
+  "unscaled_table": {
+    "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+    "photo_sha256": "2c8bbbe09869b67503ab65467188631eaff35a419d8311df5565389924d6028f",
+    "provider": "octos-deepseek",
+    "model": "deepseek-v4-flash",
+    "input_mode": "RGB-derived region measurements",
+    "request_sha256": "db66ff3cf874736dd7e95ed5ee1d6e07f67de8a680ff56b5ace4bbfd9d1204b1",
+    "outline": [
+      [
+        188.00000000000006,
+        327.0
+      ],
+      [
+        510.0,
+        214.0
+      ],
+      [
+        1353.0,
+        279.0
+      ],
+      [
+        1223.0000000000002,
+        438.0
+      ]
+    ],
+    "reason": "The operator-outline quadrilateral (four vertices, mean RGB ~195,153,113 warm wood tone) traces a thin horizontal slab in perspective, matching the described 'outlined coffee table' in the furnished room, and it is the only region the operator flagged; the other regions are background/floor/wall and furniture-adjacent fragments (e.g. image-region-7",
+    "fields": [
+      {
+        "field": "name",
+        "value": "Coffee table",
+        "status": "corrected",
+        "applied": "Annotated coffee table"
+      },
+      {
+        "field": "shape",
+        "value": "four_leg_table",
+        "status": "pending"
+      }
+    ]
+  },
+  "calibrated_plate": {
+    "photo": "bf2dda159cf8714b2fa6a87ab00b12e3d3343244356297e791ba66109a5b04a1",
+    "photo_sha256": "0aa172e07cdbefc944a97eb70d96b636dfaf7a16db39a245c6b33e5150acf542",
+    "provider": "octos-deepseek",
+    "model": "deepseek-v4-flash",
+    "input_mode": "RGB-derived region measurements",
+    "request_sha256": "ae24167c0e68840c2065a148b9b565624b539596667128e5c9f29c18686842eb",
+    "outline": [
+      [
+        240.0,
+        160.0
+      ],
+      [
+        720.0,
+        160.0
+      ],
+      [
+        720.0,
+        480.0
+      ],
+      [
+        240.0,
+        480.0
+      ]
+    ],
+    "reason": "The operator description ('outlined blue rectangular calibration plate in a front-on view') matches the blue mean RGB [35,70,205] and the square-ish 480x320 px extent shared by all three candidate regions, so identity is unambiguous. The operator-outline is chosen as the authoritative region; image-region-2 and image-region-3 have identical bounds_",
+    "flat_reference": {
+      "axis": 0,
+      "length_m": 0.12,
+      "endpoints": [
+        [
+          240.0,
+          535.0
+        ],
+        [
+          480.0,
+          535.0
+        ]
+      ]
+    },
+    "fields": [
+      {
+        "field": "name",
+        "value": "Calibration plate",
+        "status": "discarded"
+      },
+      {
+        "field": "shape",
+        "value": "box",
+        "status": "pending"
+      },
+      {
+        "field": "width",
+        "value": "0.24",
+        "status": "accepted",
+        "applied": "0.24"
+      }
+    ]
+  },
+  "width_m": 0.24,
+  "reference_expected_width_m": 0.24,
+  "edited_outline_point": [
+    261.0,
+    171.00000000000006
+  ],
+  "restored": true,
+  "previous_revisions_intact": true
+}
