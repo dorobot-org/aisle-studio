@@ -30,9 +30,9 @@ def check_exposure(app, key, file, screenshot=None):
     assert checksum[:12] in state["controls"][key + "exposure_caption"]["text"]
     proof = dict(tick=tick, rgb_sha256=checksum)
     if screenshot:
-        app.scroll_to(key + "exposure_rgb", key + "panel")
-        x, y, w, h = app.control(key + "exposure_rgb")["rect"]
+        app.scroll_to(key + "exposure_rgb", key + "panel", whole=True)
         app.act("grab", "w=0", "out=" + str(screenshot))
+        x, y, w, h = app.control(key + "exposure_rgb")["rect"]
         raw = Image.open(screenshot).convert("RGB")
         frame = Image.fromarray(expected)
         scale = min(w / frame.width, h / frame.height)
@@ -153,7 +153,7 @@ def main():
                 app.scroll_to(key + "previous_exposure", key + "panel")
                 app.click(key + "previous_exposure")
                 wait_text("exposure_caption", f"tick {int(files[0].stem)} ·")
-                app.scroll_to(key + "exposure_rgb", key + "panel")
+                app.scroll_to(key + "exposure_rgb", key + "panel", whole=True)
             else:
                 view = wait_text("exposure_caption", "No recorded release exposures")
                 assert not view["controls"][key + "exposure_rgb"]["visible"]
@@ -163,6 +163,15 @@ def main():
             checks["window_sizes"] = []
             for width, height in [(1024, 768), (1440, 900)]:
                 app.act("resize", "window=0", f"w={width}", f"h={height}")
+                app.wait(
+                    lambda sn: abs(
+                        2 * sn["controls"][key + "panel"]["rect"][0]
+                        + sn["controls"][key + "panel"]["rect"][2]
+                        - width
+                    )
+                    < 1,
+                    f"layout at {width} pixels",
+                )
                 capture = folder / f"case-evidence-{width}.png"
                 if robot == "Nano" and files:
                     evidence = check_exposure(app, key, files[0], capture)

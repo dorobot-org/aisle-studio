@@ -1,0 +1,71 @@
+{
+  "robot": "Nano",
+  "registration": "d208dc033218fe3deebad2644f9ce29f3ec3f1313ffc52cb800a7f9034975dc1",
+  "backend": "offscreen",
+  "verdict_sha256": "003283338fe859e673c538c005a4cfe09a22fa3a675bd5b04b6ac856092d0301",
+  "case": 0,
+  "source_release_exposures": 4,
+  "frames": [
+    {
+      "tick": 12266,
+      "rgb_sha256": "f31346127780c523540ba1675d80960e9f51c5a4fa8f24c696317b5d20b472d1",
+      "mean_pixel_error_per_camera": [
+        0.66,
+        0.66,
+        0.71
+      ]
+    },
+    {
+      "tick": 12506,
+      "rgb_sha256": "eec8f769a56231cb135b1198eb62d3134648081d3730798497e07d59886e8544",
+      "mean_pixel_error_per_camera": [
+        0.66,
+        0.68,
+        1.08
+      ]
+    }
+  ],
+  "coverage": "Three-cube success across layouts \u00b7 95% Wilson interval 64.8%\u201387.2%",
+  "window_sizes": [
+    {
+      "size": [
+        1024,
+        768
+      ],
+      "image": "case-evidence-1024.png",
+      "bounds": [
+        32.0,
+        475.8000183105469,
+        960.0,
+        160.0
+      ],
+      "tick": 12266,
+      "rgb_sha256": "f31346127780c523540ba1675d80960e9f51c5a4fa8f24c696317b5d20b472d1",
+      "mean_pixel_error_per_camera": [
+        0.65,
+        0.67,
+        0.72
+      ]
+    },
+    {
+      "size": [
+        1440,
+        900
+      ],
+      "image": "case-evidence-1440.png",
+      "bounds": [
+        32.0,
+        475.8000183105469,
+        1376.0,
+        160.0
+      ],
+      "tick": 12266,
+      "rgb_sha256": "f31346127780c523540ba1675d80960e9f51c5a4fa8f24c696317b5d20b472d1",
+      "mean_pixel_error_per_camera": [
+        0.65,
+        0.67,
+        0.72
+      ]
+    }
+  ]
+}

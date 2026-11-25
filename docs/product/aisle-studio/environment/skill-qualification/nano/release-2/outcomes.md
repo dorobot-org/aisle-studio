@@ -23,3 +23,5 @@ The evaluator measured 1,308,128 wheel-supported ticks across 1,308,128 simulati
 | 048 | red, green | Lost the observed cubes across consecutive placement-turn images. Blue recorded 3244 airborne grip ticks and 0 final tabletop contact ticks. |
 
 The original release scored 44/50 on a different set of registered layouts. Only the 12 disclosed development cases were run as a paired controller comparison. In those cases the selected revision finished 11/12 and preserved every previously passing control. The raw release archive was restored into a separate project and its motor journals and bridge receipts reproduced the published verdict. [Original release](../outcomes.md) · [Paired development comparison](../wrist-survey/README.md)
+
+The signed Makepad DevHub worker reverified the full cohort from its raw archive. The native review showed the below-threshold result, prevented approval and signed export, and rejected a changed measurement. A second lease opened the original camera samples. [Native review](../../../devhub/nano-release-2-review/nano/verification.json) · [Native case inspection and images](../../case-inspector/README.md#inspect-a-released-cohort)

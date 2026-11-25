@@ -78,12 +78,13 @@ class NativeStudio:
 
         return self.wait(ready, key)["controls"][key]
 
-    def scroll_to(self, key, viewport):
+    def scroll_to(self, key, viewport, *, whole=False):
         for _ in range(16):
             x, y, w, h = self.control(key)["rect"]
             fx, fy, fw, fh = self.control(viewport)["rect"]
             cy = y + h / 2
-            if fy + 4 <= cy <= fy + fh - 4:
+            top, bottom = (y, y + h) if whole else (cy, cy)
+            if fy + 4 <= top and bottom <= fy + fh - 4:
                 return
             delta = max(-210, min(210, cy - (fy + fh / 2)))
             self.act(
