@@ -15,6 +15,8 @@ use dorobot_ux::kit::SparkWidgetRefExt;
 use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
+mod experiment;
+use experiment::ExperimentPaneWidgetRefExt;
 mod survey;
 pub mod scene_editor;
 pub mod task_binding;
@@ -55,6 +57,7 @@ impl StudioPlugin for AislePlugin {
         survey::script_mod(vm);
         scene_editor::script_mod(vm);
         task_binding::script_mod(vm);
+        experiment::script_mod(vm);
         script_mod(vm);
     }
     fn create(&self, panel: &str, vm: &mut ScriptVm) -> Result<Box<dyn PluginPanel>, String> {
@@ -79,6 +82,7 @@ impl StudioPlugin for AislePlugin {
             joint_index: 0,
             survey_open: false,
             composer_open: false,
+            experiment_open:false,
         }))
     }
     fn can_disable(&self, b: &dyn Backend) -> Result<(), String> {
@@ -191,7 +195,9 @@ script_mod! {
         status := Body{}
     }
     mod.widgets.AisleRun=Page{
-        Title{text:"Live simulation"} context_label := Section{}
+        Bar{run_heading := Title{width:Fill text:"Live simulation"} experiment_mode := mod.widgets.ux.ToolButton{text:"Repeat experiment"}} context_label := Section{}
+        experiment_pane := ExperimentPane{visible:false}
+        normal_run := View{width:Fill height:Fill flow:Down spacing:10
         Bar{local_run := mod.widgets.ux.ToolButton{text:"Simulation"} workers := mod.widgets.ux.ToolButton{text:"Workers"}}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             viewport := Card{width:Fill height:Fill camera_label := Section{} camera := VideoPlayer{width:Fill height:Fill}}
@@ -213,6 +219,7 @@ script_mod! {
             }
         }
         status := Body{}
+    }
     }
     mod.widgets.AisleEvidence=Page{
         Title{text:"Run evidence"} context_label := Section{}
@@ -266,6 +273,7 @@ struct Panel {
     joint_index: usize,
     survey_open: bool,
     composer_open: bool,
+    experiment_open:bool,
 }
 impl Panel {
     fn label(&self, cx: &mut Cx, id: &[LiveId], s: &str) {
@@ -477,6 +485,16 @@ impl Panel {
         }
     }
     fn run(&mut self, cx: &mut Cx, w: &Workbench) {
+        self.root.widget(cx,ids!(normal_run)).set_visible(cx,!self.experiment_open);
+        self.root.widget(cx,ids!(experiment_pane)).set_visible(cx,self.experiment_open);
+        self.root.button(cx,ids!(experiment_mode)).set_text(cx,if self.experiment_open {"Live simulation"}else{"Repeat experiment"});
+        self.label(cx,ids!(run_heading),if self.experiment_open {"Repeat experiment"}else{"Live simulation"});
+        if self.experiment_open {
+            self.label(cx,ids!(context_label),"AISLE · Nexus   /   Experiments");
+            self.root.experiment_pane(cx,ids!(experiment_pane)).update(cx,w);
+            return;
+        }
+
         self.root
             .button(cx, ids!(workers))
             .set_enabled(cx, !w.busy() && !w.workers_open);
@@ -1862,6 +1880,7 @@ impl PluginPanel for Panel {
         }
     }
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
+        if self.page=="aisle_run" && self.root.button(cx,ids!(experiment_mode)).clicked(actions){self.experiment_open=!self.experiment_open;return true;}
         if self.page == "aisle_scene" {
             if self.root.button(cx, ids!(composer_mode)).clicked(actions) {
                 self.composer_open = true;

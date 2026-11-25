@@ -68,7 +68,31 @@ def rotate_xy(v, angle):
     return np.array([v[0] * c - v[1] * s, v[0] * s + v[1] * c, v[2]])
 
 
-def load(path, expected=None):
+def intersects(a, b):
+    if (
+        abs(a["position"][2] - b["position"][2])
+        >= (a["size"][2] + b["size"][2]) / 2 - 1e-7
+    ):
+        return False
+
+    def axes(spec):
+        w, _, _, z = spec["quat"]
+        c, s = 1 - 2 * z * z, 2 * w * z
+        return np.array([[c, s], [-s, c]])
+
+    ax, bx = axes(a), axes(b)
+    delta = np.array(a["position"][:2]) - b["position"][:2]
+    for direction in np.vstack((ax, bx)):
+        extent = (
+            np.abs(ax @ direction) @ a["size"][:2]
+            + np.abs(bx @ direction) @ b["size"][:2]
+        ) / 2
+        if abs(delta @ direction) >= extent - 1e-7:
+            return False
+    return True
+
+
+def load(path, expected=None, sampled=None):
     raw = path.read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
     if expected and digest != expected:
@@ -76,7 +100,7 @@ def load(path, expected=None):
     doc = json.loads(raw)
     if doc.get("schema") != "aisle-studio-nano-pickup-v1" or doc.get("robot") != "Nano":
         raise ValueError("Select a saved Nano pickup task")
-    scene = doc["scene"]
+    scene = sampled["scene"] if sampled else doc["scene"]
     room = vec(scene["room_m"], 2)
     if min(room) <= 0:
         raise ValueError("Invalid room dimensions")
@@ -145,7 +169,12 @@ def load(path, expected=None):
         mass = p["mass_kg"]["value"] if movable else None
         if movable and (mass is None or not math.isfinite(mass) or mass <= 0):
             raise ValueError("Enter the movable object's mass")
-        friction = p["friction"]["value"]
+        friction = (
+            (sampled or {})
+            .get("materials", {})
+            .get(iid, {})
+            .get("friction", p["friction"]["value"])
+        )
         bounce = p["restitution"]["value"]
         if not math.isfinite(friction) or friction < 0 or not 0 <= bounce <= 1:
             raise ValueError("Invalid contact material")
@@ -235,6 +264,14 @@ def load(path, expected=None):
                         appearance=color,
                         center_offset_m=(sc - local).tolist(),
                         size_m=ss.tolist(),
+                    )
+    if sampled:
+        placed = [v for v in specs if v.get("instance")]
+        for i, body in enumerate(placed):
+            for other in placed[:i]:
+                if body["instance"] != other["instance"] and intersects(body, other):
+                    raise ValueError(
+                        f"Sampled colliders intersect: {body['instance']} and {other['instance']}"
                     )
     if not cube or not tabletop:
         raise ValueError(

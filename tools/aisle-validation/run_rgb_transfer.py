@@ -288,7 +288,13 @@ class Judge:
         )
 
 
-def execute(*args, visual_profile="original", **kwargs):
+def execute(*args, visual_profile="original", trace_manifest=None, **kwargs):
+    if trace_manifest is not None:
+        out=args[0] if args else kwargs["out"]
+        with (out/"robot-trace.jsonl").open("x",buffering=1) as stream:
+            kwargs["trace"]=(stream,trace_manifest)
+            return execute(*args, visual_profile=visual_profile, **kwargs)
+
     if visual_profile == "original":
         return _execute(*args, **kwargs)
     from aisle.sim.nexus_backend import _ensure_nexus, load_nexus_physics
@@ -314,6 +320,8 @@ def _execute(
     record=False,
     room_objects=(),
     authored=None,
+    trace=None,
+    runtime_options=None,
     room_settings=None,
     observation_progress=False,
     live_preview=False,
@@ -328,6 +336,8 @@ def _execute(
 
     controller = out / "controller.json"
     plan = json.loads(controller.read_bytes()) if controller.is_file() else {}
+    if runtime_options and "wrist_clearance" in runtime_options:
+        plan=plan | {"wrist_clearance":runtime_options["wrist_clearance"]}
     detector = parameters(plan)
     if detector is not None and plan["model_hash"] != worker.digest(MODEL):
         raise ValueError("Nano grasp checkpoint requires its training URDF")
@@ -538,6 +548,15 @@ def _execute(
         sim.scene.step()
         sim.tick += 1
         judge.tick(sim)
+        if trace:
+            from experiment_recording import line
+            stream,manifest=trace
+            line(stream,dict(run_id=manifest["run_id"],physics_step=sim.tick,
+                             sim_time_ns=round(sim.tick*sim.scene.dt*1e9),joints=sim.names,
+                             positions_rad=np.asarray(sim.robot.get_qpos())[sim.dofs].tolist(),commanded=sim.targets.tolist(),
+                             phase=judge.phase,wheel_supported=not(judge.unsupported_ranges and judge.unsupported_ranges[-1]["last_step"]==sim.tick),
+                             tabletop_contact=any(v and v[-1][1] for v in judge.tail.values()),
+                             rejected_motor_writes=motors.rejected,collision_count=sum(judge.collisions.values())))
         if slide:
             slide.after_step(*judge.pick_contacts[active_color], applied)
         rgb = None

@@ -1,0 +1,228 @@
+{
+  "batch_id": "ef6854ca-7c09-43dd-904e-fdcc91b231ad",
+  "configuration": {
+    "base_seed": 42,
+    "controller_sha256": "8b7903563eab3bfee9b0f8b6dea391ed2b609bc9baa784b087bf8a4dc890cf92",
+    "name": "Chair spacing",
+    "overrides": {
+      "2": {
+        "robot_trace": true
+      },
+      "3": {
+        "agent_history": true
+      },
+      "4": {
+        "agent_history": true,
+        "robot_trace": true
+      }
+    },
+    "parameters": [
+      {
+        "binding": {
+          "axis": "x",
+          "instances": [
+            "chair-left",
+            "chair-right"
+          ],
+          "kind": "spacing"
+        },
+        "default": 2.4,
+        "name": "Chair spacing",
+        "range": [
+          1.9,
+          2.8
+        ],
+        "type": "number",
+        "unit": "m"
+      }
+    ],
+    "record_cameras": false,
+    "recording": {
+      "agent_history": false,
+      "robot_trace": false
+    },
+    "repeat_count": 5,
+    "scene": {
+      "id": "scene-living-room",
+      "revision": 1
+    },
+    "seed_mode": "sequence"
+  },
+  "completed": [
+    {
+      "run_id": "a05ad233-a462-4c06-a388-289f8d23909f",
+      "seed": 42,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "f3b429fe2555fef7f97ef09bac5390bdffa2006c79b3c4dd1611a379800050d3",
+      "measured_chair_spacing_m": 1.9317463636398315,
+      "channels": {
+        "robot_trace": {
+          "requested": false,
+          "present": false
+        },
+        "agent_history": {
+          "requested": false,
+          "present": false
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "d7fca93b7ae089ae55a44c509d4f311bb839563c4f48f9a64d8a49a19ba878ae",
+        "physics_ticks": 11266
+      }
+    },
+    {
+      "run_id": "d2bb13e9-9eac-41d9-83b8-b4d0be08ca3f",
+      "seed": 43,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "06661348c851aabbb44a7d7159f62244aa74fbaa62fd61bd8089ef11540efe9e",
+      "measured_chair_spacing_m": 2.76474928855896,
+      "channels": {
+        "robot_trace": {
+          "requested": true,
+          "present": true,
+          "bytes": 12243785,
+          "sha256": "6301880f5c3964e3bae7b96ba34af9b9bc6e55d8813f4ee3041167985c2ab31c",
+          "file": "robot-trace.jsonl"
+        },
+        "agent_history": {
+          "requested": false,
+          "present": false
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "74fa6917d462d40d938170b416cbcc9a367758f3743a79f865ab111fe12e1463",
+        "physics_ticks": 11266
+      }
+    },
+    {
+      "run_id": "36d95041-e762-4e6c-9755-611203d9d12b",
+      "seed": 44,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "5e8837ad779a802d75ecf136798f5c3fd8e27a902eaa019d1fe82364343d12db",
+      "measured_chair_spacing_m": 2.4637508392333984,
+      "channels": {
+        "robot_trace": {
+          "requested": false,
+          "present": false
+        },
+        "agent_history": {
+          "requested": true,
+          "present": true,
+          "bytes": 2563,
+          "sha256": "2e0ee533ae2ee436728ea456fc7fc62cda0bc7b756172c433a76abbe24547146",
+          "file": "agent-history.jsonl"
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "1db713126ea7903205061c661ccc99d6807989ed50bbfba296133425a9905d0b",
+        "physics_ticks": 11266
+      }
+    },
+    {
+      "run_id": "c2c51f1d-e89f-4007-b766-1106afa9fa39",
+      "seed": 45,
+      "status": "completed",
+      "physics_ticks": 11266,
+      "sample_sha256": "20800b9b500ec5eb778b90593edfd426d794529da8f9db2f9281d9a4379cbbdc",
+      "measured_chair_spacing_m": 2.2102699279785156,
+      "channels": {
+        "robot_trace": {
+          "requested": true,
+          "present": true,
+          "bytes": 12243785,
+          "sha256": "27a4638969a12d8df19745589beae999c07d20c26e88a7523090d811d5fa05a0",
+          "file": "robot-trace.jsonl"
+        },
+        "agent_history": {
+          "requested": true,
+          "present": true,
+          "bytes": 2563,
+          "sha256": "893898cd6312558ab6571374fe9bf8ef542cb4c2cd5c9a4dca1f6ee31f9573a0",
+          "file": "agent-history.jsonl"
+        }
+      },
+      "outcome": {
+        "passed": true,
+        "result_sha256": "66440cccf00186859f4031da48c12f6d7059520605839e990f1eb12df9b8cd09",
+        "physics_ticks": 11266
+      }
+    }
+  ],
+  "cancelled": {
+    "run_id": "f7ff3681-4caa-44ca-84c8-af4e5648348f",
+    "batch_id": "ef6854ca-7c09-43dd-904e-fdcc91b231ad",
+    "repetition": 5,
+    "scene": {
+      "id": "scene-living-room",
+      "revision": 1
+    },
+    "task_sha256": "3a9ff59914fa94c4ad3d885869243e7669925aa013ce8017dc502f879702a83e",
+    "controller_sha256": "8b7903563eab3bfee9b0f8b6dea391ed2b609bc9baa784b087bf8a4dc890cf92",
+    "robot": "Nano",
+    "robot_model_sha256": "a03319b78dcf338cbd64bed7bdc2062066af6f8a189cdb2cb67f9ba1e9b6b627",
+    "seed": 46,
+    "recording": {
+      "agent_history": false,
+      "robot_trace": false
+    },
+    "status": "cancelled",
+    "parent_run_id": null,
+    "created": "2026-11-25T04:04:48.830657+00:00",
+    "started": null,
+    "ended": "2026-11-25T04:11:22.582154+00:00",
+    "nexus_version": "0.2.1",
+    "asset_revisions": [
+      {
+        "id": "asset-blue",
+        "revision": 1
+      },
+      {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      {
+        "id": "asset-red",
+        "revision": 1
+      },
+      {
+        "id": "fixture-chair",
+        "revision": 1
+      }
+    ],
+    "sample_sha256": "4dc438bf57d4e31e0113d2d73c9040fe7d106cda6e1153ad7ef3bc0eb1861c03",
+    "sampled_values": {
+      "Chair spacing": {
+        "value": 2.786193006041713,
+        "type": "number",
+        "unit": "m",
+        "binding": {
+          "axis": "x",
+          "instances": [
+            "chair-left",
+            "chair-right"
+          ],
+          "kind": "spacing"
+        }
+      }
+    },
+    "reason": "Operator cancelled this repetition",
+    "channels": {
+      "robot_trace": {
+        "requested": false,
+        "present": false
+      },
+      "agent_history": {
+        "requested": false,
+        "present": false
+      }
+    }
+  },
+  "backend": "offscreen",
+  "provider": "octos"
+}

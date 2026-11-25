@@ -868,6 +868,12 @@ def simulate(args, meta):
     if plan["model_hash"] != meta["model_hash"] or plan["robot"] != args.robot:
         raise ValueError("Controller and robot model differ")
     control = validate(plan, meta)
+    experiment_run=getattr(args,"experiment_run",None)
+    request=json.loads(experiment_run.read_bytes()) if experiment_run else None
+    realized=None
+    trace_manifest=None
+    if request and not plan.get("bound_task_sha256"):
+        raise ValueError("This experiment requires a controller bound to a saved scene")
     bound = None
     bound_sha = plan.get("bound_task_sha256")
     if getattr(args, "bound_task_sha256", None) and args.bound_task_sha256 != bound_sha:
@@ -878,7 +884,18 @@ def simulate(args, meta):
         if getattr(args, "room_revision", None):
             raise ValueError("The controller is pinned to an authored scene")
         path = args.controller.with_name("bound-task.json")
-        bound = load(path, bound_sha)
+        if request:
+            from experiment import sample,sha,encode
+            from experiment_recording import history
+            manifest=request["manifest"]
+            if manifest["task_sha256"]!=bound_sha or manifest["controller_sha256"]!=hashlib.sha256(original).hexdigest() or manifest["robot_model_sha256"]!=meta["model_hash"] or args.seed!=manifest["seed"]:
+                raise ValueError("Experiment inputs differ from the frozen manifest")
+            realized=sample(json.loads(path.read_bytes()),request["configuration"],args.seed)
+            if sha(encode(realized))!=manifest["sample_sha256"]: raise ValueError("Realized parameters differ from the scheduled inputs")
+            save(args.out/"sampled-layout.json",realized)
+            if manifest["recording"]["agent_history"]:history(args.controller.parent,args.out/"agent-history.jsonl",manifest,plan)
+            if manifest["recording"]["robot_trace"]:trace_manifest=manifest
+        bound = load(path, bound_sha,realized)
         if (
             args.robot != "Nano"
             or control.get("kind") != "table-transfer"
@@ -909,13 +926,15 @@ def simulate(args, meta):
             args.controller.parent,
             args.out,
             plan["scene_observation"],
-            getattr(args, "seed", 0),
+            plan["scene_observation"]["layout"] if request else getattr(args, "seed", 0),
             bound_sha or getattr(args, "room_hash", None),
         )
     (args.out / "controller.json").write_bytes(original)
     from visual_profile import validate_profile
 
     visual_profile = getattr(args, "visual_profile", "original")
+    if realized:
+        visual_profile=realized["controller"].get("visual_profile",visual_profile)
     validate_profile(visual_profile, plan)
     mobile = control.get("kind") in ("visual-approach", "table-transfer")
     fixture = (
@@ -1011,6 +1030,9 @@ def simulate(args, meta):
     if mobile:
         sys.path.insert(0, str(ROOT / "tools/aisle-validation"))
         room_objects, room_settings = room_for_mobile(args, meta)
+        if realized:
+            room_settings=(room_settings or {}) | realized["environment"]
+
         room_path = getattr(args, "room_revision", None)
         if room_path is not None:
             import shutil
@@ -1042,6 +1064,7 @@ def simulate(args, meta):
                 target_motion=getattr(args, "target_motion", "stationary"),
                 observation_period_s=getattr(args, "observation_period_s", 1),
                 observation_clock=getattr(args, "observation_clock", "simulation"),
+                **({"trace_manifest":trace_manifest,"runtime_options":realized["controller"]} if realized else {}),
                 room_objects=room_objects,
                 **({"authored": bound} if bound else {}),
                 room_settings=room_settings,
@@ -1260,6 +1283,7 @@ def main():
         choices=["stationary", "slide-positive", "slide-negative"],
         default="stationary",
     )
+    p.add_argument("--experiment-run", type=Path)
     p.add_argument("--bound-task", type=Path)
     p.add_argument("--bound-task-sha256")
     p.add_argument("--room-source", type=Path)
@@ -1321,7 +1345,12 @@ def main():
     if args.seed < 0:
         p.error("Scene seed must be nonnegative")
     args.out = args.out.resolve()
-    if args.reserved:
+    if args.reserved and args.experiment_run is not None:
+        expected={"worker.log","manifest.json","sampled-layout.json","request.json"}
+        if args.experiment_run.resolve()!=args.out/"request.json" or {p.name for p in args.out.iterdir()}!=expected:
+            raise ValueError("Experiment worker needs a newly reserved repetition directory")
+        save(args.out/"worker-pid.json",{"pid":os.getpid()})
+    elif args.reserved:
         # Studio alone holds the write end. A separate observer can terminate the
         # owned group even while the physics engine blocks inside native code.
         if os.name == "posix":
