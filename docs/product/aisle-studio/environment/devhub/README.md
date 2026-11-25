@@ -21,11 +21,13 @@ The default job imports photos, saves measured assets, composes a room, runs G1 
 
 Append `--suite scene-ranges` to the Python command to check the saved lighting, friction, position and yaw ranges with both robots. Give the lease a fresh output directory. The native checks compare preview hashes to executed samples and measure the resulting Nexus scene. Nano also has to lift and settle the red cube on each seed. [Scene experiment controls](../experiments.md)
 
+For a two-machine check, pass `DOROBOT_AISLE_WORKERS` to the job environment and append `--suite experiment-worker --worker lab-mini --incompatible-worker legacy-worker` to the Python command. Use registered aliases for the current worker and an earlier worker without the experiment protocol. The signed DevHub lease builds and drives the native app. Studio sends the frozen trials to the selected Nexus worker over SSH. The check closes the test app and terminates its own batch supervisor during an active remote lease, then reopens Run and verifies the original lease, returned archive and recording channels. [Worker registry and setup](../experiments.md#run-on-a-registered-worker)
+
 For a focused survey job, give the submission a separate lane and evidence directory and append `--photo-reviews` to the Python command. Both Codex and Octos must be available on the worker's `PATH`, with authenticated provider profiles configured there. Set `DOROBOT_OCTOS_PROFILE` in the job environment when using a named profile. The job imports its own survey and drives both proposal workflows through native Makepad controls. [Photo review and expected measurements](../README.md#review-a-model-proposal)
 
 ## Measured leases
 
-The scheduler and signed worker ran on the same Apple Silicon Mac. The earlier native headless runs on a separate Mac mini used SSH. Scheduling a lease across two Macs still requires a reachable private fleet connection.
+The DevHub scheduler and its signed UI worker ran on the same Apple Silicon Mac. The registered experiment worker used a separate Mac mini for the Nexus simulations. DevHub scheduling across two Macs still requires a reachable private fleet connection.
 
 | Lease | Source | Checks | Result |
 | --- | --- | --- | --- |
@@ -35,6 +37,8 @@ The scheduler and signed worker ran on the same Apple Silicon Mac. The earlier n
 | J6 / L6 | `5d862a1` | DeepSeek via Octos prepared the 30° G1 stance in an empty run history, then revised a retained failed trial in a second workspace. Both nominal reaches passed, and the revised controller and verdict reopened | Exit 0 in 52 s. [Binary and receipt digest](g1-standing/verification.json) · [Measured poses and source failure](g1-standing/g1-revision/verification.json) |
 | J7 / L7 | `ccac942` | G1 passed both seeds. Nano placed the red cube on seed 42 and timed out during stereo docking on seed 43 | Cancelled after both Nano trials reached a verdict. [Original failure and camera exposure](../experiment-verification/nano-dim-oak/README.md) |
 | J8 / L8 | `a5c6ce4` | G1 passed both 2,000-tick reaches. Nano placed the cube on both seeds with 100 final contact ticks each. Seed 42 reproduced the original motor targets. Seed 43 reproduced the repaired controller’s motor targets | Exit 0 in 217 s. [Binary and receipt digests](scene-ranges/verification.json) · [G1 trials](scene-ranges/ranges/verification.json) · [Nano trials](scene-ranges/nano-ranges/verification.json) |
+| J9 / L9 | `95bd58c` | Both robots reached terminal physics verdicts. A previous test window could still write to the shared UI report during the reconnect check | Exit 1 in 410 s. Superseded by J10. |
+| J10 / L10 | `b901b6e` | The original Studio process exited and its batch supervisor stopped during an active remote lease for each robot. Run reopened on the same lease. All four remote trials passed and both recording channels were verified after import | Exit 0 in 351 s. [Binary and receipt digests](experiment-worker/verification.json) · [G1](experiment-worker/g1/verification.json) · [Nano](experiment-worker/nano/verification.json) · [Matched local and remote inputs](experiment-worker/matched-inputs.json) |
 
 The Evidence run captured 563 frames from each of the head, left-wrist and right-wrist cameras. Nexus measured the chair moving 0.30 m in the variant. The original rerun reproduced the parent verdict digest, and all 1,765 frozen parent artifacts retained their original bytes. [Trial receipts](native-pages/evidence/verification.json) · [Recording combinations](native-pages/channels/channel-verification.json)
 

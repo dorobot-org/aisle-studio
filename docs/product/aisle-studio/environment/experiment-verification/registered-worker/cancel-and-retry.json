@@ -1,0 +1,34 @@
+{
+  "robot": "G1",
+  "seed": 43,
+  "task_sha256": "1c248393ef2b8cd48dbf6ccc22e9fd197edb99bbe208d999d1c8eba25e3b3e17",
+  "controller_sha256": "27d80d6689078ad48c31a4c3109670c7d62a98c609149cd2975c9a95e6e14486",
+  "sample_sha256": "f507c7296ddc8f5410c5a333ca96ffc5d06bfedff1c988b952ac1e6c150393df",
+  "cancelled_lease": "1873203a-fb88-44d8-89ff-efdaafbe08e4",
+  "cancelled_state": "cancelled",
+  "retry_parent": "1873203a-fb88-44d8-89ff-efdaafbe08e4",
+  "retry_lease": "e2bcbf07-1d46-428e-8ecf-d1ffa2511adf",
+  "outcome": {
+    "passed": true,
+    "result_sha256": "3799dd2d74718044741418772cc3d5542d72d0171b2491f7492a69d80a54945e",
+    "physics_ticks": 2000
+  },
+  "recording_samples": 100,
+  "channels": {
+    "robot_trace": {
+      "requested": false,
+      "present": false,
+      "status": "disabled"
+    },
+    "agent_history": {
+      "requested": false,
+      "present": false,
+      "status": "disabled"
+    }
+  },
+  "archive_sha256": "0f646b3b08d7c7932b8148dfac7b8fa49aeee57ad6914a7721b3580a3ee57466",
+  "camera": "operator",
+  "verified_png_count": 100,
+  "first_frame_sha256": "48f782a52f4e66629b8819519487f4e813a205f473e9de7f585dbc4e700817c7",
+  "last_frame_sha256": "23a38ab271f00ee431847d6724f0cf61abb550f21e319737c1ba53da1229f50f"
+}

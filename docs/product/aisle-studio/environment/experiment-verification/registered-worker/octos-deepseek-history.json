@@ -1,0 +1,20 @@
+{
+  "provider": "octos-deepseek",
+  "model": "deepseek-v4-flash",
+  "task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+  "controller_sha256": "34d211fc353b26837446cb3859c9469a08363e1a08e5f839de9bb502d2d76b40",
+  "sample_sha256": "06dfb99719218f91d3e372105ff81b5e34d7146f38e2d899252bff167e85362f",
+  "seed": 43,
+  "run_id": "127a437d-15a3-4e6e-a49d-24f5e2835056",
+  "physics_ticks": 2000,
+  "task_success": true,
+  "both_feet_loaded_steps": 2000,
+  "preserved_events": [
+    "prompt",
+    "response",
+    "controller_reused"
+  ],
+  "history_sha256": "4c72b1c78bab7527e4cce6d859f65b903bba21917172a1e9a6d46c834d65adb3",
+  "new_model_calls_on_worker": 0,
+  "archive_sha256": "06863310b999c5ed6f970962c1ab6ae1639ce6a5177564d67ffcd26fcfd03d54"
+}

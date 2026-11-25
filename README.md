@@ -29,6 +29,8 @@ Select **Use reference task** to inspect a shoulder without an authoring service
 
 By default, sessions live in `~/Library/Application Support/AISLE Studio/aisle` on macOS and `~/.local/share/aisle-studio/aisle` on Linux. `DOROBOT_STUDIO_STATE_DIR` isolates a session. `DOROBOT_AISLE_PYTHON` selects an existing Python environment.
 
+To repeat a saved experiment on another Mac, select the registered worker under **Run → Repeat experiment**. Studio checks its robot model, shows its available slots, and imports the measured trial when the lease finishes. [Worker setup, cancellation and recovery](docs/product/aisle-studio/environment/experiments.md#run-on-a-registered-worker)
+
 ## Verify the windowless app
 
 With the workspace built and the runtime configured, run the native smoke check from a fresh session. It selects G1, inspects its reference shoulder movement in Nexus, exports the episode, opens Replay and verifies that Evidence restores the same trial on restart.

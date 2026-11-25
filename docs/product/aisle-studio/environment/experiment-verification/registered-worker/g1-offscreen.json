@@ -1,0 +1,205 @@
+{
+  "backend": "offscreen",
+  "robot": "G1",
+  "task_sha256": "1c248393ef2b8cd48dbf6ccc22e9fd197edb99bbe208d999d1c8eba25e3b3e17",
+  "rules": [
+    {
+      "name": "Window light",
+      "property": "ambient",
+      "instance": null,
+      "range": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "name": "Table grip",
+      "property": "friction",
+      "instance": "object-oak",
+      "range": [
+        0.3,
+        0.8
+      ]
+    },
+    {
+      "name": "Chair position",
+      "property": "x",
+      "instance": "chair-left",
+      "range": [
+        -1.65,
+        -1.05
+      ]
+    },
+    {
+      "name": "Chair angle",
+      "property": "yaw",
+      "instance": "chair-left",
+      "range": [
+        -18.0,
+        18.0
+      ]
+    }
+  ],
+  "trials": [
+    {
+      "seed": 42,
+      "sample_sha256": "d2863213ddbf0763866fbfa5690ba4b6e2ce809178392e4bb002774321cae041",
+      "physics_steps": 2000,
+      "task_success": true,
+      "lease_id": "831fa02a-c14b-48ab-b479-3cb74014a32f",
+      "archive_sha256": "4ce805bd95a7415ef6b9fd3441bfa9b1ffbe94bb05896e5e4f5513912db81296",
+      "channels": {
+        "robot_trace": {
+          "requested": true,
+          "present": true,
+          "bytes": 3544945,
+          "sha256": "180e5fd62433bc3e4ba617a6c47960edd69dd43fc85abcf43a9021db831db07e",
+          "file": "robot-trace.jsonl",
+          "status": "complete"
+        },
+        "agent_history": {
+          "requested": true,
+          "present": true,
+          "bytes": 726,
+          "sha256": "0244bde98243d66cb07b9da54bf72bfa6f2cf2bf1363775d77d6d4f104239ea1",
+          "file": "agent-history.jsonl",
+          "status": "complete"
+        }
+      },
+      "values": {
+        "Window light": {
+          "value": 0.3736982445106015,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "ambient"
+          },
+          "source": "scene_rule"
+        },
+        "Table grip": {
+          "value": 0.7564512401174353,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "friction",
+            "instance": "object-oak"
+          },
+          "source": "scene_rule"
+        },
+        "Chair position": {
+          "value": -1.5739567102741796,
+          "type": "number",
+          "unit": "m",
+          "binding": {
+            "kind": "position",
+            "axis": "x",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        },
+        "Chair angle": {
+          "value": 6.964561373358009,
+          "type": "number",
+          "unit": "deg",
+          "binding": {
+            "kind": "yaw",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        }
+      },
+      "nexus_ambient_rgb": [
+        0.3736982445106015,
+        0.3736982445106015,
+        0.3736982445106015
+      ],
+      "table_collider_friction": 0.7564512401174353,
+      "measured_chair_x_m": -1.5739567279815674,
+      "measured_chair_yaw_deg": 6.964561329479022
+    },
+    {
+      "seed": 43,
+      "sample_sha256": "f507c7296ddc8f5410c5a333ca96ffc5d06bfedff1c988b952ac1e6c150393df",
+      "physics_steps": 2000,
+      "task_success": true,
+      "lease_id": "4e2cd5e1-c6f9-4836-afcf-45b60666653f",
+      "archive_sha256": "f4a765ebc021eeb5af9fafc55acd610d4ce93d871b4de304b6413ea4ec4e31e0",
+      "channels": {
+        "robot_trace": {
+          "requested": true,
+          "present": true,
+          "bytes": 3544945,
+          "sha256": "eb5366bd07bcfabe38352b654405ae95bc8235e91e8b940714b78bfe4ad350b5",
+          "file": "robot-trace.jsonl",
+          "status": "complete"
+        },
+        "agent_history": {
+          "requested": true,
+          "present": true,
+          "bytes": 726,
+          "sha256": "1ccb58841e718f5e2bccade0f3256b4cf384238a36162a0d516582290e9a93d0",
+          "file": "agent-history.jsonl",
+          "status": "complete"
+        }
+      },
+      "values": {
+        "Window light": {
+          "value": 0.2613375923392122,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "ambient"
+          },
+          "source": "scene_rule"
+        },
+        "Table grip": {
+          "value": 0.3213736091381465,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "friction",
+            "instance": "object-oak"
+          },
+          "source": "scene_rule"
+        },
+        "Chair position": {
+          "value": -1.5873178468488263,
+          "type": "number",
+          "unit": "m",
+          "binding": {
+            "kind": "position",
+            "axis": "x",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        },
+        "Chair angle": {
+          "value": -2.5088358648980407,
+          "type": "number",
+          "unit": "deg",
+          "binding": {
+            "kind": "yaw",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        }
+      },
+      "nexus_ambient_rgb": [
+        0.2613375923392122,
+        0.2613375923392122,
+        0.2613375923392122
+      ],
+      "table_collider_friction": 0.3213736091381465,
+      "measured_chair_x_m": -1.5873178243637085,
+      "measured_chair_yaw_deg": -2.5088358757138454
+    }
+  ],
+  "restored": true,
+  "worker": "bench-mini",
+  "worker_backend": "metal",
+  "nexus": "0.2.1",
+  "active_lease_before_restart": "831fa02a-c14b-48ab-b479-3cb74014a32f",
+  "same_lease_imported": true,
+  "local_supervisor_restarted": true,
+  "incompatible_worker_rejected": true
+}

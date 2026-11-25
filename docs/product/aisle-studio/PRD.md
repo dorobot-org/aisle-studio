@@ -1,6 +1,6 @@
 # AISLE Studio product requirements
 
-Version 1.2 · 2026-11-24 · Proposed product specification for standalone AISLE Studio
+Version 1.3 · 2026-11-24 · Proposed product specification for standalone AISLE Studio
 
 ## Purpose and users
 
@@ -72,6 +72,8 @@ For the Nano reference task, the judge checks grasp, release and settled support
 
 Every launched repetition gets a manifest containing a run ID, batch and repetition IDs, pinned scene, asset, task and controller revisions, robot and engine versions, seed, sampled values, custom settings, recording choices, timestamps and outcome. Rerunning with a recorded seed restores the sampled inputs. Evidence reports the measured outcome of each execution independently.
 
+For a registered worker, Run must show the robot model match, physics engine and available capacity before launch. The saved configuration pins the worker identity. Each remote repetition uses its run ID as the lease ID and persists the exact request before sending it. Reopening Studio after losing the local supervisor must recover the original lease. The receiver must verify the controller bytes, task, sampled layout and downloaded archive before publishing the outcome in Evidence. If a compatible worker is full, show that the repetition is waiting. Cancellation must address the original lease. A retry gets a distinct lease linked to its parent. [Operator workflow](environment/experiments.md#run-on-a-registered-worker)
+
 With robot tracing enabled, export `robot-trace.jsonl` with timestamped physics steps, joint state, commanded actions and available contact or guard events. With agent history enabled, export `agent-history.jsonl` with timestamped prompts, model/provider identity, returned responses, tool calls and results observed by Studio, and references to supplied images. Associate events with the authoring or execution stage and the controller and run IDs. Reusing a prepared controller links to its available authoring record and identifies any stage with no new agent call. Exclude credentials. Describe missing or partial logs explicitly, including interruption. Turning a switch off omits that optional log from the trial. The manifest and verdict are retained in all modes. Qualification suites continue to declare the recordings needed to verify their claims.
 
 ### Evidence, replay and revisions
@@ -140,13 +142,14 @@ Studio owns pages and artifact navigation. AISLE owns execution and scoring. Rob
 
 The standalone release qualifies named scene ranges through the native Run page on both reference robots. On seeds 42 and 43, G1 must finish the standing reach with both feet loaded throughout, and Nano must pick up the red cube and leave it settled on the table. Each executed layout must match its preview digest. Studio must retain the failed low-light Nano controller alongside its correction so an evaluator can replay the same input and inspect the original camera evidence. DevHub J8 passed all four simulations. The dim-table correction has matched-seed evidence for this room. Broader lighting generalization remains unmeasured. [G1 and Nano receipts](environment/devhub/scene-ranges/verification.json) · [Matched Nano replay](environment/experiment-verification/nano-dim-oak/README.md)
 
-### Remaining work for the standalone simulation release
+DevHub J10 qualified saved experiments across two Macs. The native app rejected an incompatible worker, showed the registered worker’s capabilities and resumed the original remote lease after both the app and its local batch supervisor exited. G1 and Nano passed two seeds each. The worker reproduced all four preview digests. Nano made a second pickup attempt on seed 42 and finished in 12,768 steps, compared with 7,088 on the first Mac. Both placements held measured table contact for the final 100 ticks. The two runs used different recording settings. Preserve independent action sequences and verdicts for each execution. [Headless receipts](environment/devhub/experiment-worker/verification.json) · [Matched inputs and outcomes](environment/devhub/experiment-worker/matched-inputs.json)
+
+### Remaining product release gates
 
 | Order | Owner and decision | Acceptance evidence |
 | --- | --- | --- |
-| 1 | Studio and AISLE teams expose the worker choice on a saved experiment. The scene now owns named pose, friction and ambient-light ranges. Run can enable them individually and preview their samples. Operators also need the selected worker’s capabilities before launch | Reopen a preset, preview its seeds, reject an unsupported worker before launch, run the same frozen input on a registered worker and reconnect to the original job after restarting Studio. [Current experiment workflow](environment/experiments.md) |
-| 2 | Studio and agent teams extend scene composition beyond the current local commands. An ambiguous instruction should lead to an editable preview with the proposed instances identified | Exercise a later instruction against two similar chairs. Resolve an ambiguity in the UI, inspect the preview, apply it and undo it. Show which agent or local command produced the change. [Existing scene commands](environment/scene-editor.md) |
-| 3 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Resolve a versioned package to its implementation digest on the deployment runtime. Pair a supervised hardware run with its simulation, verify calibration, sensor-loss response and operator stop, and retain both records |
+| 1 | Studio and agent teams extend scene composition beyond the current local commands. An ambiguous instruction should lead to an editable preview with the proposed instances identified | Exercise a later instruction against two similar chairs. Resolve an ambiguity in the UI, inspect the preview, apply it and undo it. Show which agent or local command produced the change. [Existing scene commands](environment/scene-editor.md) |
+| 2 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Resolve a versioned package to its implementation digest on the deployment runtime. Pair a supervised hardware run with its simulation, verify calibration, sensor-loss response and operator stop, and retain both records |
 
 ## Capability comparison and release decisions
 
@@ -166,6 +169,14 @@ The Run preview and batch sampler now reproduce the same seeded layouts on both 
 ### Review of the 23 November Dorobot × Antigravity comparison
 
 The ecosystem comparison covers the AISLE household example, Octos bridges and the predecessor Studio. The standalone Studio feature branch has separate implementation and qualification records. The following requirements apply to the Nano and G1 reference profiles.
+
+The comparison also calls for a single source for deployed skills, fine positioning with wrist feedback and a Studio view of each planning decision. The product owner can accept these features independently.
+
+| Operator action | Product requirement | Acceptance evidence |
+| --- | --- | --- |
+| Select a deployed skill | Task shows the package source, version, implementation digest, supported robot, sensor inputs and action units. If two installed sources advertise the same name and version with different implementations, show both and require an explicit selection. Pin the resolved package in the controller and trial. | Install two conflicting test packages. Reopen the chosen skill, execute its simulated action through the deployment bridge, and match the digest reported by the bridge to the selection. Repeat with Nano and G1 profiles. |
+| Correct the final approach | Nano can use its wrist image to correct the final pre-grasp alignment. Evidence shows the sensor exposures, residual alignment error, correction commands and the guard decision. The operator can replay a loss of the target. | Perturb the target after the approach, retain the first image showing a displacement, and measure alignment relative to the gripper’s capture tolerance before closing. Verify a bounded stop when the target disappears. Publish attempts and failures together with the tolerance. |
+| Inspect a high-level agent decision | Evidence links each retained planning request and reply to the observation, selected action, current run and originating provider. Importing a household result or evaluation card must verify its run identity and show which evaluator produced the verdict. | Open a failed run, inspect its first changed decision and follow it to the recorded images and action. Import an evaluation card with a different run ID and verify that Studio reports the mismatch. |
 
 | Workflow | Verified implementation and scope | Remaining acceptance |
 | --- | --- | --- |

@@ -1,0 +1,212 @@
+{
+  "g1": {
+    "task_sha256": "1c248393ef2b8cd48dbf6ccc22e9fd197edb99bbe208d999d1c8eba25e3b3e17",
+    "trials": [
+      {
+        "seed": 42,
+        "sample_sha256": "d2863213ddbf0763866fbfa5690ba4b6e2ce809178392e4bb002774321cae041",
+        "ui_machine": {
+          "result_sha256": "59bb27e32a44346862b5c7ff6f9be777939064839c5860859eb407ebc3144643",
+          "physics_ticks": 2000,
+          "controller_sha256": "27d80d6689078ad48c31a4c3109670c7d62a98c609149cd2975c9a95e6e14486",
+          "both_feet_loaded_steps": 2000
+        },
+        "registered_mini": {
+          "result_sha256": "714a372ea50837cc984f9043b36bb4ae0a61afcaeb82df991bdb8e4ca9ae7f10",
+          "physics_ticks": 2000,
+          "controller_sha256": "27d80d6689078ad48c31a4c3109670c7d62a98c609149cd2975c9a95e6e14486",
+          "both_feet_loaded_steps": 2000
+        }
+      },
+      {
+        "seed": 43,
+        "sample_sha256": "f507c7296ddc8f5410c5a333ca96ffc5d06bfedff1c988b952ac1e6c150393df",
+        "ui_machine": {
+          "result_sha256": "0c9518252b2e954d9621e587346a6f815033e127d472fa8fd36358504eadb20c",
+          "physics_ticks": 2000,
+          "controller_sha256": "27d80d6689078ad48c31a4c3109670c7d62a98c609149cd2975c9a95e6e14486",
+          "both_feet_loaded_steps": 2000
+        },
+        "registered_mini": {
+          "result_sha256": "456cd220d370bfc11de9a81501f0e5a03f652b680377bc154fc2656e147e97ef",
+          "physics_ticks": 2000,
+          "controller_sha256": "27d80d6689078ad48c31a4c3109670c7d62a98c609149cd2975c9a95e6e14486",
+          "both_feet_loaded_steps": 2000
+        }
+      }
+    ]
+  },
+  "nano": {
+    "task_sha256": "e19f1e44536119346ac38ff97578f57515f6c04b30cf2eabae8827ae363696c5",
+    "trials": [
+      {
+        "seed": 42,
+        "sample_sha256": "d2863213ddbf0763866fbfa5690ba4b6e2ce809178392e4bb002774321cae041",
+        "ui_machine": {
+          "result_sha256": "022bfe3120b43488487b72676ed562e89659e4b48af432f0abe5e8d209ed662a",
+          "physics_ticks": 7088,
+          "controller_sha256": "b93b6f8a622dc1b7199406d74e1b6ed337f019fe96088cf07a74b91ef78a5f7e",
+          "final_table_contact_ticks": 100,
+          "table_inset_mm": 93.7244534492493,
+          "phases": [
+            {
+              "tick": 0,
+              "action": "locate"
+            },
+            {
+              "tick": 980,
+              "action": "pick"
+            },
+            {
+              "tick": 2358,
+              "action": "carry"
+            },
+            {
+              "tick": 4798,
+              "action": "place"
+            },
+            {
+              "tick": 5374,
+              "action": "release"
+            },
+            {
+              "tick": 6188,
+              "action": "back away"
+            }
+          ],
+          "dim_oak_observations": 0,
+          "root_pose_writes": 0,
+          "invalid_motor_rows": 0
+        },
+        "registered_mini": {
+          "result_sha256": "41a8b29f3d268181bee39a041238adef32a590310fa6e36ebb539dbf76f9692a",
+          "physics_ticks": 12768,
+          "controller_sha256": "b93b6f8a622dc1b7199406d74e1b6ed337f019fe96088cf07a74b91ef78a5f7e",
+          "final_table_contact_ticks": 100,
+          "table_inset_mm": 95.3849792480469,
+          "phases": [
+            {
+              "tick": 0,
+              "action": "locate"
+            },
+            {
+              "tick": 960,
+              "action": "pick"
+            },
+            {
+              "tick": 2338,
+              "action": "carry"
+            },
+            {
+              "tick": 4218,
+              "action": "back away"
+            },
+            {
+              "tick": 4998,
+              "action": "locate"
+            },
+            {
+              "tick": 5858,
+              "action": "pick"
+            },
+            {
+              "tick": 7236,
+              "action": "carry"
+            },
+            {
+              "tick": 9196,
+              "action": "place"
+            },
+            {
+              "tick": 9772,
+              "action": "release"
+            },
+            {
+              "tick": 11868,
+              "action": "back away"
+            }
+          ],
+          "dim_oak_observations": 0,
+          "root_pose_writes": 0,
+          "invalid_motor_rows": 0
+        }
+      },
+      {
+        "seed": 43,
+        "sample_sha256": "f507c7296ddc8f5410c5a333ca96ffc5d06bfedff1c988b952ac1e6c150393df",
+        "ui_machine": {
+          "result_sha256": "889bff9aba6758e322b08162e2824dd22f39cffab930f3ca7ad46b73cb20bcb6",
+          "physics_ticks": 6908,
+          "controller_sha256": "b93b6f8a622dc1b7199406d74e1b6ed337f019fe96088cf07a74b91ef78a5f7e",
+          "final_table_contact_ticks": 100,
+          "table_inset_mm": 87.26515769958499,
+          "phases": [
+            {
+              "tick": 0,
+              "action": "locate"
+            },
+            {
+              "tick": 960,
+              "action": "pick"
+            },
+            {
+              "tick": 2338,
+              "action": "carry"
+            },
+            {
+              "tick": 4678,
+              "action": "place"
+            },
+            {
+              "tick": 5254,
+              "action": "release"
+            },
+            {
+              "tick": 6068,
+              "action": "back away"
+            }
+          ],
+          "dim_oak_observations": 40,
+          "root_pose_writes": 0,
+          "invalid_motor_rows": 0
+        },
+        "registered_mini": {
+          "result_sha256": "ba9e2d080699190eb51a74bf7a079ffa706742b1033fc21206a9e2d2d6fe3842",
+          "physics_ticks": 6948,
+          "controller_sha256": "b93b6f8a622dc1b7199406d74e1b6ed337f019fe96088cf07a74b91ef78a5f7e",
+          "final_table_contact_ticks": 100,
+          "table_inset_mm": 88.64583969116214,
+          "phases": [
+            {
+              "tick": 0,
+              "action": "locate"
+            },
+            {
+              "tick": 960,
+              "action": "pick"
+            },
+            {
+              "tick": 2338,
+              "action": "carry"
+            },
+            {
+              "tick": 4698,
+              "action": "place"
+            },
+            {
+              "tick": 5274,
+              "action": "release"
+            },
+            {
+              "tick": 6088,
+              "action": "back away"
+            }
+          ],
+          "dim_oak_observations": 41,
+          "root_pose_writes": 0,
+          "invalid_motor_rows": 0
+        }
+      }
+    ]
+  }
+}

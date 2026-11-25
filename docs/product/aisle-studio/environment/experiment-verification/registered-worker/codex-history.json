@@ -1,0 +1,20 @@
+{
+  "provider": "codex",
+  "model": "gpt-6.2-astra",
+  "task_sha256": "9acd6a8b086fc4127543be64c1a92d5f646fd806bec48358b6a8378b5b5dc75c",
+  "controller_sha256": "e4cfc833e3662c4ae99f1b4abba5eea025e40bff9c37fa37d5523d21b67ebbdf",
+  "sample_sha256": "06dfb99719218f91d3e372105ff81b5e34d7146f38e2d899252bff167e85362f",
+  "seed": 43,
+  "run_id": "d6e3b036-25a2-4b6c-bcac-da588ae5ac6c",
+  "physics_ticks": 2000,
+  "task_success": true,
+  "both_feet_loaded_steps": 2000,
+  "preserved_events": [
+    "prompt",
+    "response",
+    "controller_reused"
+  ],
+  "history_sha256": "a2d73cbff02f271ad80a713d3d03ff7364b49456755c957d776232ad5f0da9ac",
+  "new_model_calls_on_worker": 0,
+  "archive_sha256": "9fa3de116d32e164183cedcb87b2fe0de67a3f48fc265a8baed659b0c1cd54ac"
+}

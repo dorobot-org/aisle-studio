@@ -1,6 +1,6 @@
-# Repeat a Nano experiment in Nexus
+# Repeat a Nano or G1 experiment in Nexus
 
-Prepare a controller for a saved scene in **Task**. Open **Run → Repeat experiment**. The heading shows the robot, instruction, pinned scene revision, controller and local Nexus worker.
+Prepare a controller for a saved scene in **Task**. Open **Run → Repeat experiment**. The heading shows the robot, instruction, pinned scene revision, controller and selected worker. Configurations created before worker selection was available open with the local Nexus worker.
 
 1. Name the configuration and enter the number of repetitions. Choose sequential seeds, an explicit list, or identical inputs. A sequential run starts at the base seed. An explicit list needs one unsigned 32-bit seed for each repetition.
 2. Choose **Batch defaults** to set **Robot trace** and **Agent history** independently. Choose a repetition to override either switch. **Use batch defaults** clears that repetition’s overrides. **Record cameras** controls the replay dataset. Nano continues to use its onboard RGB and encoders in all four log modes.
@@ -10,6 +10,31 @@ Prepare a controller for a saved scene in **Task**. Open **Run → Repeat experi
 6. Reopen **Run → Repeat experiment** to inspect the batch. The project stores the batch under `aisle/experiments/<batch-id>`. Each `trials/<run-id>/` contains the manifest and sampled layout. A finished physics run includes its measured result. Enabled logs appear as `robot-trace.jsonl` and `agent-history.jsonl`.
 
 Robot traces contain measured and commanded joint values, physics steps and contact or guard information. Agent history identifies which provider prepared the controller and when a run reused it. The reference controller yields an explicit reference event. Camera, trace and agent history can therefore have different availability for one trial.
+
+## Run on a registered worker
+
+1. Set `DOROBOT_AISLE_WORKERS` on the Studio machine to the path of a worker registry. Each alias has a Python interpreter, Studio checkout, AISLE checkout and initialized worker spool. For SSH transport, set `ssh` to an SSH configuration alias. These paths refer to the worker. Initialize a new spool on that machine with `"$DOROBOT_AISLE_PYTHON" tools/aisle_workbench/fleet_worker.py --root "$WORKER_SPOOL" init --slots 2`. Choose the capacity appropriate for that worker.
+2. Select the alias under **Run configuration → Worker**. Studio checks the batch protocol and the digest of the selected robot model. The panel displays the Nexus backend, engine version and occupied slots. **Check worker** refreshes those values. **Start batch** becomes available for a compatible worker. A saved configuration pins the worker’s identity, so replacing the machine behind an alias requires choosing it again.
+3. Preview a seed and start the batch. The remote worker independently samples the frozen configuration and checks the layout digest before it acquires a simulation slot. The batch waits if all slots are busy. The camera, robot trace and agent history choices travel with the repetition. When history is enabled, the worker receives the redacted events retained by Studio.
+4. Reopen Run after closing Studio. A running repetition keeps the same lease ID. Studio retrieves its status and verifies the completed archive checksum before attaching its files to the trial in Evidence. **Cancel trial** targets the selected lease. **Retry trial** allocates a new ID and retains the original seed and parent ID.
+
+A registry can contain an entry like this. Use absolute paths on your worker and an SSH alias already available to the account running Studio.
+
+```json
+{
+  "lab-mini": {
+    "ssh": "lab-mini",
+    "python": "/opt/aisle/venv/bin/python",
+    "checkout": "/opt/aisle/studio",
+    "aisle_root": "/opt/aisle/runtime",
+    "spool": "/opt/aisle/experiment-spool"
+  }
+}
+```
+
+In the offscreen G1 check, Studio rejected the incompatible worker, displayed the compatible worker’s Metal backend and slot occupancy, then recovered the same lease after the app and its local batch supervisor exited. A separate trial cancelled an active remote G1 lease and retried its seed with camera recording enabled. The retry completed 2,000 physics steps and returned 100 operator-camera frames with the optional trace and agent history disabled. [Worker selection](experiment-verification/registered-worker/worker-selection.png) · [Offscreen receipt](experiment-verification/registered-worker/g1-offscreen.json) · [Cancellation, retry and camera measurements](experiment-verification/registered-worker/cancel-and-retry.json) The G1 headless journey passed again after Studio added launch checks for saved controller and scene revisions and sampled camera capabilities. [Final preflight receipt](experiment-verification/registered-worker/g1-preflight.json)
+
+Both provider histories were exercised on the mini. Studio sent previously prepared Codex and DeepSeek via Octos standing-reach controllers. Each returned the original prompt and response linked to the new run, plus a controller-reuse event. Both runs held foot contact for 2,000 of 2,000 steps. The worker made zero new model calls. These trials measure execution and history portability. [Codex receipt](experiment-verification/registered-worker/codex-history.json) · [DeepSeek via Octos receipt](experiment-verification/registered-worker/octos-deepseek-history.json)
 
 ## Limit an object's starting position
 
