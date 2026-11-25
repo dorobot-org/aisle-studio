@@ -19,6 +19,14 @@ Robot traces contain measured and commanded joint values, physics steps and cont
 
 The two native checks authored a floor region for the red cube and a named tabletop region for the blue cube. They rejected an out-of-bounds region, retained the original scene revision and ran G1 for 2,000 steps on each of two seeds. In the 20° rotated tabletop frame the blue cube settled at (0.2846, −0.0623) m and (0.2182, −0.1359) m. Both backends reproduced the same layout digests. The measured cube bottoms were within 0.002 mm of their support planes in Nexus. These measurements describe simulator geometry. [Offscreen measurements](experiment-verification/start-areas-offscreen.json) · [Headless measurements](experiment-verification/start-areas-headless.json)
 
+## Reuse lighting, material and pose ranges from a scene
+
+In **Scene editor → Experiment ranges**, choose **New range**. Name the range, select a property and enter its minimum and maximum. World X, Y and Z use metres, yaw uses degrees and surface friction is dimensionless. Choose the target object for these properties. Room ambient light accepts a scalar from zero to one for all three color channels. Select **Save range**, then **Save revision**. Reopen a range to edit or remove it.
+
+Bind the new scene revision on **Task** and prepare a controller. In **Run → Repeat experiment → Scene experiment ranges**, select and enable each range you want. **Preview layout** shows the sampled values and layout digest for each seed. **Save configuration** retains the enabled combination. Each trial records its realized values, originating scene rule and layout digest.
+
+In the offscreen G1 run, seeds 42 and 43 placed the left chair at −1.574 m and −1.587 m on the X axis, with measured yaw of +6.965° and −2.509°. Nexus used ambient RGB levels of 0.374 and 0.261. The saved collider configuration applied friction coefficients of 0.756 and 0.321 to all five table colliders. Each G1 trial completed 2,000 steps. [Native Scene editor](experiment-verification/scene-ranges.png) · [Run preview](experiment-verification/scene-range-preview.png) · [Offscreen receipt](experiment-verification/scene-ranges-offscreen.json)
+
 ## Measured runs
 
 Each native test selected the two chairs and configured five repetitions. The first four placed the selected red cube on the named tabletop. The operator cancelled the fifth before execution and reopened Studio during the batch. Every recorded robot row was checked for its simulation timestamp, 17 joint values, commands and wheel support. Each retained history was checked against the frozen controller and run ID.

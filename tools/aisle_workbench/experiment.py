@@ -236,12 +236,21 @@ def sample(task, config, seed):
         values[name] = dict(value=value, type=p["type"], unit=unit, binding=binding)
     for p in scene_parameters:
         values[p["name"]]["source"] = "scene_rule"
+    range_positions = {
+        (p["binding"]["instance"], p["binding"]["axis"]): p["name"]
+        for p in scene_parameters
+        if p["binding"]["kind"] == "position"
+    }
     for identifier, edits in config.get("pose_edits", {}).items():
         obj = object_(identifier)
         for axis, value in edits.items():
             finite(value, f"{identifier} {axis}")
             if axis not in ("x", "y", "z"):
                 raise ValueError("Position edits need an x, y or z axis")
+            if name := range_positions.get((identifier, axis)):
+                raise ValueError(
+                    f"Disable scene range {name} before setting {identifier} {axis} directly"
+                )
             obj["position_m"]["xyz".index(axis)] = value
             occupied.add((identifier, "xyz".index(axis)))
     layout = dict(
