@@ -8,7 +8,15 @@ In **Task**, choose an installed Octos skill and prepare a controller. For Nano,
 4. Configure the reviewer's identity, enter a rationale, and choose **Approve simulation** or **Reject simulation**. Studio replays the raw evidence again and checks the OpenSSH signature against the installation's allowed signers. An approval requires the registered threshold and verified traces for every case. A later signed rejection supersedes the prior approval for this project.
 5. To pass the result to another team, select the reviewed controller in **Task** and choose **Export signed handoff**. The dossier binds the registration, verified verdict and decision history. Physical-device calibration, telemetry loss, stop behavior and supervised motion have a separate acceptance record.
 
-## Recorded simulations
+## Third release qualification
+
+The third Nano release completed **46/50** fresh three-cube layouts and met the 45/50 simulation gate. The verifier checked 50 distinct executions, recorded 0 guard bypasses, and measured wheel support for 1,390,551 of 1,390,552 ticks. The third G1 release completed **20/20** bounded-impact standing reaches with 40,000 two-foot-supported steps. Independent archive restores reproduced both verdicts. [Nano results, failures and raw evidence](nano/release-3/outcomes.md) · [G1 results and raw evidence](g1/release-3/outcomes.md)
+
+The selected Nano revision reobserves earlier cubes from a stationary, raised wrist when placement tracking fails. It completed 17/17 development layouts from the second release, recovering 11/11 previously failed layouts and preserving 6/6 successful controls. It also completed 11/12 disclosed layouts from the original cohort. The fresh 50-layout Nano registration shares no seeds with either earlier cohort. G1 repeats the 20-case standing reach because the Studio adapter identity is shared by both profiles. [Development measurements](nano/placement-recovery/README.md) · [Nano registration](nano/release-3/registration.json) · [G1 registration](g1/release-3/registration.json)
+
+The complete native page regression on the registered source also passed on the signed Makepad worker. The seven checks covered survey inputs, scene editing, G1 starts and randomization, the Nano task, Evidence and recorded data channels. [DevHub J27](../devhub/r3-pages-confirmed/job.json) · [Workflow receipts](../devhub/r3-pages-confirmed/verification.json)
+
+## First release simulations
 
 Both registrations reached the remote PR branch before execution. Members with repository access can compare the disclosed openings against those hashes. [Preregistration commit](https://github.com/dorobot-org/aisle-studio/commit/0b0c6ab79a04646dfea2476bc4e67ed66b622311)
 
@@ -40,14 +48,6 @@ The second G1 release met every registered requirement. All 20 standing reaches 
 Signed Makepad DevHub job J17 tested the exact frozen Nano controller on disclosed layout 20. The headless Evidence page completed the transfer, reopened it after restart and correctly restored the selected result when switching between cases. [Build manifest](../devhub/release-2-replay/verification.json) · [Nano receipt](../devhub/release-2-replay/nano-case/verification.json)
 
 Codex and DeepSeek via Octos also received the same instruction and public feedback independently. Each completed two of the three disclosed comparison layouts. Their motor journals were identical in all three pairs, including the docking timeout. [Matched provider measurements](nano/provider-comparison/README.md)
-
-## Third release registration
-
-The selected Nano revision reobserves earlier cubes from a stationary, raised wrist when placement tracking fails. It completed 17/17 development layouts from the second release, recovering 11/11 previously failed layouts and preserving 6/6 successful controls. It also completed 11/12 disclosed layouts from the original cohort. The fresh 50-layout Nano registration shares no seeds with either earlier cohort. G1 repeats the 20-case standing reach because the Studio adapter identity is shared by both profiles. [Development measurements](nano/placement-recovery/README.md) · [Nano registration](nano/release-3/registration.json) · [G1 registration](g1/release-3/registration.json)
-
-The third G1 qualification passed all 20 cases. The verifier measured 40,000 two-foot-supported steps and zero guard bypasses. The native Evidence page reopened and independently checked the same archive on signed DevHub jobs J25 and J26. [G1 results, screenshots and raw evidence](g1/release-3/outcomes.md)
-
-The complete native page regression on the registered source also passed on the signed Makepad worker. The seven checks covered survey inputs, scene editing, G1 starts and randomization, the Nano task, Evidence and recorded data channels. [DevHub J27](../devhub/r3-pages-confirmed/job.json) · [Workflow receipts](../devhub/r3-pages-confirmed/verification.json)
 
 ## Reviewer identity
 

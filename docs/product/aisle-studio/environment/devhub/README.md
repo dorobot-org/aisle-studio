@@ -53,6 +53,8 @@ The DevHub scheduler and its signed UI worker ran on the same Apple Silicon Mac.
 | J25 / L25 | `ca92ee1` | Opened a boundary and an interior case in the third G1 qualification and read the measured support and wrist error. | Exit 0 in 16 s. [Inspection](r3-g1-inspector/case-evidence/verification.json) |
 | J26 / L26 | `ca92ee1` | Reverified the third G1 archive, tested signer trust and reopened the decision after restart. | Exit 0 in 29 s. [Review](r3-g1-review/g1/verification.json) |
 | J27 / L1028 | `ca92ee1` | Drove the four native pages through survey, scene editing, G1 starts and ranges, Nano, evidence comparison and recording-channel replay. | Exit 0 in 979s. [Job](r3-pages-confirmed/job.json) · [Seven workflow receipts](r3-pages-confirmed/verification.json) |
+| J28 / L1029 | `ca92ee1` | Reopened the third Nano qualification and compared stepped camera frames with its archived exposures. | Exit 0 in 14s. [Inspector receipt](r3-nano-inspector/case-evidence/verification.json) |
+| J29 / L1030 | `ca92ee1` | Rechecked all 50 skill receipts and motor journals in Studio and exercised the simulation handoff decision. | Exit 0 in 23s. [Reviewer receipt](r3-nano-review/nano/verification.json) |
 
 The Evidence run captured 563 frames from each of the head, left-wrist and right-wrist cameras. Nexus measured the chair moving 0.30 m in the variant. The original rerun reproduced the parent verdict digest, and all 1,765 frozen parent artifacts retained their original bytes. [Trial receipts](native-pages/evidence/verification.json) · [Recording combinations](native-pages/channels/channel-verification.json)
 

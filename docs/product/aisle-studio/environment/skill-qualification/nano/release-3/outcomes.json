@@ -1,0 +1,67 @@
+{
+  "registered": 50,
+  "distinct_new_layouts": 50,
+  "layout_seed_overlap_with_original": 0,
+  "layout_seed_overlap_with_second": 0,
+  "complete_transfers": 46,
+  "verified": 50,
+  "bypasses": 0,
+  "qualified": true,
+  "per_cube_passes": {
+    "red": 50,
+    "green": 48,
+    "blue": 48
+  },
+  "physics_ticks": 1390552,
+  "wheel_supported_ticks": 1390551,
+  "layouts_with_robot_furniture_contacts": 1,
+  "rejected_motor_writes": 0,
+  "max_joint_excursion_rad": 0.0,
+  "interval_95": [
+    0.8116175308165717,
+    0.968450485911407
+  ],
+  "rows_sha256": "0109534d80b2c45a5682b8e7690278b2548ff830926b7b9c59d0964ec1f3f063",
+  "failed_cases": [
+    22,
+    25,
+    40,
+    49
+  ],
+  "failed_measurements": {
+    "22": {
+      "reasons": [
+        "Green cube recorded 2.62 cm signed table-edge clearance (must exceed 3.50 cm)"
+      ],
+      "unsupported_wheel_ranges": []
+    },
+    "25": {
+      "reasons": [
+        "Wheel support was missing for 1 of 24,304 ticks"
+      ],
+      "unsupported_wheel_ranges": [
+        {
+          "first_step": 12712,
+          "last_step": 12712,
+          "phase": "carry"
+        }
+      ]
+    },
+    "40": {
+      "reasons": [
+        "Cannot confirm placement heading and carried cube after braking",
+        "Blue cube recorded 0 airborne grip ticks (minimum 20), 0/100 final tabletop contact ticks, -91.01 cm signed table-edge clearance (must exceed 3.50 cm), settled center -55.43 cm above the tabletop (required 1.50\u20133.70 cm)",
+        "Green cube recorded 24/100 final tabletop contact ticks, still attached, -26.5 mm finger clearance (must exceed 1 mm), 2.92 cm signed table-edge clearance (must exceed 3.50 cm), 70.98 mm movement during settling (must be below 3 mm)"
+      ],
+      "unsupported_wheel_ranges": []
+    },
+    "49": {
+      "reasons": [
+        "Stereo table docking timed out",
+        "Robot\u2013furniture contact was recorded with back away/right_finger_b/coffee_table, carry/left_finger_b/coffee_table, carry/left_wrist_cam/coffee_table, carry/right_finger_b/coffee_table, pick/left_wrist_cam/coffee_table",
+        "Blue cube recorded 0/100 final tabletop contact ticks, still attached, -21.5 mm finger clearance (must exceed 1 mm), -17.21 cm signed table-edge clearance (must exceed 3.50 cm), settled center -33.01 cm above the tabletop (required 1.50\u20133.70 cm), 49.57 mm movement during settling (must be below 3 mm)"
+      ],
+      "unsupported_wheel_ranges": []
+    }
+  }
+}

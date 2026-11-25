@@ -1,0 +1,19 @@
+{
+  "robot": "Nano",
+  "registration": "b28ee8e77cfa0a942afc450f7cabdb4e169569511e8cd14370a3cbe39356578a",
+  "backend": "headless",
+  "verdict_sha256": "a427a29184fec1a61aa9a8c0695a3414d3e3848718a2c0232838657d174f4220",
+  "case": 0,
+  "source_release_exposures": 4,
+  "frames": [
+    {
+      "tick": 28558,
+      "rgb_sha256": "9e135a7c6774c53ae8a481ba04e499c5da166111344da4af1c7b65993518b721"
+    },
+    {
+      "tick": 28798,
+      "rgb_sha256": "c4c387a6c8be952a0e00cd759a1601476a056e505b8a2f932b81753175de957b"
+    }
+  ],
+  "coverage": "Three-cube success across layouts \u00b7 95% Wilson interval 81.2%\u201396.8%"
+}
