@@ -233,6 +233,7 @@ class TransferTests(unittest.TestCase):
         judge.airborne_in_jaw = {"red": False}
         judge.pick_contacts = {}
         judge.object_ids = {1: "coffee_table", 2: "red"}
+        judge.table_name = "coffee_table"
         judge.links = judge.slots = {23: "left_finger_a", 24: "left_finger_b"}
         judge.wheels = set()
         judge.grasped, judge.collisions, judge.excursions = (

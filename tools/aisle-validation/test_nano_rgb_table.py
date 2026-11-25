@@ -66,6 +66,27 @@ class TableTests(unittest.TestCase):
         np.testing.assert_allclose(occupied[0], [0.409, 0.289], atol=0.001)
         self.assertEqual(occupied_table_points([(rgb, pose, k)], edge, ["red"]), [])
 
+    def test_dim_oak_requires_stereo_geometry_and_chromatic_signal(self):
+        def dim(view, factor):
+            image, pose, intrinsics = view
+            return (image * factor).astype(np.uint8), pose, intrinsics
+
+        for head in (self.head, dim(self.head, 0.55)):
+            views = [head, dim(self.wrist, 0.55)]
+            self.assertIsNone(table_edge(views))
+            edge = table_edge(views, recover_dim_oak=True)
+            self.assertEqual(edge["exposure_mode"], "dim-oak")
+            self.assertAlmostEqual(edge["distance"], 0.62, delta=0.008)
+            self.assertAlmostEqual(edge["height"], 0.53, delta=0.006)
+        head = dim(self.head, 0.55)
+        self.assertIsNone(table_edge([head, head], recover_dim_oak=True))
+        self.assertIsNone(
+            table_edge([head, dim(self.wrist, 0.12)], recover_dim_oak=True)
+        )
+        self.assertNotIn(
+            "exposure_mode", table_edge([self.head, self.wrist], recover_dim_oak=True)
+        )
+
     def test_no_depth_from_one_camera_or_absent_surface(self):
         self.assertIsNone(table_edge([self.head, self.head]))
         blank, pose, k = self.wrist

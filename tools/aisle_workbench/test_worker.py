@@ -155,6 +155,18 @@ class InspectionTests(unittest.TestCase):
                 self.profile,
             )
 
+    def test_dim_table_perception_is_versioned_and_limited_to_nano_transfer(self):
+        transfer = dict(kind="table-transfer", color_order="red")
+        self.assertNotIn("table_perception", worker.validate(transfer, self.profile))
+        revised = transfer | {"table_perception": worker.OAK_TABLE_PERCEPTION}
+        self.assertEqual(worker.validate(revised, self.profile), revised)
+        for plan in (
+            revised | {"table_perception": "unknown"},
+            revised | {"kind": "visual-approach"},
+        ):
+            with self.assertRaisesRegex(ValueError, "perception"):
+                worker.validate(plan, self.profile)
+
     def test_association_requires_tracking_and_a_known_rule(self):
         plan = dict(kind="table-transfer", color_order="red", track_grasp=True)
         for rule in worker.GRASP_ASSOCIATIONS:

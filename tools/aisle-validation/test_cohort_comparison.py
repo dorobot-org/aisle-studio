@@ -1,6 +1,7 @@
 """Exercise paired verdicts using the published, measured Nano motor records."""
 
 import json
+import os
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -14,7 +15,15 @@ from nano_suite_evidence import EVIDENCE, pack, verify, verify_release_packet
 from nano_transfer_suite import summarize, worker
 from cohort_comparison import compare
 
-GUIDE = worker.ROOT / "docs/product/aisle-studio/validation/transfer-wrist-timing"
+GUIDE = (
+    Path(
+        os.environ.get(
+            "DOROBOT_VALIDATION_ARCHIVES",
+            worker.ROOT / "docs/product/aisle-studio/validation",
+        )
+    )
+    / "transfer-wrist-timing"
+)
 
 
 def two_cases(directory, order, missing=None):

@@ -369,8 +369,13 @@ def _execute(
     )
     if authored:
         config["table_appearance"] = authored.surface["appearance"]
-    if "wrist_clearance" in plan or "max_forward_speed_m_s" in plan:
+    if any(
+        key in plan
+        for key in ("wrist_clearance", "max_forward_speed_m_s", "table_perception")
+    ):
         worker.validate(plan, worker.describe("Nano"))
+    if "table_perception" in plan:
+        config["table_perception"] = plan["table_perception"]
     config["wrist_clearance"] = plan.get("wrist_clearance", False)
     if "max_forward_speed_m_s" in plan:
         config["max_forward_speed_m_s"] = plan["max_forward_speed_m_s"]

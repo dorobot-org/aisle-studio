@@ -4,10 +4,12 @@ import cv2
 import numpy as np
 
 
-def rim_pixels(rgb, appearance="oak"):
+def rim_pixels(rgb, appearance="oak", *, include_dim_oak=False):
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
     if appearance == "oak":
-        mask = cv2.inRange(hsv, (9, 65, 88), (26, 180, 195))
+        mask = cv2.inRange(hsv, (9, 65, 32 if include_dim_oak else 88), (26, 180, 195))
+        if include_dim_oak:
+            mask[np.ptp(rgb, axis=2) < 16] = 0
     elif appearance == "neutral":
         mask = cv2.inRange(hsv, (0, 0, 55), (179, 45, 200))
     else:
@@ -65,12 +67,21 @@ def rays(pixels, pose, intrinsics):
     return (pose[:3, :3] @ local).T
 
 
-def table_edge(views, appearance="oak"):
+def table_edge(views, appearance="oak", *, recover_dim_oak=False):
     """Triangulate an edge in base_link. Views supply (RGB, encoder-derived pose, K)."""
+    edge = _triangulate(views, appearance, include_dim_oak=False)
+    if edge is None and recover_dim_oak and appearance == "oak":
+        edge = _triangulate(views, appearance, include_dim_oak=True)
+        if edge is not None:
+            edge["exposure_mode"] = "dim-oak"
+    return edge
+
+
+def _triangulate(views, appearance, *, include_dim_oak):
     planes = []
     sight = []
     for rgb, pose, intrinsics in views:
-        pixels = rim_pixels(rgb, appearance)
+        pixels = rim_pixels(rgb, appearance, include_dim_oak=include_dim_oak)
         if pixels is None:
             return None
         a, b = rays(pixels, pose, intrinsics)

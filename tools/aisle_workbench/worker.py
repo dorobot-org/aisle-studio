@@ -154,9 +154,16 @@ def named_cube_transfer(task, *, moving=False):
 
 
 GRASP_ASSOCIATIONS = ("all-views-unique-v1", "wrist-agreement-v1")
+OAK_TABLE_PERCEPTION = "oak-rgb-exposure-v2"
 
 
 def validate(plan, meta):
+    if "table_perception" in plan and (
+        meta["robot"] != "Nano"
+        or plan.get("kind") != "table-transfer"
+        or plan["table_perception"] != OAK_TABLE_PERCEPTION
+    ):
+        raise ValueError("Unknown Nano table perception method or incompatible task")
     if meta["robot"] == "Nano" and isinstance(plan.get("task"), str):
         named = named_cube_transfer(plan["task"])
         if named and (
@@ -208,6 +215,11 @@ def validate(plan, meta):
         return dict(
             kind="table-transfer",
             color_order=plan["color_order"],
+            **(
+                {"table_perception": plan["table_perception"]}
+                if "table_perception" in plan
+                else {}
+            ),
             **({"wrist_clearance": True} if plan.get("wrist_clearance") else {}),
             **(
                 {"max_forward_speed_m_s": plan["max_forward_speed_m_s"]}
@@ -874,6 +886,13 @@ def prepare(args, meta):
             raise ValueError(
                 "Only a tracked Nano pickup can change its RGB association method"
             )
+    if (
+        bound
+        and plan.get("kind") == "table-transfer"
+        and bound.surface
+        and bound.surface["appearance"] == "oak"
+    ):
+        plan["table_perception"] = OAK_TABLE_PERCEPTION
     validated = validate(plan | {"task": args.task}, meta)
     if bound and not matches_bound(bound,validated):
         raise ValueError("Controller does not match the selected scene task")

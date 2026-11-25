@@ -60,6 +60,7 @@ class Controller:
             raise ValueError("Joint order differs from the URDF")
         self.colors = config["colors"]
         self.table_appearance = config.get("table_appearance", "oak")
+        self.recover_dim_oak = config.get("table_perception") == "oak-rgb-exposure-v2"
         self.servo = VisualServo(config | {"color": self.colors[0], "standoff_m": 0.45})
         self.max_forward_speed = config.get("max_forward_speed_m_s", 0.13)
         self.track_grasp = bool(config.get("track_grasp"))
@@ -268,6 +269,7 @@ class Controller:
         return table_edge(
             self.table_views(self.sense() if data is None else data),
             self.table_appearance,
+            recover_dim_oak=self.recover_dim_oak,
         )
 
     def dock(self, color):
@@ -292,6 +294,11 @@ class Controller:
                 height_m=float(edge["height"]),
                 angle_rad=float(angle),
                 span_m=[float(v) for v in edge["span"]],
+                **(
+                    {"exposure_mode": edge["exposure_mode"]}
+                    if "exposure_mode" in edge
+                    else {}
+                ),
             )
             if abs(angle) < 0.09 and not elevated:
                 self.drive()

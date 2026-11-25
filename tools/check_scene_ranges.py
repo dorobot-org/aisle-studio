@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 from check_experiment import experiment_fixture
 from studio_native import NativeStudio
@@ -152,11 +153,16 @@ def main():
         shot("range-preview")
         click(run + "start")
         show(run + "feedback", "Batch started")
-        app.wait(
-            lambda s: s["controls"][run + "rows"]["text"].count("completed") == 2,
-            "two completed " + args.robot + " simulations",
+        terminal = re.compile(
+            r"\bSeed \d+\s+(completed|failed|cancelled|skipped)\s+Trace"
+        )
+        states = app.wait(
+            lambda s: len(terminal.findall(s["controls"][run + "rows"]["text"])) == 2,
+            "two terminal " + args.robot + " simulations",
             720,
         )
+        rows = states["controls"][run + "rows"]["text"]
+        assert terminal.findall(rows) == ["completed", "completed"], rows
     with app.launch():
         click("aisle_task." + args.robot.lower())
         click("tabs.plugin_tab_aisle_run")
@@ -185,10 +191,26 @@ def main():
             == r["sample_sha256"]
         )
         assert result["task_success"] and result["robot"] == args.robot
+        robot_evidence = {}
         if args.robot == "G1":
             assert result["both_feet_loaded_steps"] == result["physics_ticks"] == 2000
         else:
-            assert result["requested"] == ["red"] and result["cubes"]["red"]["passed"]
+            cube = result["cubes"]["red"]
+            assert result["requested"] == ["red"] and cube["passed"]
+            mode = read(trial / "controller.json")["table_perception"]
+            assert mode == "oak-rgb-exposure-v2"
+            observations = [
+                json.loads(line)
+                for line in (trial / "actions.jsonl").read_text().splitlines()
+            ]
+            dim = sum(row.get("exposure_mode") == "dim-oak" for row in observations)
+            if r["seed"] == 43:
+                assert dim > 0, (
+                    "The low-light trial must use an onboard stereo observation"
+                )
+            robot_evidence.update(
+                red_cube=cube, table_perception=mode, dim_oak_observations=dim
+            )
         for name, _, _, lo, hi in definitions:
             assert (
                 lo <= values[name]["value"] <= hi
@@ -213,6 +235,8 @@ def main():
                 seed=r["seed"],
                 sample_sha256=r["sample_sha256"],
                 physics_steps=result["physics_ticks"],
+                task_success=result["task_success"],
+                **robot_evidence,
                 values=values,
                 nexus_ambient_rgb=ambient,
                 table_collider_friction=colliders[0]["friction"],
