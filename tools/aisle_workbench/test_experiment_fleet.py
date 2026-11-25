@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from experiment import encode, sample
 from experiment_fleet import build_request
-from experiment_job import read, write
+from experiment_job import create, read, write
 from fleet_worker import HERE, dispatch, initialize, transaction, worker_identity
 from worker import digest
 
@@ -26,6 +26,8 @@ class ExperimentLeaseTests(unittest.TestCase):
         )
         envelope = read(fixture / "candidate-request.json")
         row, cfg = envelope["manifest"], envelope["configuration"]
+        self.source = fixture / "candidate.json"
+        self.config = cfg
         with transaction(self.root) as db:
             ident = worker_identity(db)
         worker = {
@@ -43,6 +45,35 @@ class ExperimentLeaseTests(unittest.TestCase):
             row,
             self.root,
         )
+
+    def test_saved_input_pins_and_sampled_worker_options_are_checked_before_publication(
+        self,
+    ):
+        root = self.root / "experiments"
+        for changed, error in [
+            ({"controller_sha256": "old"}, "different controller"),
+            ({"scene": {"id": "other", "revision": 1}}, "different scene"),
+        ]:
+            with self.assertRaisesRegex(ValueError, error):
+                create(root, self.config | changed, self.source)
+        feature = dict(
+            name="Visuals",
+            type="enum",
+            allowed_values=["compact-v1"],
+            default="compact-v1",
+            binding={"kind": "visual_profile"},
+            unit="",
+        )
+        cfg = self.config | {"worker": "registered", "parameters": [feature]}
+        caps = dict(
+            worker_id=str(uuid4()),
+            nexus=version("dimforge-nexus3d"),
+            nano_visual_bundles={},
+        )
+        with patch("experiment_fleet.capabilities", return_value=caps):
+            with self.assertRaisesRegex(ValueError, "matching Nano compact visuals"):
+                create(root, cfg, self.source)
+        self.assertEqual(list(root.glob("*/batch.json")), [])
 
     def test_request_replay_uses_one_lease_and_detects_changed_camera_selection(self):
         with patch("fleet_worker.subprocess.Popen") as spawn:

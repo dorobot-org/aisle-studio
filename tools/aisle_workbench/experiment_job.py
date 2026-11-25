@@ -63,7 +63,10 @@ def freeze_controller(source, target, plan, checksum, task_digest):
         if source.with_name(name).is_file()
     )
     for name in keep:
-        shutil.copy2(source.with_name(name), target / name)
+        shutil.copy2(
+            source if name == "controller.json" else source.with_name(name),
+            target / name,
+        )
     if (
         digest(target / "controller.json") != checksum
         or digest(target / "bound-task.json") != task_digest
@@ -104,6 +107,15 @@ def preview(config, source, expected, repetition):
 
 def create(root, config, source, expected=None, *, parent=None):
     plan, checksum, bound = selected_inputs(source, expected)
+    if config.get("controller_sha256", checksum) != checksum:
+        raise ValueError("The saved configuration identifies a different controller")
+    scene = bound.document["scene"]
+    if "scene" in config and any(
+        config["scene"].get(k) != scene[k] for k in ("id", "revision")
+    ):
+        raise ValueError(
+            "The saved configuration identifies a different scene revision"
+        )
     job = schedule(config, bound.document, bound.sha256, checksum, plan["model_hash"])
     alias = config.get("worker", "local")
     if alias != "local":
@@ -136,13 +148,27 @@ def create(root, config, source, expected=None, *, parent=None):
                 created=now(),
                 started=None,
                 ended=None,
-                nexus_version=job["worker"]["nexus"] if "worker" in job else version("dimforge-nexus3d"),
+                nexus_version=job["worker"]["nexus"]
+                if "worker" in job
+                else version("dimforge-nexus3d"),
                 asset_revisions=[
                     dict(id=a["id"], revision=a["revision"])
                     for a in bound.document["assets"]
                 ],
             )
             prepare_row(stage, job, row)
+            if "worker" in job and row["status"] == "planned":
+                from fleet_bridge import check_controller_capabilities
+
+                sampled = read(trial_path(stage, row) / "sampled-layout.json")[
+                    "controller"
+                ]
+                check_controller_capabilities(
+                    job["worker"],
+                    sampled.get("visual_profile", "original"),
+                    sampled.get("wrist_clearance", plan.get("wrist_clearance", False)),
+                    False,
+                )
         job["created"] = now()
         write(stage / "batch.json", job)
         stage.rename(dest)

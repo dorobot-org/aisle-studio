@@ -10,7 +10,7 @@ import time
 
 from experiment import encode, sha
 from experiment_recording import history, now
-from fleet_bridge import import_trial, nodes
+from fleet_bridge import check_controller_capabilities, import_trial, nodes
 from fleet_client import send, submission
 from fleet_worker import ACTIVE
 from worker import digest
@@ -29,7 +29,13 @@ def capabilities(root, alias, plan):
         raise ValueError("Update this worker to support frozen experiment batches")
     if reply.get("robots", {}).get(plan["robot"]) != plan["model_hash"]:
         raise ValueError("The worker does not have the selected robot model revision")
+    author_images = bool(
+        plan.get("scene_observation", {}).get("author_input", {}).get("images")
+    )
+    check_controller_capabilities(reply, "original", False, author_images)
     return dict(
+        nano_visual_bundles=reply.get("nano_visual_bundles", {}),
+        experimental_wrist_clearance=reply.get("experimental_wrist_clearance", False),
         alias=alias,
         worker_id=reply["worker_id"],
         backend=reply["backend"],

@@ -133,6 +133,24 @@ def submit(root, registry, alias, request):
     return info
 
 
+def check_controller_capabilities(caps, profile, clearance, author_images):
+    if author_images and caps.get("onboard_author_images") is not True:
+        raise ValueError(
+            "Update the selected worker to retain camera images sent to Codex"
+        )
+    if (
+        profile != "original"
+        and caps.get("nano_visual_bundles", {}).get(profile) != BUNDLE_SHA256
+    ):
+        raise ValueError(
+            "Update the selected worker to install matching Nano compact visuals"
+        )
+    if clearance and caps.get("experimental_wrist_clearance") is not True:
+        raise ValueError(
+            "Update the selected worker to use experimental wrist clearance"
+        )
+
+
 def verify_wrist_fixture(folder, request, state):
     fixture = request.get("rgb_timing", "normal")
     if state != "completed":
@@ -460,26 +478,9 @@ def operate(args):
             )
         ):
             capabilities = send(node, {"op": "hello"})
-            if needs_images and capabilities.get("onboard_author_images") is not True:
-                raise ValueError(
-                    "Update the selected worker to retain camera images sent to Codex"
-                )
+            check_controller_capabilities(capabilities, visual_profile, wants_clearance, needs_images)
             if visual_profile != "original":
-                if (
-                    capabilities.get("nano_visual_bundles", {}).get(visual_profile)
-                    != BUNDLE_SHA256
-                ):
-                    raise ValueError(
-                        "Update the selected worker to install matching Nano compact visuals"
-                    )
                 req["visual_profile"] = visual_profile
-            if (
-                wants_clearance
-                and capabilities.get("experimental_wrist_clearance") is not True
-            ):
-                raise ValueError(
-                    "Update the selected worker to use experimental wrist clearance"
-                )
             if args.rgb_timing != "normal" and args.rgb_timing not in capabilities.get(
                 "transfer_wrist_timing", []
             ):
