@@ -1,6 +1,6 @@
 # AISLE Studio product requirements
 
-Version 1.7 · 2026-11-25 · Proposed product specification for standalone AISLE Studio
+Version 1.8 · 2026-11-25 · Proposed product specification for standalone AISLE Studio
 
 ## Purpose and users
 
@@ -173,11 +173,13 @@ For the Nano reference task, the carrying hand must confirm a grasp before the b
 
 The second G1 registration repeated the full 20-case standing-reach qualification against the revised shared adapter. All 20 passed. The verifier checked 40,000 two-foot-supported steps, zero guard bypasses and 5.15 mm worst settled wrist error. Restoring the raw archive reproduced the verdict. [Second G1 qualification](environment/skill-qualification/g1/release-2/verification.json)
 
+The second Nano release completed **39/50** fresh layouts. All 50 independently verified and all 1,308,128 ticks were wheel-supported. There were zero guard bypasses, joint-limit excursions, rejected motor writes or robot–furniture contacts. Red met the full transfer criteria on 50 layouts, green on 47 and blue on 39. Nine failures involved tracking earlier cubes through a placement turn and two found no reachable clear release point. The release missed the 45/50 gate. [Complete outcomes and raw evidence](environment/skill-qualification/nano/release-2/outcomes.md)
+
 ### Remaining product release gates
 
 | Order | Owner and decision | Acceptance evidence |
 | --- | --- | --- |
-| 1 | Nano controller owner qualifies a revised three-cube skill | The original package scored 44/50. The selected revision completed 11/12 disclosed development layouts, preserving all six baseline-pass controls. Qualify the frozen release on its 50 fresh preregistered layouts and retain every outcome. [Matched comparison](environment/skill-qualification/nano/wrist-survey/README.md) · [Fresh registration](environment/skill-qualification/nano/release-2/registration.json) |
+| 1 | Nano controller owner qualifies a revised three-cube skill | The first release scored 44/50 and the second scored 39/50 on separate fresh cohorts. Develop a camera-based placement recovery on the disclosed failures, test it on matched successes and failures, then preregister one new 50-layout qualification for a material controller revision. [Matched comparison](environment/skill-qualification/nano/wrist-survey/README.md) · [Fresh registration](environment/skill-qualification/nano/release-2/registration.json) |
 | 2 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Obtain independent reviewer approval for the measured simulation package, identify and verify the implementation on the physical vendor node, then pair an authorized supervised device run with its simulation. Verify calibration, sensor-loss response and operator stop on each device. [Simulation package handoff](environment/spec-skills.md) |
 
 ## Capability comparison and release decisions
