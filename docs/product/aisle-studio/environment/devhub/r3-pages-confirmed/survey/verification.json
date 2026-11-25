@@ -1,0 +1,506 @@
+{
+  "backend": "headless",
+  "restored_photos_sha256": {
+    "table-leg.jpg": "5e3dff66299666dc57a3191fc49f027217c199be4ca1389c0a6f081006213db2",
+    "room.jpg": "2c8bbbe09869b67503ab65467188631eaff35a419d8311df5565389924d6028f",
+    "scene.png": "3e82b792b6c56983e735bc01db901b7181550a22c5924ccd2ae7c7f34ecba30e"
+  },
+  "restored_revisions_sha256": {
+    "assets/asset-FZ5cy8/1.json": "a04caf5bee3db08db149b3ab4be2fb4d14578d15a75b58485d239d020e7c4bc9",
+    "assets/asset-FZ5cy8/2.json": "f9f3a71b737da8c419e90a171c82a8995e8a27b22453403612472b0d85d03477",
+    "assets/asset-a5wxln/1.json": "ea2bae458be771282b1bd0e3f96790eb755df448f64279c0279e6f8b043bef27"
+  },
+  "assets": [
+    {
+      "id": "asset-FZ5cy8",
+      "name": "Coffee table",
+      "revision": 1,
+      "dimensions": [
+        {
+          "value": 80.0,
+          "unit": "cm",
+          "provenance": {
+            "source": "measured",
+            "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+            "endpoints": [
+              [
+                188.00000000000006,
+                327.0
+              ],
+              [
+                1223.0000000000002,
+                438.0
+              ]
+            ]
+          }
+        },
+        {
+          "value": 0.5,
+          "unit": "m",
+          "provenance": {
+            "source": "measured",
+            "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+            "endpoints": [
+              [
+                1223.0000000000002,
+                438.0
+              ],
+              [
+                1353.0,
+                279.0
+              ]
+            ]
+          }
+        },
+        {
+          "value": 45.0,
+          "unit": "cm",
+          "provenance": {
+            "source": "measured",
+            "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+            "endpoints": [
+              [
+                1197.0,
+                447.0
+              ],
+              [
+                1181.0000000000002,
+                900.0
+              ]
+            ]
+          }
+        }
+      ],
+      "physics": {
+        "material": {
+          "value": "Oak",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "appearance": {
+          "value": "neutral",
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "friction": {
+          "value": 0.6,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "restitution": {
+          "value": 0.0,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "movable": {
+          "value": false,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "graspable": {
+          "value": false,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "surface_name": {
+          "value": "Coffee tabletop",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "mass_kg": {
+          "value": null,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "shape": "four_leg_table",
+        "top_thickness_m": {
+          "value": 0.035,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "leg_width_m": {
+          "value": 0.045,
+          "provenance": {
+            "source": "default"
+          }
+        }
+      },
+      "geometry": {
+        "colliders": [
+          {
+            "name": "top",
+            "center_m": [
+              0.0,
+              0.0,
+              0.4325
+            ],
+            "size_m": [
+              0.8,
+              0.5,
+              0.035
+            ]
+          },
+          {
+            "name": "leg-front-left",
+            "center_m": [
+              0.3775,
+              0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          },
+          {
+            "name": "leg-front-right",
+            "center_m": [
+              0.3775,
+              -0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          },
+          {
+            "name": "leg-back-left",
+            "center_m": [
+              -0.3775,
+              0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          },
+          {
+            "name": "leg-back-right",
+            "center_m": [
+              -0.3775,
+              -0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          }
+        ],
+        "surfaces": [
+          {
+            "name": "Coffee tabletop",
+            "center_m": [
+              0.0,
+              0.0,
+              0.45
+            ],
+            "size_m": [
+              0.8,
+              0.5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "asset-FZ5cy8",
+      "name": "Coffee table",
+      "revision": 2,
+      "dimensions": [
+        {
+          "value": 80.0,
+          "unit": "cm",
+          "provenance": {
+            "source": "measured",
+            "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+            "endpoints": [
+              [
+                188.00000000000006,
+                327.0
+              ],
+              [
+                1223.0000000000002,
+                438.0
+              ]
+            ]
+          }
+        },
+        {
+          "value": 0.5,
+          "unit": "m",
+          "provenance": {
+            "source": "measured",
+            "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+            "endpoints": [
+              [
+                1223.0000000000002,
+                438.0
+              ],
+              [
+                1353.0,
+                279.0
+              ]
+            ]
+          }
+        },
+        {
+          "value": 45.0,
+          "unit": "cm",
+          "provenance": {
+            "source": "measured",
+            "photo": "14918efb044409b7a0131eacf723b999cfa22b1dbdc81951b7983c686d3af192",
+            "endpoints": [
+              [
+                1197.0,
+                447.0
+              ],
+              [
+                1181.0000000000002,
+                900.0
+              ]
+            ]
+          }
+        }
+      ],
+      "physics": {
+        "material": {
+          "value": "Oak",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "appearance": {
+          "value": "neutral",
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "friction": {
+          "value": 0.6,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "restitution": {
+          "value": 0.0,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "movable": {
+          "value": false,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "graspable": {
+          "value": false,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "surface_name": {
+          "value": "Coffee tabletop",
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "mass_kg": {
+          "value": null,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "shape": "four_leg_table",
+        "top_thickness_m": {
+          "value": 0.035,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "leg_width_m": {
+          "value": 0.045,
+          "provenance": {
+            "source": "default"
+          }
+        }
+      },
+      "geometry": {
+        "colliders": [
+          {
+            "name": "top",
+            "center_m": [
+              0.0,
+              0.0,
+              0.4325
+            ],
+            "size_m": [
+              0.8,
+              0.5,
+              0.035
+            ]
+          },
+          {
+            "name": "leg-front-left",
+            "center_m": [
+              0.3775,
+              0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          },
+          {
+            "name": "leg-front-right",
+            "center_m": [
+              0.3775,
+              -0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          },
+          {
+            "name": "leg-back-left",
+            "center_m": [
+              -0.3775,
+              0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          },
+          {
+            "name": "leg-back-right",
+            "center_m": [
+              -0.3775,
+              -0.2275,
+              0.20750000000000002
+            ],
+            "size_m": [
+              0.045,
+              0.045,
+              0.41500000000000004
+            ]
+          }
+        ],
+        "surfaces": [
+          {
+            "name": "Coffee tabletop",
+            "center_m": [
+              0.0,
+              0.0,
+              0.45
+            ],
+            "size_m": [
+              0.8,
+              0.5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "asset-a5wxln",
+      "name": "Red cube",
+      "revision": 1,
+      "dimensions": [
+        null,
+        null,
+        null
+      ],
+      "physics": {
+        "material": {
+          "value": "Unspecified",
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "appearance": {
+          "value": "neutral",
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "friction": {
+          "value": 0.6,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "restitution": {
+          "value": 0.0,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "movable": {
+          "value": true,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "graspable": {
+          "value": true,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "surface_name": {
+          "value": "tabletop",
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "mass_kg": {
+          "value": 0.09,
+          "provenance": {
+            "source": "operator"
+          }
+        },
+        "shape": "box",
+        "top_thickness_m": {
+          "value": 0.035,
+          "provenance": {
+            "source": "default"
+          }
+        },
+        "leg_width_m": {
+          "value": 0.045,
+          "provenance": {
+            "source": "default"
+          }
+        }
+      },
+      "geometry": {
+        "colliders": [],
+        "surfaces": []
+      }
+    }
+  ]
+}

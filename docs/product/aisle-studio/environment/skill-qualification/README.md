@@ -47,6 +47,8 @@ The selected Nano revision reobserves earlier cubes from a stationary, raised wr
 
 The third G1 qualification passed all 20 cases. The verifier measured 40,000 two-foot-supported steps and zero guard bypasses. The native Evidence page reopened and independently checked the same archive on signed DevHub jobs J25 and J26. [G1 results, screenshots and raw evidence](g1/release-3/outcomes.md)
 
+The complete native page regression on the registered source also passed on the signed Makepad worker. The seven checks covered survey inputs, scene editing, G1 starts and randomization, the Nano task, Evidence and recorded data channels. [DevHub J27](../devhub/r3-pages-confirmed/job.json) · [Workflow receipts](../devhub/r3-pages-confirmed/verification.json)
+
 ## Reviewer identity
 
 Configure the native Studio process with the two paths below. The signing key identifies the reviewer. The allowed signers file is maintained by the team that owns release decisions. Studio does not create a reviewer identity for an operator. Use an OpenSSH key available to the local signer, including through an unlocked agent. For example, the authorized-signers entry can scope a public key to this protocol.

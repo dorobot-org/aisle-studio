@@ -1,0 +1,38 @@
+[
+  {
+    "run_id": "5c54a200-93fe-4c69-ba87-080de27807b2",
+    "recording": {
+      "agent_history": false,
+      "robot_trace": false
+    },
+    "channels": "RGB \u00b7 0 frames per camera   /   Robot trace \u00b7 off   /   Agent history \u00b7 off",
+    "clock": "No camera recording"
+  },
+  {
+    "run_id": "642b2f45-9cfa-43f5-b530-67defbf8ef35",
+    "recording": {
+      "agent_history": false,
+      "robot_trace": true
+    },
+    "channels": "RGB \u00b7 0 frames per camera   /   Robot trace \u00b7 recorded   /   Agent history \u00b7 off",
+    "clock": "0.01 s   \u00b7   trace sample 1 / 565"
+  },
+  {
+    "run_id": "ab39a483-8562-4e5d-b4fc-41b92caf6d47",
+    "recording": {
+      "agent_history": true,
+      "robot_trace": false
+    },
+    "channels": "RGB \u00b7 0 frames per camera   /   Robot trace \u00b7 off   /   Agent history \u00b7 recorded",
+    "clock": "No camera recording"
+  },
+  {
+    "run_id": "ab9dc117-a958-43dc-943e-4fabfb64ad1e",
+    "recording": {
+      "agent_history": true,
+      "robot_trace": true
+    },
+    "channels": "RGB \u00b7 0 frames per camera   /   Robot trace \u00b7 recorded   /   Agent history \u00b7 recorded",
+    "clock": "0.01 s   \u00b7   trace sample 1 / 565"
+  }
+]

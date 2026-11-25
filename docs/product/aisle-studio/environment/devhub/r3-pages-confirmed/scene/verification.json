@@ -1,0 +1,225 @@
+{
+  "backend": "headless",
+  "base": {
+    "id": "scene-acLf47",
+    "revision": 1,
+    "parent": null,
+    "name": "Living room",
+    "room_m": [
+      6.0,
+      4.0
+    ],
+    "instances": [
+      {
+        "id": "object-bf73f6a40dda21f7503952a0df83bfcf",
+        "name": "Coffee table",
+        "asset": {
+          "id": "fixture-coffee-table",
+          "revision": 1
+        },
+        "position_m": [
+          -2.4000000000000004,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-398f40dc6abb912a2cfe8a2524ad02c9",
+        "name": "Chair",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          -0.8500000000000002,
+          0.649999999999998,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-193a6fe05429c9e793ad2b34796e9d95",
+        "name": "Chair 2",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          0.0,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-4747df566d2e183896049f4ff42c68b3",
+        "name": "Cube",
+        "asset": {
+          "id": "fixture-cube",
+          "revision": 1
+        },
+        "position_m": [
+          0.3000000000000007,
+          0.1755000000000006,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-58e4790c33ec0626b97e254f3cd4c69c",
+        "name": "Ottoman",
+        "asset": {
+          "id": "fixture-ottoman",
+          "revision": 1
+        },
+        "position_m": [
+          2.1,
+          1.5194999999999996,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      }
+    ],
+    "edit_history": [
+      {
+        "provider": "local",
+        "model": null,
+        "instruction": "Place one coffee table and two chairs in the room",
+        "request_sha256": null,
+        "reply_sha256": null,
+        "bindings": [],
+        "proposed_operations": [],
+        "affected": [
+          "object-bf73f6a40dda21f7503952a0df83bfcf",
+          "object-398f40dc6abb912a2cfe8a2524ad02c9",
+          "object-193a6fe05429c9e793ad2b34796e9d95"
+        ]
+      }
+    ]
+  },
+  "variant": {
+    "id": "scene-Vpo32k",
+    "revision": 1,
+    "parent": {
+      "id": "scene-acLf47",
+      "revision": 1
+    },
+    "name": "Living room variant",
+    "room_m": [
+      6.0,
+      4.0
+    ],
+    "instances": [
+      {
+        "id": "object-bf73f6a40dda21f7503952a0df83bfcf",
+        "name": "Coffee table",
+        "asset": {
+          "id": "fixture-coffee-table",
+          "revision": 1
+        },
+        "position_m": [
+          -2.4000000000000004,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-398f40dc6abb912a2cfe8a2524ad02c9",
+        "name": "Chair",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          2.72,
+          1.5194999999999996,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-193a6fe05429c9e793ad2b34796e9d95",
+        "name": "Chair 2",
+        "asset": {
+          "id": "fixture-chair",
+          "revision": 1
+        },
+        "position_m": [
+          0.0,
+          -1.3333333333333335,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-4747df566d2e183896049f4ff42c68b3",
+        "name": "Cube",
+        "asset": {
+          "id": "fixture-cube",
+          "revision": 1
+        },
+        "position_m": [
+          0.3000000000000007,
+          0.1755000000000006,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      },
+      {
+        "id": "object-58e4790c33ec0626b97e254f3cd4c69c",
+        "name": "Ottoman",
+        "asset": {
+          "id": "fixture-ottoman",
+          "revision": 1
+        },
+        "position_m": [
+          2.1,
+          1.5194999999999996,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "support": null
+      }
+    ],
+    "edit_history": [
+      {
+        "provider": "local",
+        "model": null,
+        "instruction": "Place one coffee table and two chairs in the room",
+        "request_sha256": null,
+        "reply_sha256": null,
+        "bindings": [],
+        "proposed_operations": [],
+        "affected": [
+          "object-bf73f6a40dda21f7503952a0df83bfcf",
+          "object-398f40dc6abb912a2cfe8a2524ad02c9",
+          "object-193a6fe05429c9e793ad2b34796e9d95"
+        ]
+      },
+      {
+        "provider": "local",
+        "model": null,
+        "instruction": "Move the left chair beside the ottoman",
+        "request_sha256": null,
+        "reply_sha256": null,
+        "bindings": [],
+        "proposed_operations": [],
+        "affected": [
+          "object-398f40dc6abb912a2cfe8a2524ad02c9"
+        ]
+      }
+    ]
+  },
+  "restored_base_sha256": "b8ae2a2f2194db1378e255b7b48a5bbfb24d5fec3d6d2875ae1cd1e9b9ac9e50"
+}
