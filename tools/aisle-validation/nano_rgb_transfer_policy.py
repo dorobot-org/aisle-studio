@@ -18,6 +18,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nano-three-cubes")
 from model import Kinematics, UnreachableGrasp  # noqa: E402
 
 
+class PlacementLandmarkLost(ValueError):
+    """Previously placed cubes could not be tracked consistently during a turn."""
+
+
 def visible_in_jaws(rgb, color):
     mask = color_mask(cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV), color)
     # Calibrated wrist ROI spans the gripper opening when the jaws are closed.
@@ -36,7 +40,7 @@ GRID_SPACING = 0.020
 EXTRA_INSET = 0.020
 
 
-def release_candidates(side, span):
+def release_candidates(side, span, *, resurvey=False):
     """Prefer the existing reachable slots, then scan the visible rim between them."""
     low, high = span
     for offset in (0, 0.08, -0.08, 0.115, -0.115, 0.15, -0.15):
@@ -49,6 +53,13 @@ def release_candidates(side, span):
     for inset in (RELEASE_INSET, RELEASE_INSET + EXTRA_INSET):
         for along in lateral:
             yield along, inset, "grid"
+    if resurvey:
+        # All earlier colors are visible in the raised-wrist image. Search inside
+        # the observed rim while retaining clearance for the 40 mm cube to settle.
+        interior = np.arange(low + 0.035, high - 0.035, 0.012)
+        for inset in (0.075, 0.065, 0.125, 0.145):
+            for along in sorted(interior, key=lambda x: abs(x - side)):
+                yield along, inset, "resurvey-grid"
 
 
 class Controller:
@@ -351,14 +362,16 @@ class Controller:
             self.drive(speed, np.clip(angle * 1.5, -0.4, 0.4))
         raise ValueError("Stereo table docking timed out")
 
-    def release_slot(self, edge, occupied):
+    def release_slot(self, edge, occupied, *, resurvey=False):
         along_axis = edge["along"]
         side = np.clip(
             along_axis @ np.array([0.40, 0.155]),
             edge["span"][0] + 0.009,
             edge["span"][1] - 0.009,
         )
-        for along, inset, search in release_candidates(side, edge["span"]):
+        for along, inset, search in release_candidates(
+            side, edge["span"], resurvey=resurvey
+        ):
             place = (edge["distance"] + inset) * edge["normal"] + along * along_axis
             if any(np.linalg.norm(place - point) < 0.078 for point in occupied):
                 continue
@@ -393,7 +406,9 @@ class Controller:
                     landmarks[camera, color] = points[0]
         return landmarks
 
-    def survey_release_area(self, edge, packet, color, prior_colors):
+    def survey_release_area(
+        self, edge, packet, color, prior_colors, *, confirm_each=False
+    ):
         """Look over the observed rim with the spare wrist, then restore the docking posture."""
         names = self.servo.cameras["right_wrist"][0].joint_names
         encoders = packet["encoders"]
@@ -407,9 +422,12 @@ class Controller:
             view = self.table_views(seen, ("right_wrist",))[0]
             camera_height = float(view[1][2, 3])
             if camera_height - edge["height"] < 0.05:
-                return []
+                return None if confirm_each else []
             self.release_observation(seen, edge, color)
-            occupants = occupied_table_points([view], edge, prior_colors)
+            groups = [
+                occupied_table_points([view], edge, [prior]) for prior in prior_colors
+            ]
+            occupants = [point for group in groups for point in group]
             self.act(
                 "table observation",
                 survey_camera="right_wrist",
@@ -417,6 +435,8 @@ class Controller:
                 survey_occupants=len(occupants),
                 color=color,
             )
+            if confirm_each and any(len(group) != 1 for group in groups):
+                return None
             return occupants
         finally:
             self.joints(previous, 220)
@@ -440,7 +460,9 @@ class Controller:
 
         landmarks = self.release_landmarks(packet, edge, prior_colors)
         if not landmarks:
-            raise ValueError("Cannot track an earlier cube through a placement turn")
+            raise PlacementLandmarkLost(
+                "Cannot track an earlier cube through a placement turn"
+            )
         original = edge["normal"]
         tangent = np.array([-original[1], original[0]])
 
@@ -476,7 +498,7 @@ class Controller:
             reference = initial_landmarks if direct else previous_landmarks
             common = sorted(fresh.keys() & reference.keys())
             if not common:
-                raise ValueError(
+                raise PlacementLandmarkLost(
                     "Lost the observed cubes across consecutive placement-turn images"
                 )
             offsets = [fresh[key] - reference[key] for key in common]
@@ -486,7 +508,7 @@ class Controller:
                 or abs(shift - tangent_shift) > 0.025
                 or np.ptp(offsets) > 0.045
             ):
-                raise ValueError(
+                raise PlacementLandmarkLost(
                     "Cube motion across the placement turn is inconsistent"
                 )
             tangent_shift = shift
@@ -548,6 +570,70 @@ class Controller:
             color=color,
         )
         return current, seen + kept
+
+    def resurvey_placement(self, origin, color, prior_colors):
+        """Stop at a visually bounded heading and remeasure each earlier cube from above."""
+        normal = origin["normal"]
+        tangent = np.array([-normal[1], normal[0]])
+
+        def observe():
+            packet = self.sense()
+            rim = self.table(packet)
+            if rim is None:
+                raise ValueError("Cannot see the table rim during placement recovery")
+            yaw = math.atan2(rim["normal"] @ tangent, rim["normal"] @ normal)
+            if abs(rim["distance"] - origin["distance"]) > 0.025 or abs(yaw) > 0.36:
+                raise ValueError(
+                    "Placement recovery exceeded the observed standoff or heading limit"
+                )
+            return packet, rim, yaw
+
+        self.drive()
+        packet, rim, yaw = observe()
+        other_headings = sorted(
+            (0.20, -0.20, 0.30, -0.30), key=lambda target: abs(target - yaw)
+        )
+        targets = [
+            yaw,
+            *[angle for angle in (0.0, *other_headings) if abs(angle - yaw) > 0.025],
+        ]
+        for target in targets:
+            try:
+                for _ in range(70):
+                    error = yaw - target
+                    if abs(error) < 0.012:
+                        break
+                    self.drive(turn=np.clip(1.5 * error, -0.16, 0.16))
+                    packet, rim, yaw = observe()
+                else:
+                    raise ValueError(
+                        "Could not reach the visual placement recovery heading"
+                    )
+            finally:
+                self.drive()
+            packet, rim, yaw = observe()
+            if abs(yaw - target) > 0.035 or not self.held_in_wrist_view(color, packet):
+                raise ValueError(
+                    "Cannot confirm the carried cube or braked recovery heading"
+                )
+            seen = self.survey_release_area(
+                rim, packet, color, prior_colors, confirm_each=True
+            )
+            self.act(
+                "table observation",
+                color=color,
+                recovery="stationary-placement-resurvey",
+                heading_rad=yaw,
+                previous_colors_confirmed=seen is not None,
+            )
+            if seen is not None:
+                selection = self.release_slot(rim, seen, resurvey=True)
+                if selection is not None:
+                    self.last_rim_distance = rim["distance"]
+                    return rim, seen, selection
+        raise ValueError(
+            "No clear reachable slot with all previous colors confirmed in a fresh wrist image"
+        )
 
     def back_away(self, color, exposure=None):
         if self.last_rim_distance is None:
@@ -678,14 +764,24 @@ class Controller:
                     # The head and docked spare wrist can both be below the tabletop.
                     # A second exposure above the rim can resolve an occluded prior placement.
                     occupied.extend(
-                        self.survey_release_area(edge, observation, color, self.colors[:index])
+                        self.survey_release_area(
+                            edge, observation, color, self.colors[:index]
+                        )
                     )
             selection = self.release_slot(edge, occupied)
             if selection is None and index and self.wrist_clearance:
-                edge, occupied = self.reposition_for_release(
-                    edge, occupied, observation, color, self.colors[:index]
-                )
-                selection = self.release_slot(edge, occupied)
+                origin = edge
+                try:
+                    edge, occupied = self.reposition_for_release(
+                        edge, occupied, observation, color, self.colors[:index]
+                    )
+                    selection = self.release_slot(edge, occupied)
+                except PlacementLandmarkLost:
+                    selection = None
+                if selection is None:
+                    edge, occupied, selection = self.resurvey_placement(
+                        origin, color, self.colors[:index]
+                    )
             if selection is None:
                 raise ValueError(
                     "No reachable clear release point on the visible tabletop"

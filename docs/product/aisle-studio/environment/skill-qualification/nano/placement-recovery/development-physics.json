@@ -1,0 +1,32 @@
+{
+  "resurvey-matched": {
+    "verified": 17,
+    "passed": 15,
+    "physics_ticks": 470788,
+    "wheel_supported_ticks": 470788,
+    "rejected_motor_writes": 0,
+    "max_joint_limit_excursion_rad": 0,
+    "layouts_with_robot_furniture_contacts": 0,
+    "guard_bypasses": 0
+  },
+  "slot-matched": {
+    "verified": 17,
+    "passed": 17,
+    "physics_ticks": 472448,
+    "wheel_supported_ticks": 472448,
+    "rejected_motor_writes": 0,
+    "max_joint_limit_excursion_rad": 0,
+    "layouts_with_robot_furniture_contacts": 0,
+    "guard_bypasses": 0
+  },
+  "slot-old-layouts": {
+    "verified": 12,
+    "passed": 11,
+    "physics_ticks": 331026,
+    "wheel_supported_ticks": 331008,
+    "rejected_motor_writes": 0,
+    "max_joint_limit_excursion_rad": 0,
+    "layouts_with_robot_furniture_contacts": 1,
+    "guard_bypasses": 0
+  }
+}

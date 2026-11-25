@@ -1,0 +1,1022 @@
+{
+  "split": "disclosed development",
+  "reference_registration": "d208dc033218fe3deebad2644f9ce29f3ec3f1313ffc52cb800a7f9034975dc1",
+  "selection": "Evaluate all 11 previously failed layouts plus six successful controls. Select a revision only if it preserves all six controls and rescues at least eight failed layouts. Rank eligible candidates by total complete transfers, then prefer the original release grid on an exact tie. Require all trials to verify, all wheels supported and no guard bypasses on every passing trial. Before a fresh holdout, rerun the 12 original disclosed development cases with the finalist and retain all results.",
+  "original_successes_with_turn": [
+    5,
+    8,
+    32
+  ],
+  "original_successes_without_turn": [
+    0,
+    2,
+    4
+  ],
+  "cases": [
+    {
+      "index": 3,
+      "seed": 3975014131,
+      "baseline_passed": false
+    },
+    {
+      "index": 7,
+      "seed": 4185226163,
+      "baseline_passed": false
+    },
+    {
+      "index": 28,
+      "seed": 1084649240,
+      "baseline_passed": false
+    },
+    {
+      "index": 1,
+      "seed": 2460415108,
+      "baseline_passed": false
+    },
+    {
+      "index": 5,
+      "seed": 1061644124,
+      "baseline_passed": true
+    },
+    {
+      "index": 8,
+      "seed": 3953214285,
+      "baseline_passed": true
+    },
+    {
+      "index": 11,
+      "seed": 3842247488,
+      "baseline_passed": false
+    },
+    {
+      "index": 26,
+      "seed": 2669140112,
+      "baseline_passed": false
+    },
+    {
+      "index": 35,
+      "seed": 1811231050,
+      "baseline_passed": false
+    },
+    {
+      "index": 41,
+      "seed": 3414320799,
+      "baseline_passed": false
+    },
+    {
+      "index": 43,
+      "seed": 3795646383,
+      "baseline_passed": false
+    },
+    {
+      "index": 44,
+      "seed": 117693253,
+      "baseline_passed": false
+    },
+    {
+      "index": 48,
+      "seed": 3311891319,
+      "baseline_passed": false
+    },
+    {
+      "index": 32,
+      "seed": 231573444,
+      "baseline_passed": true
+    },
+    {
+      "index": 0,
+      "seed": 2399728537,
+      "baseline_passed": true
+    },
+    {
+      "index": 2,
+      "seed": 382736626,
+      "baseline_passed": true
+    },
+    {
+      "index": 4,
+      "seed": 2013613072,
+      "baseline_passed": true
+    }
+  ],
+  "candidates": {
+    "resurvey-matched": "157e9cc665568af341220a0790afe255c3df84037fa0066afd4e25b67655078b",
+    "slot-matched": "399900c2b49b0aa543d177a93ab78f45bc485a318fcae890fb3bd2cd1cdd8f2d"
+  },
+  "alternatives": {
+    "resurvey-matched": {
+      "passed": 15,
+      "rescued": 9,
+      "preserved": 6,
+      "controller_sha256": "e23671aed424d9c4fbba5990974fdbdf0542f3ca46f76386b683be9856c228ca",
+      "cases": [
+        {
+          "case": 0,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "ec567a5370815212e3323b93cf87b8ab02a1a14d817483ac3578e81edf98b7c0",
+          "error": null,
+          "physics_ticks": 23764,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "44fba8b5035a2ed7f64ecbb67cfb27736416f28eecd20050b03d3e029df78850",
+            "receipt_sha256": "d0300a4ad78e24c51b4bff6cdb36599aaa0168975cfaee93981676a12dfda626",
+            "request_id": "f55430d9-6d3f-4b36-8493-2e0feda9228e",
+            "run_id": "1da22cb0aabe4700970480ca533db219"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 1,
+          "baseline_passed": false,
+          "passed": false,
+          "motor_sha256": "0c8578ebe55f90fe197b3b779f7b26b8e1ab4add7fd75f8d2c48966df28b38fc",
+          "error": "ValueError: Cannot see the table rim during placement recovery",
+          "physics_ticks": 24414,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "e9bb419f91c6e25595c809aff4b7e69a9b592e3db9902086a12c1a6895d4fd00",
+            "receipt_sha256": "6ff1cf692e054aa296ac4ab463493b70d5ce0ca0eb582b8c29a1cec142d7fd38",
+            "request_id": "ea4a655d-8a52-49da-bc97-f8db4f8a285a",
+            "run_id": "5f4af9b86af144878ac6b1b9725e619d"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 2,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "af0d93ffc21887469cb1e1cd3f47dd6428f3ca578ce65c9fbec1c958056ecc66",
+          "error": null,
+          "physics_ticks": 29682,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "99405f29ec67c025311e17405356c2e7d766af7c34f7bd5e8ce66a0e9077b9a0",
+            "receipt_sha256": "cf2c207089c4d46ad3eb9c9fa667bfb1d54bc1dc4aaddc7959d3a1b24215e4ce",
+            "request_id": "8f5e7932-31bc-4fb8-addb-9f56a54b4e19",
+            "run_id": "d2ee09e6642e4d8ca71731dce53673c9"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 3,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "33048945b7cc75f488d2f9e73c359b343a62251b7216d95cd63e2d4689db5a51",
+          "error": null,
+          "physics_ticks": 24104,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "b40eda16d042c7b3d8a75bb98f8dd3e6d6ea7b089cfd8b377fc24179c2ed9b50",
+            "receipt_sha256": "7c924a075f4de47ddf0199da58b8fc833976b5dc6e976ba3eac06eb344c82960",
+            "request_id": "0507e351-edb3-40d8-9484-3ce5f8d8e781",
+            "run_id": "a6c65c814fb74b3cb414ed6b58e5cfce"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 4,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "ae73f2babd98acbca97bd97e7444a0b2a3166b7f4aab67f3055570440a760073",
+          "error": null,
+          "physics_ticks": 30422,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "2e723edffb9a6c200cd053aa8bc01c7c848a6162ffb0a33a68e249af3ececa04",
+            "receipt_sha256": "ba9e5df88769dbfa5236006380119bb64446d2a769e4c78c4aa47bd93af2593f",
+            "request_id": "e97b6c58-9e00-47cf-96f2-115d98f73470",
+            "run_id": "d56a7ab193854da5a9d283a7e09ce9d9"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 5,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "6c6f65c015ceb162a74daae7b6f0991ae713f774822187ad7116f9da3803bc5f",
+          "error": null,
+          "physics_ticks": 25504,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "2ae7675928ffa24046ebf0c07ac5303ba8b72c700a686391c0e7f1b952aa06fc",
+            "receipt_sha256": "3c798e97de74e58196d9ff4a928baade4be9019e1f92dc73dd283771e42af6d1",
+            "request_id": "bad8c7fa-6726-416a-8348-a2f2fb979fda",
+            "run_id": "8d85dee88c2647a882dfb3c61898a974"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 7,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "2e9992d43e674b699c214a6dd35136f78d3f74e08efa08014149dd105b204465",
+          "error": null,
+          "physics_ticks": 29222,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "154b82f6bba31e2b8a69479982f83304550250f3870d56b6d17dd55acf718697",
+            "receipt_sha256": "004f7a299dd7c94df5e9b763873c112d1feb1b5d8b37c2f9235878df2637927b",
+            "request_id": "8b8f3d28-57cd-41d5-b8f6-f757acf9c14e",
+            "run_id": "84ae674b9d0c4280af9afaae6dfa050a"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 8,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "569bcd9361ed7ce8e2843f7574660e46b5154c14c68b1f5381ad5dcacc3602b3",
+          "error": null,
+          "physics_ticks": 25084,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "3ca458926e8ab6aee3d395e517bf2615a84e81dcbadec0bff8d02812e1f0d966",
+            "receipt_sha256": "2e16f9443a41cf75d7b92d19261442eed014421a7b7b7075788b68a0cd65a1e5",
+            "request_id": "9922282c-49f5-4a52-8db4-ee0a8d3fc7bd",
+            "run_id": "a9d71c9ab5824f2c9032d57f0229e001"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 11,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "8e6e84543b8105c9142903c29c365e460f1ad775f04fbacc46053967884e93da",
+          "error": null,
+          "physics_ticks": 35260,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "c6074cb14e607781f9f839828f1c82c0e87102ab29c485bca83fd403ee5fded1",
+            "receipt_sha256": "79eb8d5daeb84984f32a112afefb7dd3b5c2d4f3c82501325c7d7033ebd422f3",
+            "request_id": "80ab6dc5-b017-47dd-b48b-3e00ad2cfcc5",
+            "run_id": "6f4c978ceec041be9e969701c00824d3"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 26,
+          "baseline_passed": false,
+          "passed": false,
+          "motor_sha256": "0e0683a8c8ea807a60eba59cf1e39f615cb5f15ee0583f1a8c3ced253d55e94d",
+          "error": "ValueError: Cannot see the table rim during placement recovery",
+          "physics_ticks": 22974,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "a76b24b28dfd342cdabfe1bcc3e559240e9abd05eeb4e82c2acf50cd4fb9f150",
+            "receipt_sha256": "dbed2f0fc01006f24d3143c3047e32edc01ee5ab103be957270fb5c85e5c4220",
+            "request_id": "954dde43-a4ce-45b4-a1dd-7c6df5a39d96",
+            "run_id": "a6129708a4f441b8a86e9c4d29d60a45"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 28,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "b112575f69b25f8209e136dcdebff0030556a6ae1e38782d46da52bb46cba12b",
+          "error": null,
+          "physics_ticks": 27822,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "cd0435d874782265c7eeacf3679a07c1d28bbddfc678058567f411e71e51a7cb",
+            "receipt_sha256": "95bfe4fffd04a0404d1107eb90c2f86d9df36195199cc571b6736e73c8351298",
+            "request_id": "4846e19d-8123-4cc3-bb75-3da143fc37d4",
+            "run_id": "24a3ac315b1b49aba4155fc3feb68bca"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 32,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "952883b8452d2ce6ccde32f457121ec594fe1ba3654d061745aadbea310193ae",
+          "error": null,
+          "physics_ticks": 35740,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "28110b8d5d89f64ba6a69dd6b83879867842e19b920da431aa4f5ae97bda2752",
+            "receipt_sha256": "e7baf6439940ef584e385cd412c9a327aa661657c7396d273852ee8f9d290e3b",
+            "request_id": "26416408-ce4f-436b-99aa-862c04099d87",
+            "run_id": "e4b7238be1814e1f902f101022a40ad9"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 35,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "f2e4a5790b4b712cd902962470eeec93428de1baa1ab072a2ead035b0121b088",
+          "error": null,
+          "physics_ticks": 30842,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "be52b14a34b7587532f73053eef6bed7813ae5cb92365f7e967628cb139a5b7d",
+            "receipt_sha256": "5bcffef29c12b2f1cb3f7c46fbaff4f328a9c87248248705b3fdf9f451fc972e",
+            "request_id": "d2f00f40-85cd-439a-af10-f6a899a4c615",
+            "run_id": "f138e02c1fd84858b1fb931f6dd3ccc0"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 41,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "84da264b8463608c9293a151b1406ca5ab201f2bbd01ab987c7810e9762eafdd",
+          "error": null,
+          "physics_ticks": 30282,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "f7291c220893e40bb2bd227e7ce78fb3331931140e821a6a257594fea659a696",
+            "receipt_sha256": "f596ee4eff8db21384559fb50cdd988aa59e0bc44ddb43643e2c027f2ddabe9a",
+            "request_id": "ad017257-bd8f-4625-8fd8-ffe9240aec15",
+            "run_id": "b6beda2788484b929aa4f0df5305c922"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 43,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "4944f86191116d4babc0875f8e1075f04c42c97b93b7d8532b162e15c6ed71b7",
+          "error": null,
+          "physics_ticks": 24784,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "c5bcbb38bba82e56126933abbfb67745a8adc70046f4d8e35669eba1d2367ccd",
+            "receipt_sha256": "47156cdb6e71f8b99b457c610ee31ad6ad7deaa7f53328eb77482a1a327909fb",
+            "request_id": "9555c049-3d17-4b26-b9bf-0ddc28bf5ea4",
+            "run_id": "886ccc6782404b1cbdbdd0e745a86991"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 44,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "77c1d976408dec76536fd37285c1117c9d183e680af41c84ccc0c908c4344836",
+          "error": null,
+          "physics_ticks": 25044,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "12be8f93f11cc3cb972279f5c339c589ba7cce23597851006b0ce371cded17a6",
+            "receipt_sha256": "f3f13f077fcf84460da0c5393d28a0cc3b5903e7a8a3073f14aaa1ab1b3d4127",
+            "request_id": "4e2cd3ba-785c-4c32-a7f6-504b31d2371e",
+            "run_id": "8e0ddfa9a674469eb318f5f8e2cd6420"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 48,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "8f14d87fd45fcb1a42a99d8f6938eaccb05f2b54afe24467e27dc9c3e524137e",
+          "error": null,
+          "physics_ticks": 25844,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "9f3338ea53977f190caf2a71bac0dc0484a9cd7e7dd573bf87e93889777326fd",
+            "receipt_sha256": "0d8a09573b5f25ded542fc4ff9a307e2ea14ef0883ebaad997c1fa67243be88b",
+            "request_id": "c56a7d06-3e97-4835-968a-db912558ea95",
+            "run_id": "1a41be6cd1dd46cb88245c3609aa0ef4"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        }
+      ]
+    },
+    "slot-matched": {
+      "passed": 17,
+      "rescued": 11,
+      "preserved": 6,
+      "controller_sha256": "8bb7801f11dd5decfb5730daae14221357361371d5d376804fbd5390f4219743",
+      "cases": [
+        {
+          "case": 0,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "ec567a5370815212e3323b93cf87b8ab02a1a14d817483ac3578e81edf98b7c0",
+          "error": null,
+          "physics_ticks": 23764,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "abaac4765ceb0512eb4613854d4f4dae85b45d2c7510124b2637764eb845c6eb",
+            "receipt_sha256": "1d47ae152ef6014f8da34472fb26f81e0406ffaa545aa5ef4c9da3bec11abe49",
+            "request_id": "3bab3dcb-d008-491f-89b7-6b81834632b8",
+            "run_id": "4307528b99bb40cba03851194b1837be"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 1,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "7fc415c4157e768b889d1bd001fd839132ef5f318bc6738b1c7594f65bdb6005",
+          "error": null,
+          "physics_ticks": 25324,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "970678000be949464c8c939e7b434d9c60a75b626d4ebbc7f2a33a0f5f1e7bc5",
+            "receipt_sha256": "1bcfe564edcbdc817c8d73de973170b7d0202da05f0f8d2a2654718ad87309e8",
+            "request_id": "d00d8b19-b80a-4d60-82fc-a35788c14f86",
+            "run_id": "fa897141a8714646b66567b93ceb821e"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 2,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "af0d93ffc21887469cb1e1cd3f47dd6428f3ca578ce65c9fbec1c958056ecc66",
+          "error": null,
+          "physics_ticks": 29682,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7554ec9efe2940ee02b8a705314e483917fb1e4b396107148b5792184a3b9714",
+            "receipt_sha256": "c3b7f0da295a58301683c6d0aac03f75312b90569d5801bc48ef18bf8d6119e2",
+            "request_id": "eb53dbe4-791b-4c66-85f8-f27d81057e92",
+            "run_id": "72bea2d986864b1d908e73acde9f9f39"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 3,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "33048945b7cc75f488d2f9e73c359b343a62251b7216d95cd63e2d4689db5a51",
+          "error": null,
+          "physics_ticks": 24104,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "236324d87145032ac1a87cee8ff37eff3ed55efa12932e3bcbf18af68b09d826",
+            "receipt_sha256": "3cc3fb2ac857a3d7de6e37097ad92d8f7100a81cb3ae4326d001275c7d3173fb",
+            "request_id": "9689272e-c265-40d8-b2a2-39791cfe0672",
+            "run_id": "c061010c1e7d4f6ea53ff866634acb9a"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 4,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "ae73f2babd98acbca97bd97e7444a0b2a3166b7f4aab67f3055570440a760073",
+          "error": null,
+          "physics_ticks": 30422,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "ddd89b6df24324924b191a82884af803d419793cf33be80d7097b26d95171295",
+            "receipt_sha256": "23cc57ffc4aef99d46f7bbff429d51e403f0a093b1c2d8874db930e06d1d7a5a",
+            "request_id": "17c0a208-4b28-4f87-bedf-2ca5016d344e",
+            "run_id": "80ed4d5c63a3483aad91622722e14839"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 5,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "6c6f65c015ceb162a74daae7b6f0991ae713f774822187ad7116f9da3803bc5f",
+          "error": null,
+          "physics_ticks": 25504,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "b1cd7481ba6142e0d67e559895e1b3f2ec4e530c02299cb36d0dc95246eaff57",
+            "receipt_sha256": "bd78c59fe311d713ab36e0fdb57ad3f1153f5d2be42f08322b0afce950d0c5a6",
+            "request_id": "094f75de-5e05-4a3b-9e86-8f19495b3ec2",
+            "run_id": "a6b416f843034dd4a82050ec44199868"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 7,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "2e9992d43e674b699c214a6dd35136f78d3f74e08efa08014149dd105b204465",
+          "error": null,
+          "physics_ticks": 29222,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "0bf21e73926babc2582cfcfc5213d05cb6a3ec578ff83d0ffb67e3a554e4c8ac",
+            "receipt_sha256": "e8edcaffc12d8d1dc1ae47e8af32ce48d94638c376a1207aeb298a13dcd6d9b0",
+            "request_id": "a7326ccb-14ef-4823-b20a-fa68f162a745",
+            "run_id": "b5f068a837434731872ceba9c5ca6842"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 8,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "569bcd9361ed7ce8e2843f7574660e46b5154c14c68b1f5381ad5dcacc3602b3",
+          "error": null,
+          "physics_ticks": 25084,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "dad23872447d76a1746a831c364141b44a1fc5fc4199d1d5fcf9c221c16d3163",
+            "receipt_sha256": "4dfc9bb32a4948e84ed5c99608c15f02866866584e83cd5a29f8cb6f8f2b8a67",
+            "request_id": "7caf8740-4d55-4398-8069-d736e264bd89",
+            "run_id": "543cd57dd29e456fb5a432d8415cede9"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 11,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "8e6e84543b8105c9142903c29c365e460f1ad775f04fbacc46053967884e93da",
+          "error": null,
+          "physics_ticks": 35260,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "93dfa144bb9e6f958441f46a09e9176f721ee3515c50b718763ba4bd903ec7ea",
+            "receipt_sha256": "f31c170ef1d445bf89ef05ceb9bdf339eda5c8330203e24a65ee7d9794f77274",
+            "request_id": "2104bb4c-b9f8-45c0-bdd4-318b11ac5110",
+            "run_id": "ba7dbf4762a7417588bec54c056490ba"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 26,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "d84f821d6ac016358c4fc10f4a6b8c4fa8e8ee1848cfb5d88c8e30ccd64b8a71",
+          "error": null,
+          "physics_ticks": 24384,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "b7b10768a50be947e9109ab5d8327bd6ab1d1ca02f418cd933251d5f06d4cda4",
+            "receipt_sha256": "d811c45db085cc2f24cd441778bd1bb8a8a50528af11f073982dfbd08d480664",
+            "request_id": "c68d95cb-1c1c-46ac-a7fd-80d06401e54d",
+            "run_id": "10c1ca17793c40c899aae09042bfdc12"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 28,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "b112575f69b25f8209e136dcdebff0030556a6ae1e38782d46da52bb46cba12b",
+          "error": null,
+          "physics_ticks": 27822,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "4d6935529fa22803639adee0df8c9057348cfd6842366334fad15f0406237400",
+            "receipt_sha256": "7346d9100a5dece35826b5361f4736ceaec84a840d79f5e55b27d3c841e2b388",
+            "request_id": "a130179f-0a94-4567-ae99-10c0c72a2333",
+            "run_id": "fb043a00d8dc4c92876bb2e2e93423e8"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 32,
+          "baseline_passed": true,
+          "passed": true,
+          "motor_sha256": "952883b8452d2ce6ccde32f457121ec594fe1ba3654d061745aadbea310193ae",
+          "error": null,
+          "physics_ticks": 35740,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "17bc1f7daabd10400b612a9e9cee7df226a1acd551abb4def296d94a7107e3ee",
+            "receipt_sha256": "776acfe3ad3c47155c739cf54608f6a23ae3ebc697cb27b4c9002641293ac26d",
+            "request_id": "51165753-0519-460f-b3f9-2394f4cdbc6b",
+            "run_id": "b913bc6fcaae4ad2a1d0c285e12fe5fa"
+          },
+          "original_motor_targets_match": true,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 35,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "6e61c71652dc0d44c0924b49db1c44cc846ab537d4243757b7a5ad9c142bd207",
+          "error": null,
+          "physics_ticks": 30182,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "ca7e92ba077051c3ad4c7d29def9ecf02d32af03cd8ec01bf88630e8ed9fcc85",
+            "receipt_sha256": "69d18a2a88b9e3ea7533708c694ea823b9d6e1c532772589ff266498ae3a3ef0",
+            "request_id": "a57e6021-10dd-468c-8eb2-3c4f7c78074a",
+            "run_id": "223213d80c23435298bd7b2647e6d411"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 41,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "84da264b8463608c9293a151b1406ca5ab201f2bbd01ab987c7810e9762eafdd",
+          "error": null,
+          "physics_ticks": 30282,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "846569d79cb312f1cd9cbc4a5e98b2b6d1087cc6065715734d0ae7aecd4afbce",
+            "receipt_sha256": "db9b08787dcf62a6f897cbc28ae945514c8786e15da19443b38a3cb6837b6f41",
+            "request_id": "d628592e-3201-4a39-b5ea-e03841bdbdca",
+            "run_id": "0df3366e5a424d9382ac9719408a745f"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 43,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "4944f86191116d4babc0875f8e1075f04c42c97b93b7d8532b162e15c6ed71b7",
+          "error": null,
+          "physics_ticks": 24784,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "7666256c4797e86ee36042e0e05d73e5a665d8199b1fb50022288056337c3bd9",
+            "receipt_sha256": "0655e50d56fc169386032c952f6479bb49c539fc0b47edc613660322ea8a2b52",
+            "request_id": "66b625f6-ad44-495c-acd6-6d2fb10bdf83",
+            "run_id": "7b81f72d68884da3af206183c1318427"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 44,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "77c1d976408dec76536fd37285c1117c9d183e680af41c84ccc0c908c4344836",
+          "error": null,
+          "physics_ticks": 25044,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "82b80f56020e79f24aeac38016f6162a3e7b988b315ff31cd56195379c88c160",
+            "receipt_sha256": "6ab5fa55a487a697979880e69bed9af6d68d95d333dd4b3792d323e75bd2b417",
+            "request_id": "339fc900-8e65-42f0-89fc-6ba5301dd173",
+            "run_id": "409d3adeb8934d188b84e525c12803c9"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        },
+        {
+          "case": 48,
+          "baseline_passed": false,
+          "passed": true,
+          "motor_sha256": "8f14d87fd45fcb1a42a99d8f6938eaccb05f2b54afe24467e27dc9c3e524137e",
+          "error": null,
+          "physics_ticks": 25844,
+          "guard_bypasses": 0,
+          "receipt": {
+            "measurement_sha256": "521700adcc5012f12876b85cf0709e66d2d0d0a29836995fe1e4ef9da212659e",
+            "receipt_sha256": "5d9f2036b89d569df6b707e0d5b41a54dfb2633f2aa6e7f73697bbc119bd756e",
+            "request_id": "b289dadb-4cb3-4c66-abc9-fd84249833e8",
+            "run_id": "5a53ff9c79b64cf49d04009eea361cd5"
+          },
+          "original_motor_targets_match": false,
+          "complete_cubes": [
+            "blue",
+            "green",
+            "red"
+          ]
+        }
+      ]
+    }
+  },
+  "selected": "slot-matched",
+  "earlier_cohort": {
+    "registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+    "cases": [
+      {
+        "case": 7,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 33680,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "41792c413e202f3d44f3e7f6395f35f40ebb8fedb8c972d56ac6f544c32e7d6f",
+          "receipt_sha256": "7807eaf766699b535842afec90688f2c77a74818e5be4ef2de8288954d5ced22",
+          "request_id": "ccdb2afa-1785-4008-a4fe-4b43578df2d2",
+          "run_id": "5d6735e171974470b07729b9299697dd"
+        },
+        "motor_sha256": "1b42970f1a4747f083497aa28bfb4702b7dc02b691238f1abf8ba2546ae4b26c"
+      },
+      {
+        "case": 16,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 28502,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "e4f966e3fa7c0b1a026d83f62d05695f9c964e1616bc185b6ec7410d1848b4fa",
+          "receipt_sha256": "635675a52fa085464c89cd92dfe6766f04978b73cff663e5d7a07f0b04958927",
+          "request_id": "87ca5c1d-dffa-4505-b0e2-8d3bf3645441",
+          "run_id": "59108723cb2e41dcb4413ee061f6e595"
+        },
+        "motor_sha256": "8ce3b04142def657cd5285137f1cd7945af11fc88bd2e4fc940efb0dd0e7e74e"
+      },
+      {
+        "case": 20,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 32758,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "3bdf536bca0162875238e96e55e28114c8bae46fa7edcd3bbe3937e7faba14f6",
+          "receipt_sha256": "356531478653aa09eaba0e667c7bca57c448e57723bb05935b288abaf3899b4f",
+          "request_id": "3b527ee1-28b5-414d-9047-22706a3fb2f0",
+          "run_id": "c3deb67893b043b1a3fe90ed8eb5ae2a"
+        },
+        "motor_sha256": "d1018f34fa0593cb3655be796a1912a917cbaeb17597139189ff06fe7ce32c53"
+      },
+      {
+        "case": 34,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 28562,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "16cadffe0e0d3a77892a15574bf1a2eebd8e20829acececdbd9bdc636c721666",
+          "receipt_sha256": "fb7b68079060e9ed9da19780f4e6b36ca030385f3bc1c4484397aed5c1821a42",
+          "request_id": "68d1cd6b-91c0-4a50-a6ec-8fe20f520823",
+          "run_id": "41352412ea7b4657abe692051ecfd6eb"
+        },
+        "motor_sha256": "35084f8704db9358c3e8dcddb69558b4c69410fbec5df6787ee15878c5cbe9cb"
+      },
+      {
+        "case": 43,
+        "baseline_passed": false,
+        "passed": false,
+        "error": "ValueError: Stereo table docking timed out",
+        "physics_ticks": 15626,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "87bf44162fa80efd728192f1b6b0e9a89813004a50ca6ff621669a40260ab1d0",
+          "receipt_sha256": "3dfc634248a3760c434ce26282192ac86872c61c312b60c33473172d7afe1156",
+          "request_id": "8e6a2072-af56-4995-8aa1-469d64cdd09a",
+          "run_id": "b6e66ee3dcce4ba0991167d278f4914e"
+        },
+        "motor_sha256": "a65a4c36f9b562ce26a18fca2f45f45a6fbc983d5be3c30699b07abdd446b45b"
+      },
+      {
+        "case": 48,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 29142,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "5a4374822a5aae935c79834429d156b29ceb63fc86915719efef5b490f01d750",
+          "receipt_sha256": "360cb295ca32d3c811a5cab5e1635edc4ef649b77543e4f0cb699aedad24401c",
+          "request_id": "9c5d4959-1f8d-47d7-b894-6db0d9360bab",
+          "run_id": "8de3747e5e4c452982758d8779e63326"
+        },
+        "motor_sha256": "e52da577cadae99ffcee9ab91c89c0592a5c934047994b9149d287c03f457e92"
+      },
+      {
+        "case": 0,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 28962,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "3494411d3eebac4c001ac59413d456095b904f3a8e7f35a63e5600a09d367e6d",
+          "receipt_sha256": "535b23d123db68ef51eb0270ec7688d39365b7ba3da04295c7c334710431f55e",
+          "request_id": "33eac341-971a-45ba-8308-cbdea62ea9df",
+          "run_id": "128ddf294ec8402780a6b771a4276355"
+        },
+        "motor_sha256": "f2682e15c44bee1c508c9d5e0ac1facbba09752cc22d1615732d17fdaaafedd3"
+      },
+      {
+        "case": 9,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 28702,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "aa7c3931e3c1fb350909f5a4d6dcde48a43b531ff48817601f5de2c0db6eccc3",
+          "receipt_sha256": "3fbc21e7f234a351b1914eb25ed074447e43d95e848e18015f1cfc73b1bb016d",
+          "request_id": "08570d4e-c511-48cf-b301-c0b47fd31818",
+          "run_id": "85eed816065b407aa92659ebf57bb6ae"
+        },
+        "motor_sha256": "1ec2f219b3014bc7e5445207d9fd92af10dca9d495553ad1a8da3a60f65db777"
+      },
+      {
+        "case": 18,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 25244,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "204f87c32bc6757e3a7a8ffc92e7e6eba7116e52f066728486e889cf76895cf7",
+          "receipt_sha256": "435804ddbfa0dafca60c97be0e1f38f30fbae8047e5fd806cceb566b3c6c4aa0",
+          "request_id": "b6973790-7086-4b19-86d1-8b318c1c5f19",
+          "run_id": "868d65bab9354891bc12e9d73ba610e3"
+        },
+        "motor_sha256": "58be479c28ec53cb81c3533c663358764c8a03091d911a6c7f0ecc0e8c21b02a"
+      },
+      {
+        "case": 27,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 29122,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "24dac1e164e182994eacafb55252dc1b0640af994fb9a7f8d407a25bc25497bf",
+          "receipt_sha256": "2a3de3debbdef4bf0068af8ee7159f89d3557cb56f64fc59dcbcf57e6c544848",
+          "request_id": "c023b9b0-59e6-496b-9aad-12a616003866",
+          "run_id": "c39da1292758451abf36a3890b75eabd"
+        },
+        "motor_sha256": "e6e312308e42cad4b78a54caaffc63702d0d62b298cdb9817720e4f6ac26f8c0"
+      },
+      {
+        "case": 36,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 24384,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "dc9b0799bcf8340f2f31d382d373ceece4aabf081667f552942202438f2d2f4b",
+          "receipt_sha256": "b55f16196402d84b54fff775658267d3ec2094d8a80d814b9bcebf6f8e69dffe",
+          "request_id": "c10d7096-451f-4c86-98bc-cd6b83166d4a",
+          "run_id": "a2e140975ec641059daefbcd0981727f"
+        },
+        "motor_sha256": "6e8139875fcb44d551d5d4e6f2c76d18d4704fba2cab640f828ac14789be8652"
+      },
+      {
+        "case": 45,
+        "baseline_passed": true,
+        "passed": true,
+        "error": null,
+        "physics_ticks": 26342,
+        "guard_bypasses": 0,
+        "receipt": {
+          "measurement_sha256": "c24cbe6a5d81833b7e06fe57f6e0ad568fdf6d684ade3142db093ba0a416cb34",
+          "receipt_sha256": "a86100dae8531226ad810c61aa36ee392bdabd124204df53e144cd2eb02538ad",
+          "request_id": "e2eb3546-0049-414d-a661-0a02314703a6",
+          "run_id": "0e9e7e5b5b12463bbdd78dc18ecff09b"
+        },
+        "motor_sha256": "e8e793e6d588c66efa3e1e9eb795d15770889c9aec80597be429ee3faa50549d"
+      }
+    ]
+  }
+}

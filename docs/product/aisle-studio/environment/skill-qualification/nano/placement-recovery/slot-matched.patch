@@ -1,0 +1,86 @@
+--- a/tools/aisle-validation/nano_rgb_transfer_policy.py
++++ b/tools/aisle-validation/nano_rgb_transfer_policy.py
+@@ -61 +61 @@
+-            for along in sorted(interior, key=lambda x: abs(x - side)):
++            for along in sorted(interior, key=lambda x: abs(x-side)):
+@@ -372,3 +372 @@
+-        for along, inset, search in release_candidates(
+-            side, edge["span"], resurvey=resurvey
+-        ):
++        for along, inset, search in release_candidates(side, edge["span"], resurvey=resurvey):
+@@ -409,3 +407 @@
+-    def survey_release_area(
+-        self, edge, packet, color, prior_colors, *, confirm_each=False
+-    ):
++    def survey_release_area(self, edge, packet, color, prior_colors, *, confirm_each=False):
+@@ -427,3 +423 @@
+-            groups = [
+-                occupied_table_points([view], edge, [prior]) for prior in prior_colors
+-            ]
++            groups = [occupied_table_points([view], edge, [prior]) for prior in prior_colors]
+@@ -463,3 +457 @@
+-            raise PlacementLandmarkLost(
+-                "Cannot track an earlier cube through a placement turn"
+-            )
++            raise PlacementLandmarkLost("Cannot track an earlier cube through a placement turn")
+@@ -586,3 +578 @@
+-                raise ValueError(
+-                    "Placement recovery exceeded the observed standoff or heading limit"
+-                )
++                raise ValueError("Placement recovery exceeded the observed standoff or heading limit")
+@@ -593,7 +583,2 @@
+-        other_headings = sorted(
+-            (0.20, -0.20, 0.30, -0.30), key=lambda target: abs(target - yaw)
+-        )
+-        targets = [
+-            yaw,
+-            *[angle for angle in (0.0, *other_headings) if abs(angle - yaw) > 0.025],
+-        ]
++        other_headings = sorted((0.20, -0.20, 0.30, -0.30), key=lambda target: abs(target-yaw))
++        targets = [yaw, *[angle for angle in (0.0, *other_headings) if abs(angle-yaw) > 0.025]]
+@@ -603 +588 @@
+-                    error = yaw - target
++                    error = yaw-target
+@@ -606 +591 @@
+-                    self.drive(turn=np.clip(1.5 * error, -0.16, 0.16))
++                    self.drive(turn=np.clip(1.5*error, -0.16, 0.16))
+@@ -609,3 +594 @@
+-                    raise ValueError(
+-                        "Could not reach the visual placement recovery heading"
+-                    )
++                    raise ValueError("Could not reach the visual placement recovery heading")
+@@ -615,14 +598,5 @@
+-            if abs(yaw - target) > 0.035 or not self.held_in_wrist_view(color, packet):
+-                raise ValueError(
+-                    "Cannot confirm the carried cube or braked recovery heading"
+-                )
+-            seen = self.survey_release_area(
+-                rim, packet, color, prior_colors, confirm_each=True
+-            )
+-            self.act(
+-                "table observation",
+-                color=color,
+-                recovery="stationary-placement-resurvey",
+-                heading_rad=yaw,
+-                previous_colors_confirmed=seen is not None,
+-            )
++            if abs(yaw-target) > 0.035 or not self.held_in_wrist_view(color, packet):
++                raise ValueError("Cannot confirm the carried cube or braked recovery heading")
++            seen = self.survey_release_area(rim, packet, color, prior_colors, confirm_each=True)
++            self.act("table observation", color=color, recovery="stationary-placement-resurvey",
++                     heading_rad=yaw, previous_colors_confirmed=seen is not None)
+@@ -634,3 +608 @@
+-        raise ValueError(
+-            "No clear reachable slot with all previous colors confirmed in a fresh wrist image"
+-        )
++        raise ValueError("No clear reachable slot with all previous colors confirmed in a fresh wrist image")
+@@ -767,3 +739 @@
+-                        self.survey_release_area(
+-                            edge, observation, color, self.colors[:index]
+-                        )
++                        self.survey_release_area(edge, observation, color, self.colors[:index])
+@@ -782,3 +752 @@
+-                    edge, occupied, selection = self.resurvey_placement(
+-                        origin, color, self.colors[:index]
+-                    )
++                    edge, occupied, selection = self.resurvey_placement(origin, color, self.colors[:index])
