@@ -187,3 +187,4 @@ mod tests {
 
 pub mod asset;
 pub use image::RgbImage as PhotoPixels;
+pub mod scene;

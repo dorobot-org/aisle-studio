@@ -16,6 +16,7 @@ use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
 mod survey;
+mod scene_editor;
 
 pub struct AislePlugin;
 const PAGES: &[PanelDescriptor] = &[
@@ -51,6 +52,7 @@ impl StudioPlugin for AislePlugin {
     }
     fn register(&self, vm: &mut ScriptVm) {
         survey::script_mod(vm);
+        scene_editor::script_mod(vm);
         script_mod(vm);
     }
     fn create(&self, panel: &str, vm: &mut ScriptVm) -> Result<Box<dyn PluginPanel>, String> {
@@ -74,6 +76,7 @@ impl StudioPlugin for AislePlugin {
             joint_robot: None,
             joint_index: 0,
             survey_open: false,
+            composer_open: false,
         }))
     }
     fn can_disable(&self, b: &dyn Backend) -> Result<(), String> {
@@ -120,8 +123,9 @@ script_mod! {
     }
     mod.widgets.AisleScene=Page{
         scene_heading := Title{text:"Simulation scene"} context_label := Section{}
-        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"}}
+        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"} composer_mode := mod.widgets.ux.ToolButton{text:"Scene editor"}}
         project_survey := SurveyPane{visible:false}
+        composer := SceneEditorPane{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             model_card := Card{width:Fill height:Fill Section{text:"URDF model"} robot := RobotView{width:Fill height:Fill keyboard_controls:false tint_selected_links:true}}
             photo_card := Card{width:Fill height:Fill photo_label := Section{text:"Floor footprint"} photo := VideoPlayer{width:Fill height:Fill}}
@@ -257,6 +261,7 @@ struct Panel {
     joint_robot: Option<Robot>,
     joint_index: usize,
     survey_open: bool,
+    composer_open: bool,
 }
 impl Panel {
     fn label(&self, cx: &mut Cx, id: &[LiveId], s: &str) {
@@ -824,11 +829,14 @@ impl PluginPanel for Panel {
             }
             "aisle_scene" => {
                 self.root.widget(cx, ids!(project_survey)).set_visible(cx, self.survey_open);
-                self.root.widget(cx, ids!(row)).set_visible(cx, !self.survey_open);
+                self.root.widget(cx, ids!(composer)).set_visible(cx, self.composer_open);
+                self.root.button(cx, ids!(composer_mode)).set_enabled(cx,!self.composer_open);
+                self.root.widget(cx, ids!(row)).set_visible(cx, !self.survey_open && !self.composer_open);
                 self.root.button(cx, ids!(asset_mode)).set_enabled(cx, !self.survey_open);
-                self.label(cx,ids!(scene_heading),if self.survey_open {"Survey & assets"}else{"Simulation scene"});
-                if self.survey_open {
-                    self.label(cx,ids!(context_label),&format!("{}   /   AISLE · Nexus   /   Project photo survey",w.robot.name()));
+                self.label(cx,ids!(scene_heading),if self.survey_open {"Survey & assets"}else if self.composer_open {"Scene editor"}else{"Simulation scene"});
+                if self.survey_open || self.composer_open {
+                    let context = if self.composer_open {"Project scene library"} else {"Project photo survey"};
+                    self.label(cx,ids!(context_label),&format!("{}   /   AISLE · Nexus   /   {context}",w.robot.name()));
                     for id in [ids!(room_mode) as &[LiveId], ids!(robot_mode), ids!(joint_mode)] {
                         self.root.button(cx, id).set_enabled(cx, true);
                     }
@@ -1850,12 +1858,19 @@ impl PluginPanel for Panel {
     }
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
         if self.page == "aisle_scene" {
+            if self.root.button(cx, ids!(composer_mode)).clicked(actions) {
+                self.composer_open = true;
+                self.survey_open = false;
+                return true;
+            }
             if self.root.button(cx, ids!(asset_mode)).clicked(actions) {
                 self.survey_open = true;
+                self.composer_open = false;
                 return true;
             }
             if [ids!(room_mode) as &[LiveId], ids!(robot_mode), ids!(joint_mode)].iter().any(|id| self.root.button(cx, id).clicked(actions)) {
                 self.survey_open = false;
+                self.composer_open = false;
             }
         }
         if self.page == "aisle_scene" && self.handle_joint_inspector(cx, actions, b) {

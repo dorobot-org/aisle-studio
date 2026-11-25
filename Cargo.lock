@@ -910,6 +910,7 @@ dependencies = [
  "dorobot-types",
  "dorobot-ux",
  "env_logger",
+ "fastrand",
  "ffmpeg-next",
  "image",
  "libc",

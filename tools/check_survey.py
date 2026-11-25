@@ -4,11 +4,10 @@ import argparse
 from contextlib import contextmanager
 import hashlib
 import json
-import os
 from pathlib import Path
 import shutil
-import subprocess
 import time
+from studio_native import NativeStudio
 
 ROOT = Path(__file__).resolve().parents[1]
 PANE = "aisle_scene.project_survey."
@@ -46,41 +45,8 @@ def main():
         )
         valid.append(closeup)
     expected = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in valid}
-    report = folder / "ui.json"
-    env = os.environ | dict(
-        MAKEPAD_HAL_BACKEND=args.backend,
-        DOROBOT_UX_REPORT=str(report),
-        DOROBOT_STUDIO_STATE_DIR=str(folder / "state"),
-        DOROBOT_STUDIO_SOURCE_ROOT=str(ROOT),
-    )
-
-    def wait(pred):
-        until = time.monotonic() + 35
-        last = {}
-        while time.monotonic() < until:
-            if proc.poll() is not None:
-                raise RuntimeError(f"Studio exited with {proc.returncode}")
-            if report.exists():
-                last = json.loads(report.read_bytes())
-                if pred(last):
-                    return last
-            time.sleep(0.1)
-        raise RuntimeError(
-            {k: v for k, v in last.get("controls", {}).items() if k.startswith(PANE)}
-        )
-
-    def act(command, *fields):
-        p = subprocess.run(
-            [args.remote, "app", str(proc.pid), command, *fields],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-        for line in p.stdout.splitlines():
-            reply = json.loads(line)
-            if "err" in reply:
-                raise RuntimeError(reply)
-        return p.stdout
+    app = NativeStudio(args, folder)
+    wait, act = app.wait, app.act
 
     def target(key, command="click", *fields):
         def ready(d):
@@ -123,54 +89,20 @@ def main():
             "next_asset",
         }
         if key.startswith(PANE) and key[len(PANE) :] in in_form:
-            for _ in range(12):
-                controls = wait(ready)["controls"]
-                x, y, w, h = controls[key]["rect"]
-                fx, fy, fw, fh = controls[PANE + "form_scroll"]["rect"]
-                cy = y + h / 2
-                if fy + 4 <= cy <= fy + fh - 4:
-                    break
-                delta = max(-220, min(220, cy - (fy + fh / 2)))
-                act(
-                    "mouse",
-                    "k=scroll",
-                    "w=0",
-                    f"x={fx+fw*0.7}",
-                    f"y={fy+fh*0.65}",
-                    "dx=0",
-                    f"dy={delta}",
-                    "wait=1",
-                )
-                time.sleep(0.16)
-            else:
-                raise RuntimeError(f"{key} could not be scrolled into view")
+            app.scroll_to(key, PANE + "form_scroll")
         x, y, w, h = wait(ready)["controls"][key]["rect"]
         return act(command, "w=0", f"x={x+w/2}", f"y={y+h/2}", *fields, "wait=1")
 
     @contextmanager
     def launch():
-        nonlocal proc
-        report.unlink(missing_ok=True)
-        with (folder / "app.log").open("a") as log:
-            proc = subprocess.Popen(
-                [args.studio.resolve(), "--remote"],
-                cwd=ROOT,
-                env=env,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-            )
-            try:
-                target("tabs.plugin_tab_aisle_scene")
-                target("aisle_scene.asset_mode")
-                yield
-            finally:
-                proc.terminate()
-                proc.wait(15)
+        with app.launch():
+            target("tabs.plugin_tab_aisle_scene")
+            target("aisle_scene.asset_mode")
+            yield
 
     def shows(key, substring):
         return wait(lambda d: substring in d["controls"][PANE + key]["text"])
 
-    proc = None
     with launch():
         for path in (*valid, broken):
             target(PANE + "photo_canvas", "drop", "path=" + str(path))
