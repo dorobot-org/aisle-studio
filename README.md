@@ -25,6 +25,15 @@ Select **Use reference task** to inspect a shoulder without an authoring service
 
 By default, sessions live in `~/Library/Application Support/AISLE Studio/aisle` on macOS and `~/.local/share/aisle-studio/aisle` on Linux. `DOROBOT_STUDIO_STATE_DIR` isolates a session. `DOROBOT_AISLE_PYTHON` selects an existing Python environment.
 
+## Verify the windowless app
+
+With the workspace built and the runtime configured, run the native smoke check from a fresh session. It selects G1, inspects its reference shoulder movement in Nexus, exports the episode, opens Replay and verifies that Evidence restores the same trial on restart.
+
+```sh
+python3 tools/check_headless.py --studio target/debug/aisle-studio \
+  --remote "$(command -v makepad-remote)" --session /tmp/aisle-g1-smoke
+```
+
 ## Screen recording
 
 Build `makepad-remote` from the same Makepad revision as `Cargo.lock`. To record a fresh Codex-authored three-cube transfer, run the following in the environment above. Choose a new session directory and output filename for each take.

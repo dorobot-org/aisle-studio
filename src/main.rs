@@ -146,7 +146,11 @@ impl MatchEvent for App {
             let state = self.backend.playback();
             if self.replay && state.is_playing {
                 let t = state.current_time + (now - previous).as_secs_f64() * state.speed;
-                self.backend.dispatch(Intent::Seek(t));
+                let end = state.stats.duration_s;
+                self.backend.dispatch(Intent::Seek(t.min(end)));
+                if t >= end {
+                    self.backend.dispatch(Intent::TogglePlay);
+                }
             }
         }
         self.sync(cx);
