@@ -27,7 +27,20 @@ DeepSeek via Octos received the measured failure from case 13 and authored a con
 | Neutral baseline | 17/20 | 40,000/40,000 steps | 6.269 mm | 0 |
 | Revised trunk pitch | 15/20 | 40,000/40,000 steps | 3.055 mm | 0 |
 
-The revision recovered cases 13 and 17. It lost cases 1, 5, 7 and 18 on the impact and recovery criterion. Case 14 failed with both controllers. The baseline remains the default for the authored room. Its qualification target is 20/20. [Matched manifest](g1-verification/matched-upright/suite.json) · [All measured outcomes](g1-verification/matched-upright/report.json) · [Revised controller and raw traces](g1-verification/matched-upright/matched.zip)
+The revision recovered cases 13 and 17. It lost cases 1, 5, 7 and 18 on the impact and recovery criterion. Case 14 failed with both controllers. The neutral controller is the reference option for this room. [Matched manifest](g1-verification/matched-upright/suite.json) · [All measured outcomes](g1-verification/matched-upright/report.json) · [Revised controller and raw traces](g1-verification/matched-upright/matched.zip)
+
+## Qualified 30° left waist turn
+
+For the surveyed living room and the +0.10 rad left shoulder reach, choose **30° left stance** on Task and then **DeepSeek via Octos** or **Ask Codex**. The instruction field shows the request before preparation. To revise a measured run, select it in Evidence, return to Task, enter a posture instruction and choose **Revise with DeepSeek** or **Revise with Codex**. Studio retains the instruction with the controller. The saved scene task pins the room, shoulder and displacement.
+
+DeepSeek via Octos received case 14 from the unsuccessful upright-pitch revision and the operator's request to try the 30° turn. Both cohorts used the same prepared controller and the original scoring criteria. Both manifest hashes were committed before execution. The matched cohort reused all original recipes. The fresh cohort used the same eight envelope corners and twelve newly sealed interior recipes. [Frozen controller and request](g1-verification/turned-stance/controller.json) · [Source failure measurements](g1-verification/turned-stance/feedback.json)
+
+| Cohort | Passed | Both feet loaded | Worst settled wrist error | Recovery after last contact | Guard bypasses |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Matched | 20/20 | 40,000/40,000 steps | 5.147 mm | 0.50 s | 0 |
+| Fresh | 20/20 | 40,000/40,000 steps | 5.147 mm | 0.50 s | 0 |
+
+The motor traces recorded a 30° yaw command and neutral pitch command at every scored step. Each run's final 100 samples averaged 29.93° of measured waist yaw. The verifier reconstructed wrist, foot, contact, actuator and room checks from both archives. This qualifies the specified simulated room, reach and disturbance envelope. [Matched results](g1-verification/turned-stance/paired/report.json) · [Fresh results](g1-verification/turned-stance/fresh/report.json) · [Matched verification](g1-verification/turned-stance/paired/verified.json) · [Fresh verification](g1-verification/turned-stance/fresh/verified.json)
 
 ## Reproduce
 
@@ -45,3 +58,13 @@ python tools/aisle_workbench/g1_reach_suite.py verify \
 ```
 
 For a new qualification, pass the prepared G1 `controller.json` to `g1_reach_suite.py prepare`. Record its returned manifest hash before calling `run`. The registered controller and room stay fixed while the suite varies the impact recipe across its declared envelope.
+
+Verify the two turned-stance archives from the repository root with the configured AISLE Python environment.
+
+```sh
+G1_RECORDS=docs/product/aisle-studio/environment/g1-verification/turned-stance
+python tools/aisle_workbench/g1_reach_suite.py verify "$G1_RECORDS/paired/trials.zip" \
+  8b5ad1c7baf93618106e96381cb4ff62f1998445004e20efed6ec6a8b4f91249
+python tools/aisle_workbench/g1_reach_suite.py verify "$G1_RECORDS/fresh/trials.zip" \
+  7ee4333faf51949a2914ed9f939528006d6088f87d1ee43a4bdac1b497c62fd9
+```

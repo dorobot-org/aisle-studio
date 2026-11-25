@@ -117,7 +117,7 @@ script_mod! {
                 Bar{nano := mod.widgets.ux.ToolButton{text:"Adora Nano"} g1 := mod.widgets.ux.ToolButton{text:"Unitree G1"}}
                 Section{text:"Task instruction"}
                 instruction := TextInput{width:Fill height:64 is_multiline:true empty_text:"Inspect a shoulder or approach a colored cube with Nano"}
-                Bar{reference := mod.widgets.ux.ToolButton{text:"Use reference task"} onboard := mod.widgets.ux.ToolButton{text:"Onboard RGB off"}}
+                Bar{reference := mod.widgets.ux.ToolButton{text:"Use reference task"} onboard := mod.widgets.ux.ToolButton{text:"Onboard RGB off"} turned_stance := mod.widgets.ux.ToolButton{visible:false text:"30° left stance"}}
                 Bar{octos := mod.widgets.ux.PrimaryButton{text:"DeepSeek via Octos"} codex := mod.widgets.ux.ToolButton{text:"Ask Codex"}}
                 Section{text:"Prepared controller"}
                 controller_scroll := ScrollYView{width:Fill height:Fill flow:Down
@@ -674,6 +674,9 @@ impl PluginPanel for Panel {
         self.label(cx, ids!(status), &w.status);
         match self.page.as_str() {
             "aisle_task" => {
+                let stance = self.root.button(cx, ids!(turned_stance));
+                stance.set_visible(cx, w.robot == Robot::G1);
+                stance.set_enabled(cx, !w.busy());
                 let capture = w.plan["scene_observation"]["files"]["onboard-head.rgb"].is_string();
                 let reviewing = w.controller_diff.is_some();
                 let review = self.root.button(cx, ids!(review_controller));
@@ -774,6 +777,8 @@ impl PluginPanel for Panel {
                 let mut detail = detail;
                 if let Some(request) = w.plan["revision_instruction"].as_str() {
                     detail.push_str(&format!("\nRevision request · {request}"));
+                } else if let Some(request) = w.plan["preparation_instruction"].as_str() {
+                    detail.push_str(&format!("\nRequested posture · {request}"));
                 }
                 if w.plan["track_grasp"] == true {
                     detail.push_str("\nWrist-guided interception during descent");
@@ -2098,6 +2103,21 @@ impl PluginPanel for Panel {
                 self.root.text_input(cx, ids!(geometry)).text()
             };
             b.dispatch(Intent::Aisle(Action::ImportRoom { source, edit }));
+            return true;
+        }
+        if self.root.button(cx, ids!(turned_stance)).clicked(actions) {
+            let input = self.root.text_input(cx, ids!(instruction));
+            let base = active_scene_instruction(b).unwrap_or_else(|| {
+                let existing = input.text();
+                if existing.is_empty() || existing == REFERENCE {
+                    "Stand and track a positive left shoulder displacement of 0.10 radians.".into()
+                } else {
+                    existing
+                }
+            });
+            let posture = "Use a 30-degree left waist turn with neutral trunk pitch.";
+            let text = if base.ends_with(posture) { base } else { format!("{base} {posture}") };
+            input.set_text(cx, &text);
             return true;
         }
         let reference = self.root.button(cx, ids!(reference)).clicked(actions);

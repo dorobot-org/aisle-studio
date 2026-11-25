@@ -581,7 +581,7 @@ def matches_bound(bound, plan):
 
 def prepare(args, meta):
     bound = None
-    revision_instruction = None
+    controller_instruction = None
     path = getattr(args, "bound_task", None)
     if path is not None:
         from authored_scene import load
@@ -591,9 +591,9 @@ def prepare(args, meta):
         bound = load(path, getattr(args, "bound_task_sha256", None))
         if bound.document["robot"]!=args.robot:
             raise ValueError("Select the robot pinned by this scene task")
-        if (args.robot == "G1" and args.feedback and args.provider != "reference"
+        if (args.robot == "G1" and args.provider != "reference"
                 and args.task.strip() not in ("", REFERENCE, bound.document["instruction"])):
-            revision_instruction = args.task.strip()
+            controller_instruction = args.task.strip()
         args.task = bound.document["instruction"]
         raw = path.read_bytes()
         if hashlib.sha256(raw).hexdigest() != bound.sha256:
@@ -801,10 +801,11 @@ def prepare(args, meta):
                 "If the previous posture missed recovery, choose a different supported posture for evaluation. "
                 "Keep the requested shoulder target unchanged. The runtime observes encoders and an IMU. "
                 f"Saved reach task: {args.task}")
-            if revision_instruction:
+            if controller_instruction:
                 prompt += (
-                    "\nOperator's controller revision request: " + revision_instruction
-                    + "\nPreserve the saved joint and displacement. Reject a revision request that conflicts with them."
+                    "\nOperator's controller request: " + controller_instruction
+                    + "\nUse the requested supported posture and preserve the saved joint and displacement. "
+                    "Reject a request that conflicts with the saved reach."
                 )
         elif bound:
             prompt += (
@@ -898,7 +899,8 @@ def prepare(args, meta):
         ),
         **({"scene_observation": observation} if observation else {}),
         **({"previous_trial": feedback} if feedback else {}),
-        **({"revision_instruction": revision_instruction} if revision_instruction else {}),
+        **({"revision_instruction" if feedback else "preparation_instruction": controller_instruction}
+           if controller_instruction else {}),
         **({"pickup_revision": revision} if revision else {}),
         robot=args.robot,
         task=args.task,

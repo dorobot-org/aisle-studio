@@ -1,4 +1,11 @@
 {
+  "first_preparation": {
+    "operator_request": "Stand and track a positive left shoulder displacement of 0.10 radians. Use a 30-degree left waist turn with neutral trunk pitch.",
+    "previous_runs": 0,
+    "passed": true,
+    "controller_sha256": "e4cfc833e3662c4ae99f1b4abba5eea025e40bff9c37fa37d5523d21b67ebbdf",
+    "settled_yaw_rad": 0.5223690658807755
+  },
   "provider": "codex",
   "model": "gpt-6.2-astra",
   "backend": "offscreen",
@@ -20,7 +27,7 @@
   "revision_instruction": "Keep the saved left shoulder reach. Try a 30-degree left waist turn with neutral pitch for the next simulation.",
   "nominal_impact": {
     "contacts": 3,
-    "normal_impulse_sum_ns": 0.082304862793535,
+    "normal_impulse_sum_ns": 0.08231350686401129,
     "links": [
       "torso_link"
     ],
@@ -33,26 +40,26 @@
     "link": "left_wrist_yaw_link",
     "frame": "world",
     "start_m": [
-      0.11170946061611176,
-      0.22365494072437286,
-      0.05952753871679306
+      0.11170947551727295,
+      0.22365501523017883,
+      0.059527404606342316
     ],
     "target_m": [
-      0.08756049639797597,
-      0.21715152462654283,
-      0.04542803840779066
+      0.08756050875833393,
+      0.21715159602618184,
+      0.04542791047587599
     ],
     "final_m": [
-      0.08400733768939972,
-      0.21924136579036713,
-      0.04850863292813301
+      0.08400732278823853,
+      0.2192416936159134,
+      0.04850848764181137
     ],
-    "requested_travel_m": 0.028709977407059658,
-    "final_error_m": 0.005146108772374433,
-    "max_final_100_error_m": 0.005146144899657345,
+    "requested_travel_m": 0.02870997721354569,
+    "final_error_m": 0.005146221346577208,
+    "max_final_100_error_m": 0.005146308409338861,
     "tolerance_m": 0.01,
     "passed": true,
-    "trace_sha256": "cc84ee11db29e0f708ce24688676204584bc1abdc4654dc239e6b3231c4d64fb"
+    "trace_sha256": "964e2a27b8a1918ce094f0522c9fda85b74e7e4c424ffc029ba1e7a88d667e0a"
   },
   "settled_trunk_yaw_rad": 0.522369110584259,
   "two_foot_steps": 2000,

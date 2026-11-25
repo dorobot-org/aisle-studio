@@ -223,6 +223,7 @@ impl App {
                         "aisle_task.octos",
                         "aisle_task.reference",
                         "aisle_task.revise",
+                        "aisle_task.turned_stance",
                         "aisle_task.revise_codex",
                         "aisle_task.detail",
                         "aisle_run.start_run",

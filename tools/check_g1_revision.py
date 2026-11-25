@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import shutil
 from zipfile import ZipFile
 
 from studio_native import NativeStudio, ROOT
@@ -14,6 +15,50 @@ REQUEST = "Keep the saved left shoulder reach. Try a 30-degree left waist turn w
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def first_preparation(args, folder, survey, sha):
+    state = folder / "state/aisle"
+    shutil.copytree(survey, state / "survey")
+    app = NativeStudio(args, folder)
+    with app.launch():
+        app.click("aisle_task.g1")
+        app.click("aisle_task.turned_stance")
+        app.click("aisle_task." + args.provider)
+        prepared = app.wait(
+            lambda s: (s["state"].get("controller") or {}).get("bound_task_sha256")
+            == sha
+            and not s["state"]["busy"],
+            "first scene-bound reach",
+            180,
+        )["state"]["controller"]
+        note = prepared["preparation_instruction"]
+        assert "30-degree left waist turn" in note and "previous_trial" not in prepared
+        assert prepared["trunk_yaw_rad"] == 0.52359878
+        app.wait(
+            lambda s: note in s["controls"]["aisle_task.detail"]["text"],
+            "visible prepared posture",
+        )
+        app.click("tabs.plugin_tab_aisle_run")
+        app.click("aisle_run.start_run")
+        app.wait(
+            lambda s: not s["state"]["busy"]
+            and (s["state"].get("result") or {}).get("bound_task_sha256") == sha,
+            "first reach verdict",
+            180,
+        )
+    rows = list(state.glob("*-G1-run/result.json"))
+    assert len(rows) == 1
+    measured = json.loads(rows[0].read_bytes())
+    assert measured["task_success"] and measured["both_feet_loaded_steps"] == 2000
+    assert abs(measured["settled_trunk_yaw_rad"] - math.pi / 6) < 0.02
+    return dict(
+        operator_request=note,
+        previous_runs=0,
+        passed=measured["task_success"],
+        controller_sha256=measured["controller_hash"],
+        settled_yaw_rad=measured["settled_trunk_yaw_rad"],
+    )
 
 
 def main():
@@ -51,6 +96,7 @@ def main():
         (prior / "bound-task.json").read_bytes()
     )
     (survey / "active-task-g1").write_text(sha)
+    first = first_preparation(args, folder / "first-preparation", survey, sha)
     app = NativeStudio(args, folder)
     with app.launch():
         app.click("tabs.plugin_tab_aisle_task")
@@ -128,6 +174,7 @@ def main():
             "restored verdict",
         )
     receipt = dict(
+        first_preparation=first,
         provider=control["provider"],
         model=control["policy_model"],
         backend=args.backend,
