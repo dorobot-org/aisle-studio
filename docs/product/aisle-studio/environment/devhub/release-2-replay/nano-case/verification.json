@@ -1,0 +1,25 @@
+{
+  "baseline_controller_sha256": "da61865aa4a1a2cfedb550c27a5a8cc0aed756cbb7f71b22b8b9f98650afb024",
+  "baseline_passed": false,
+  "baseline_receipt_sha256": "5a23264f79dd6acac0984687d2131641197c54d16c45227fce86228685b1cf8b",
+  "bypasses": 0,
+  "candidate_controller_sha256": "89b527e16f517cba88e06fe19dafab6668343d8b23dc4979c37c50da3a89763b",
+  "candidate_passed": true,
+  "candidate_receipt": {
+    "measurement_sha256": "1fa5fd660a15b1fa656289af4824f03e739294fbab7caf504b8712a2c7ddf619",
+    "receipt_sha256": "909ba456ce2daccd5eeee6ff1ee7ce6856ec7e63bdb05c718573a47b43fb12fd",
+    "request_id": "cbe1a66c-8e97-4f0d-913d-de8cd7165780",
+    "run_id": "f2335c53347b40c1959a8a977197dab4"
+  },
+  "case": 20,
+  "error": null,
+  "original_registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+  "physics_ticks": 32758,
+  "release_exposures": 5,
+  "split": "disclosed development",
+  "trial": "1795600689217925000-1519",
+  "backend": "headless",
+  "reopened": true,
+  "case_switch_checked": true,
+  "original_verdict_preserved": true
+}

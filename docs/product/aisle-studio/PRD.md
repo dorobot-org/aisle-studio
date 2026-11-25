@@ -165,6 +165,8 @@ In **Evidence → Skill qualification**, the developer selects an original faile
 
 For the Nano reference task, the carrying hand must confirm a grasp before the base travels. If two stationary grasps miss, the controller may open the jaws and use a fresh wrist image to find a unique nearby target before one more attempt. At placement, a previously transferred cube can be hidden below the tabletop sightline. With wrist clearance enabled, stop the base, raise the spare wrist, use its RGB image and measured joint angles to locate earlier cubes on the observed support plane, then restore that wrist before release. Retain the release exposures and guard record for inspection. [Measured wrist views and development protocol](environment/skill-qualification/nano/wrist-survey/README.md)
 
+The second G1 registration repeated the full 20-case standing-reach qualification against the revised shared adapter. All 20 passed. The verifier checked 40,000 two-foot-supported steps, zero guard bypasses and 5.15 mm worst settled wrist error. Restoring the raw archive reproduced the verdict. [Second G1 qualification](environment/skill-qualification/g1/release-2/verification.json)
+
 ### Remaining product release gates
 
 | Order | Owner and decision | Acceptance evidence |
