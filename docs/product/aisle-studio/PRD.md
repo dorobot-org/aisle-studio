@@ -1,6 +1,6 @@
 # AISLE Studio product requirements
 
-Version 1.6 · 2026-11-25 · Proposed product specification for standalone AISLE Studio
+Version 1.7 · 2026-11-25 · Proposed product specification for standalone AISLE Studio
 
 ## Purpose and users
 
@@ -158,6 +158,12 @@ A robotics developer registers the prepared Octos controller from **Evidence →
 An evaluator must be able to replay the original physics evidence, verify a distinct Octos request and measurement for every case, and see the denominator, required count, successes, guard bypasses and individual failures. Approval requires a qualifying result. Rejection is available after verification, including for a below-threshold result. Both decisions require a trusted signer and a rationale. The latest signed decision governs simulation handoff, and export checks the selected controller and raw evidence again. A hardware operator needs a separate device-specific record.
 
 The standalone G1 package passed all 20 preregistered impacts with 40,000 two-foot-supported steps, zero guard bypasses and a worst settled wrist error of 5.15 mm. The original cohort awaits independent review. Nano completed all three transfers on 44/50 preregistered layouts using existing onboard RGB and encoders. The verifier checked all 50 motor journals and bridge receipts and counted zero guard bypasses. Nano fell one layout short of its simulation gate. [Every retained Nano failure and raw trial](environment/skill-qualification/nano/outcomes.md) [Reference implementations, commitments, measured verdicts and reproduction](environment/skill-qualification/README.md)
+
+### Diagnose a disclosed Nano failure
+
+In **Evidence → Skill qualification**, the developer selects an original failed case by index and reason, chooses the controller prepared in **Task**, and tests it on that layout. Studio must reject a changed scene, evaluator, calibration or physics runtime before launch. It must run the candidate through the installed skill and independently score its motor journal and release observations. Show the original and candidate outcomes, candidate identity, scored ticks and guard bypasses together. Reopening the project must restore the comparison for that specific case. Store each development attempt separately from the original qualification. A corrected layout counts toward a release decision only when the frozen candidate completes a fresh preregistered cohort.
+
+For the Nano reference task, the carrying hand must confirm a grasp before the base travels. If two stationary grasps miss, the controller may open the jaws and use a fresh wrist image to find a unique nearby target before one more attempt. At placement, a previously transferred cube can be hidden below the tabletop sightline. With wrist clearance enabled, stop the base, raise the spare wrist, use its RGB image and measured joint angles to locate earlier cubes on the observed support plane, then restore that wrist before release. Retain the release exposures and guard record for inspection. [Measured wrist views and development protocol](environment/skill-qualification/nano/wrist-survey/README.md)
 
 ### Remaining product release gates
 

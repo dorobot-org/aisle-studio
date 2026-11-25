@@ -246,6 +246,10 @@ script_mod! {
             qa_review_card := Card{width:Fill height:Fit spacing:7
                 qa_result := Title{}
                 qa_failure_scroll := ScrollYView{width:Fill height:72 flow:Down qa_failures := Body{max_lines:180}}
+                qa_development := View{width:Fill height:Fit flow:Down spacing:3 visible:false
+                    Bar{qa_cases := DropDown{width:Fill labels:["Choose failed layout"]} qa_replay_case := mod.widgets.ux.ToolButton{text:"Test current controller on layout"}}
+                    qa_comparison := Body{visible:false}
+                }
                 Section{text:"Reviewer decision"} qa_decision := Body{}
                 Bar{Section{width:100 text:"Reviewer"} qa_reviewer := TextInput{width:Fill height:36 empty_text:"Trusted signer identity"} Section{width:62 text:"Reason"} qa_reason := TextInput{width:Fill height:36 empty_text:"Reason for this decision"}}
                 Bar{qa_approve := mod.widgets.ux.ToolButton{text:"Approve simulation"} qa_reject := mod.widgets.ux.ToolButton{text:"Reject simulation"} qa_export := mod.widgets.ux.ToolButton{text:"Export signed handoff"}}
@@ -657,6 +661,7 @@ impl PluginPanel for Panel {
                     (ids!(qa_register), Themed::Both),
                     (ids!(qa_run), Themed::Both),
                     (ids!(qa_verify), Themed::Both),
+                    (ids!(qa_replay_case), Themed::Both),
                     (ids!(qa_approve), Themed::Both),
                     (ids!(qa_reject), Themed::Both),
                     (ids!(qa_export), Themed::Both),

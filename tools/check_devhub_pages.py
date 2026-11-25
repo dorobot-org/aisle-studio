@@ -62,6 +62,7 @@ def main():
             "scene-agents",
             "spec-skills",
             "skill-qualification",
+            "disclosed-layout",
             "experiment-worker",
         ],
         default="pages",
@@ -88,7 +89,14 @@ def main():
         "--incompatible-worker", help="Earlier worker used for the admission check"
     )
     parser.add_argument("--qualification-robot", choices=["G1", "Nano"], help="Limit the skill qualification lease to one profile")
+    parser.add_argument("--baseline", type=Path, help="Verified original cohort for a disclosed-layout test")
+    parser.add_argument("--controller", type=Path, help="Prepared candidate for the disclosed-layout test")
+    parser.add_argument("--case", type=int, help="Disclosed failed case index")
     args = parser.parse_args()
+    if args.suite == "disclosed-layout" and (
+        args.baseline is None or args.controller is None or args.case is None
+    ):
+        parser.error("The disclosed-layout suite requires --baseline, --controller and --case")
     if args.qualification_robot and args.suite != "skill-qualification":
         parser.error("--qualification-robot requires --suite skill-qualification")
     if args.suite == "experiment-worker" and not (
@@ -140,7 +148,7 @@ def main():
 
     if args.suite in ("pages", "photo-reviews"):
         run("survey", "check_survey.py", "--assets")
-    if args.suite != "photo-reviews":
+    if args.suite not in ("photo-reviews", "disclosed-layout"):
         subprocess.run(
             [sys.executable, tools / "fetch_robot_meshes.py", "g1"], check=True
         )
@@ -155,6 +163,13 @@ def main():
                 out / "survey/state/aisle/survey",
                 python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable),
             )
+    elif args.suite == "disclosed-layout":
+        run(
+            "nano-case", "check_disclosed_layout.py",
+            "--baseline", args.baseline.resolve(),
+            "--controller", args.controller.resolve(),
+            "--case", str(args.case), "--expect-pass",
+        )
     elif args.suite == "skill-qualification":
         for robot in [args.qualification_robot] if args.qualification_robot else ["G1", "Nano"]:
             source = os.environ.get("DOROBOT_QUALIFICATION_SOURCE_" + robot.upper())

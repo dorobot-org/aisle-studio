@@ -17,10 +17,20 @@ pub(super) struct Qualification {
     message: String,
     next_progress: Option<Instant>,
     progress: Option<(usize, usize)>,
+    failed_index: usize,
+    loaded_comparison: Option<(String, u64)>,
+    comparison: Value,
 }
 
 fn s<'a>(v: &'a Value, key: &str) -> &'a str {
     v[key].as_str().unwrap_or("")
+}
+
+fn replay_folder(id: &str, index: u64) -> PathBuf {
+    runtime::user_data()
+        .join("aisle/case-replays")
+        .join(id)
+        .join(format!("case-{index:03}"))
 }
 
 impl Panel {
@@ -38,6 +48,9 @@ impl Panel {
         let name = self.root.text_input(cx, ids!(qa_reviewer)).text();
         let reason = self.root.text_input(cx, ids!(qa_reason)).text();
         let expected = s(&self.qualification.catalog, "verdict_sha256").to_owned();
+        let case = self.qualification.catalog["failures"]
+            .get(self.qualification.failed_index)
+            .and_then(|r| r["index"].as_u64());
         let (tx, rx) = mpsc::channel();
         self.qualification.pending = Some(rx);
         self.qualification.operation = op.into();
@@ -46,12 +59,36 @@ impl Panel {
             let result = (|| {
                 let mut cmd = dorobot_studio_core::api::aisle::python_command(&root)
                     .map_err(|e| e.to_string())?;
-                cmd.arg(root.join("tools/skill_qualification/review.py"))
-                    .arg(op)
-                    .args(["--robot", robot.name(), "--state"])
-                    .arg(state);
-                if let Some(id) = id {
-                    cmd.arg("--id").arg(id);
+                if op == "replay" {
+                    let id = id.as_deref().ok_or("Choose a disclosed registration")?;
+                    let index = case.ok_or("Choose a failed layout")?;
+                    let base = state.join(id);
+                    let stamp = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map_err(|e| e.to_string())?
+                        .as_nanos();
+                    let out =
+                        replay_folder(id, index).join(format!("{stamp}-{}", std::process::id()));
+                    cmd.arg(root.join("tools/skill_qualification/replay_case.py"))
+                        .arg("--baseline")
+                        .arg(&base)
+                        .arg("--published-verdict")
+                        .arg(base.join("verification.json"))
+                        .arg("--expected-verdict")
+                        .arg(&expected)
+                        .arg("--case")
+                        .arg(index.to_string())
+                        .arg("--out")
+                        .arg(out)
+                        .arg("--remember");
+                } else {
+                    cmd.arg(root.join("tools/skill_qualification/review.py"))
+                        .arg(op)
+                        .args(["--robot", robot.name(), "--state"])
+                        .arg(state);
+                    if let Some(id) = id {
+                        cmd.arg("--id").arg(id);
+                    }
                 }
                 if let Some(path) = controller {
                     cmd.arg("--controller").arg(path);
@@ -100,7 +137,33 @@ impl Panel {
             self.qualification.pending = None;
             self.qualification.progress = None;
             match reply {
+                Ok(v) if self.qualification.operation == "replay" => {
+                    self.qualification.comparison = v;
+                }
                 Ok(v) => {
+                    if v["selected"] != self.qualification.catalog["selected"] {
+                        self.qualification.failed_index = 0;
+                    }
+                    let failures = v["failures"].as_array().cloned().unwrap_or_default();
+                    let failed = self.root.drop_down(cx, ids!(qa_cases));
+                    failed.set_labels(
+                        cx,
+                        if failures.is_empty() {
+                            vec!["No failed layouts".into()]
+                        } else {
+                            failures
+                                .iter()
+                                .map(|r| {
+                                    format!(
+                                        "Case {} · {}",
+                                        r["index"],
+                                        s(r, "reason").trim_start_matches("ValueError: ")
+                                    )
+                                })
+                                .collect()
+                        },
+                    );
+                    failed.set_selected_item(cx, self.qualification.failed_index);
                     let ids = v["ids"].as_array().cloned().unwrap_or_default();
                     let labels = if ids.is_empty() {
                         vec!["No registrations".into()]
@@ -242,7 +305,37 @@ impl Panel {
         self.label(cx, ids!(qa_failures), &failures);
         self.root
             .widget(cx, ids!(qa_failure_scroll))
-            .set_visible(cx, !failures.is_empty());
+            .set_visible(cx, !failures.is_empty() && w.robot != Robot::Nano);
+        let selected_case = v["failures"]
+            .get(self.qualification.failed_index)
+            .and_then(|row| row["index"].as_u64());
+        let development = w.robot == Robot::Nano && selected_case.is_some();
+        self.root
+            .widget(cx, ids!(qa_development))
+            .set_visible(cx, development);
+        if let Some(index) = selected_case.filter(|_| development) {
+            let key = (selected.to_owned(), index);
+            if self.qualification.loaded_comparison.as_ref() != Some(&key) {
+                self.qualification.loaded_comparison = Some(key);
+                self.qualification.comparison =
+                    std::fs::read(replay_folder(selected, index).join("latest.json"))
+                        .ok()
+                        .and_then(|raw| serde_json::from_slice(&raw).ok())
+                        .unwrap_or_default();
+            }
+        }
+        let c = &self.qualification.comparison;
+        let show = development
+            && s(c, "original_registration") == selected
+            && c["case"].as_u64() == selected_case;
+        self.root
+            .widget(cx, ids!(qa_comparison))
+            .set_visible(cx, show);
+        if show {
+            let scored = |passed: &Value| if passed == true { "passed" } else { "failed" };
+            self.label(cx,ids!(qa_comparison),&format!("Case {} · baseline {} → candidate {} · {} scored ticks · {} guard bypasses\nCandidate {}",
+                c["case"],scored(&c["baseline_passed"]),scored(&c["candidate_passed"]),c["physics_ticks"],c["bypasses"],s(c,"candidate_controller_sha256")));
+        }
         let review = &v["latest_review"];
         let decision = if review.is_object() {
             format!(
@@ -273,6 +366,7 @@ impl Panel {
             if pending {
                 match self.qualification.operation.as_str() {
                     "run" => "Executing registered cases in Nexus…",
+                    "replay" => "Testing the selected controller on the disclosed layout in Nexus…",
                     "verify" | "approve" | "reject" | "handoff" => {
                         "Replaying measurements and checking package receipts…"
                     }
@@ -288,6 +382,13 @@ impl Panel {
                 w.prepared.is_some() && w.plan["spec_skill"].is_object(),
             ),
             (ids!(qa_run), reg && started < cases),
+            (
+                ids!(qa_replay_case),
+                development
+                    && w.prepared.is_some()
+                    && w.plan["kind"] == "table-transfer"
+                    && w.plan["spec_skill"].is_object(),
+            ),
             (ids!(qa_refresh), true),
             (ids!(qa_verify), reg && started == cases),
             (ids!(qa_approve), r["qualified"] == true),
@@ -328,7 +429,12 @@ impl Panel {
             self.qualification_op(cx, w, "list", id);
             return true;
         }
+        if let Some(i) = self.root.drop_down(cx, ids!(qa_cases)).selected(actions) {
+            self.qualification.failed_index = i;
+            return true;
+        }
         for (id, op) in [
+            (ids!(qa_replay_case) as &[LiveId], "replay"),
             (ids!(qa_register) as &[LiveId], "register"),
             (ids!(qa_run), "run"),
             (ids!(qa_verify), "verify"),

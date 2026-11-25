@@ -1,0 +1,24 @@
+{
+  "baseline_controller_sha256": "da61865aa4a1a2cfedb550c27a5a8cc0aed756cbb7f71b22b8b9f98650afb024",
+  "baseline_passed": false,
+  "baseline_receipt_sha256": "6dcfc79f81051d5939897c54cadf8f2e96a7b239a6a8bbc1c82afc8662f242dd",
+  "bypasses": 0,
+  "candidate_controller_sha256": "c6a0fd2687a7ae82522877043e20af0dbca8abecc4b3554d08d5ad175e486da5",
+  "candidate_passed": true,
+  "candidate_receipt": {
+    "measurement_sha256": "e21eba03ba8ff701de72192b13b89a6c6f98749caa23f00e0b08eabf6b8c6891",
+    "receipt_sha256": "01755772c9cab171504ba7ed4f978cc39ef2289a233714fbd2a9388cd33ebf98",
+    "request_id": "7488d6e0-045e-475c-a2e5-82c66d211bdf",
+    "run_id": "cd1dd7493f15407f9e1884bb288202da"
+  },
+  "case": 16,
+  "error": null,
+  "original_registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+  "physics_ticks": 31040,
+  "release_exposures": 5,
+  "split": "disclosed development",
+  "trial": "1795599045825444000-84534",
+  "backend": "offscreen",
+  "reopened": true,
+  "original_verdict_preserved": true
+}

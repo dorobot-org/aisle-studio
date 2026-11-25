@@ -1,0 +1,20 @@
+{
+  "split": "disclosed development",
+  "original_registration": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+  "baseline_controller_sha256": "da61865aa4a1a2cfedb550c27a5a8cc0aed756cbb7f71b22b8b9f98650afb024",
+  "candidate_controller_sha256": "19b86852061a363abcd9b734bd60c467f5b4de3517e49e70eb2cdfc20ba4a5aa",
+  "case": 20,
+  "baseline_passed": false,
+  "candidate_passed": true,
+  "physics_ticks": 32758,
+  "bypasses": 0,
+  "error": null,
+  "release_exposures": 5,
+  "baseline_receipt_sha256": "5a23264f79dd6acac0984687d2131641197c54d16c45227fce86228685b1cf8b",
+  "candidate_receipt": {
+    "request_id": "d587afe8-3abd-41d0-8c17-77d03b21867f",
+    "run_id": "de4460a645d5431dbf5299b2ca241d8b",
+    "receipt_sha256": "b06717d6d56865886412d90c204fbb2a487b98bcc4e96810391006a2aed2e122",
+    "measurement_sha256": "ff98d85095d0a7f5d73eec69c67bc570e9059f5613d62dff00d66434ff9d653a"
+  }
+}
