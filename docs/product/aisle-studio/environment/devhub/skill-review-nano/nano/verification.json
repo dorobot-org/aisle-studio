@@ -1,0 +1,21 @@
+{
+  "robot": "Nano",
+  "backend": "headless",
+  "cases": 50,
+  "successes": 44,
+  "verified": 50,
+  "guard_bypasses": 0,
+  "qualified": false,
+  "registered_via_native": true,
+  "execution": "reopened raw cohort",
+  "registration_sha256": "7bea0963a8c9e4e90c53db6e9e55190ac9d3d4c7c50c981f19e4b8b5e3a5bb8b",
+  "rows_sha256": "ab8a8487e147db0b82aea941c6db5e55bd89b00e522e72c95a4aa6cce7ef55f6",
+  "package_sha256": "48b58d3d4c140fb4aa34a020c8a9386c0512c730f4fcba4dc97279814a279a28",
+  "reviewer_fixture": "ephemeral devhub-test",
+  "unknown_reviewer_rejected": true,
+  "modified_measurement_rejected": true,
+  "decision_reopened": true,
+  "signed_handoff_checked": false,
+  "final_disposition": "reject",
+  "physical_qualification": false
+}

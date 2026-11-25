@@ -157,13 +157,14 @@ A robotics developer registers the prepared Octos controller from **Evidence →
 
 An evaluator must be able to replay the original physics evidence, verify a distinct Octos request and measurement for every case, and see the denominator, required count, successes, guard bypasses and individual failures. Approval requires a qualifying result. Rejection is available after verification, including for a below-threshold result. Both decisions require a trusted signer and a rationale. The latest signed decision governs simulation handoff, and export checks the selected controller and raw evidence again. A hardware operator needs a separate device-specific record.
 
-The standalone G1 package passed all 20 preregistered impacts with 40,000 two-foot-supported steps, zero guard bypasses and a worst settled wrist error of 5.15 mm. The original cohort awaits independent review. The Nano controller and all 50 layout commitments were recorded in the same push before the first case. [Reference implementations, commitments, measured verdicts and reproduction](environment/skill-qualification/README.md)
+The standalone G1 package passed all 20 preregistered impacts with 40,000 two-foot-supported steps, zero guard bypasses and a worst settled wrist error of 5.15 mm. The original cohort awaits independent review. Nano completed all three transfers on 44/50 preregistered layouts using existing onboard RGB and encoders. The verifier checked all 50 motor journals and bridge receipts and counted zero guard bypasses. Nano fell one layout short of its simulation gate. [Every retained Nano failure and raw trial](environment/skill-qualification/nano/outcomes.md) [Reference implementations, commitments, measured verdicts and reproduction](environment/skill-qualification/README.md)
 
 ### Remaining product release gates
 
 | Order | Owner and decision | Acceptance evidence |
 | --- | --- | --- |
-| 1 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Obtain independent reviewer approval for the measured simulation package, identify and verify the implementation on the physical vendor node, then pair an authorized supervised device run with its simulation. Verify calibration, sensor-loss response and operator stop on each device. [Simulation package handoff](environment/spec-skills.md) |
+| 1 | Nano controller owner qualifies a revised three-cube skill | The current package scored 44/50. Reproduce the three failed placements, the two failures of wrist grasp confirmation and the docking timeout using the disclosed records. Freeze any revision and rerun it on a fresh preregistered cohort of 50 layouts. Retain the original denominator and every failure. [Case evidence](environment/skill-qualification/nano/outcomes.md) |
+| 2 | Runtime and robot teams qualify the deployment artifact for each physical robot. Simulation and device preflight are available today | Obtain independent reviewer approval for the measured simulation package, identify and verify the implementation on the physical vendor node, then pair an authorized supervised device run with its simulation. Verify calibration, sensor-loss response and operator stop on each device. [Simulation package handoff](environment/spec-skills.md) |
 
 ## Capability comparison and release decisions
 
