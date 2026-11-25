@@ -9,7 +9,9 @@ use std::{
 };
 
 mod preview;
+mod worker;
 use preview::LayoutPreview;
+use worker::WorkerSelection;
 
 script_mod! {
     use mod.prelude.widgets.*
@@ -44,6 +46,8 @@ script_mod! {
             exp_form := ScrollYView{width:354 height:Fill flow:Down spacing:7
                 Label{text:"Run configuration"}
                 Line{Label{text:"Name"} exp_name := Field{empty_text:"Experiment name"}}
+                Line{Label{text:"Worker"} exp_worker := DropDown{width:Fill} exp_check_worker := Tool{text:"Check worker"}}
+                exp_worker_info := Text{}
                 Line{Label{text:"Repeats"} exp_count := Field{text:"4"} exp_seed_mode := DropDown{width:175}}
                 Line{Label{text:"Seeds"} exp_seed := Field{text:"42" empty_text:"Base seed or comma-separated seeds"}}
                 exp_areas := View{visible:false width:Fill height:Fit flow:Down spacing:5
@@ -104,6 +108,8 @@ pub struct ExperimentPane {
     children: Vec<Child>,
     #[rust]
     preview: LayoutPreview,
+    #[rust]
+    workers: WorkerSelection,
 }
 fn root() -> PathBuf {
     runtime::user_data().join("aisle")
@@ -170,6 +176,9 @@ impl ExperimentPane {
             return;
         }
         self.loaded = true;
+        if let Err(error) = self.load_workers(cx) {
+            self.note(cx, &error);
+        }
         self.config = json!({"name":"Nano experiment","repeat_count":4,"base_seed":42,"seed_mode":"sequence","parameters":[],"recording":{"robot_trace":false,"agent_history":false},"overrides":{},"record_cameras":true});
         for (id, labels) in [
             (
@@ -284,24 +293,27 @@ impl ExperimentPane {
                     .set_selected_item(cx, i);
             }
         }
+        self.update_worker(cx);
         let text = self
             .task
             .as_ref()
             .map(|t| {
                 format!(
-                    "{} · scene v{}   /   {}   /   {}   /   controller {}   /   local Nexus",
+                    "{} · scene v{}   /   {}   /   {}   /   controller {}   /   {}",
                     t.scene.name,
                     t.scene.revision,
                     t.robot,
                     t.instruction,
-                    self.controller_sha.get(..10).unwrap_or("")
+                    self.controller_sha.get(..10).unwrap_or(""),
+                    self.worker_alias()
                 )
             })
             .unwrap_or_else(|| "Prepare a scene-bound controller in Task".into());
         self.view.label(cx, ids!(exp_context)).set_text(cx, &text);
-        self.view
-            .button(cx, ids!(exp_start))
-            .set_enabled(cx, self.task.is_some());
+        self.view.button(cx, ids!(exp_start)).set_enabled(
+            cx,
+            self.task.is_some() && self.workers.ready && self.workers.start.is_none(),
+        );
         self.view
             .button(cx, ids!(exp_preview))
             .set_enabled(cx, self.task.is_some());
@@ -318,6 +330,7 @@ impl ExperimentPane {
     }
     fn form(&self, cx: &mut Cx) {
         let cfg = &self.config;
+        self.show_worker_choice(cx);
         self.set(cx, ids!(exp_name), cfg["name"].as_str().unwrap_or(""));
         self.set(cx, ids!(exp_count), &cfg["repeat_count"].to_string());
         let mode = MODES
@@ -658,9 +671,12 @@ impl ExperimentPane {
         self.view.label(cx, ids!(exp_detail)).set_text(
             cx,
             &format!(
-                "Trial {} · {}\n{sampled}\n{}",
+                "Trial {} · {} · {}\n{sampled}\n{}",
                 selected["run_id"].as_str().unwrap_or(""),
                 selected["status"].as_str().unwrap_or(""),
+                self.job["configuration"]["worker"]
+                    .as_str()
+                    .unwrap_or("local"),
                 selected["reason"].as_str().unwrap_or("")
             ),
         );
@@ -809,6 +825,12 @@ impl ExperimentPane {
     }
     fn save_config(&mut self, cx: &mut Cx) -> Result<PathBuf, String> {
         self.config = self.config_input(cx)?;
+        if self.worker_alias() != "local" {
+            if !self.workers.ready {
+                return Err("Check the selected worker before saving this configuration".into());
+            }
+            self.config["worker_id"] = self.workers.identity.clone().into();
+        }
         let mut cfg = self.config.clone();
         if let Some(task) = &self.task {
             cfg["scene"] = json!({"id":task.scene.id,"revision":task.scene.revision});
@@ -885,6 +907,21 @@ impl ExperimentPane {
             ($id:expr) => {
                 self.view.button(cx, $id).clicked(a)
             };
+        }
+        if let Some(i) = self.view.drop_down(cx, ids!(exp_worker)).selected(a) {
+            if let Some(alias) = self.workers.aliases.get(i) {
+                self.config["worker"] = alias.clone().into();
+                self.config.as_object_mut().unwrap().remove("worker_id");
+                self.workers.key = None;
+                self.update_worker(cx);
+            }
+        }
+        if clicked!(ids!(exp_check_worker)) {
+            self.load_workers(cx)?;
+            self.show_worker_choice(cx);
+            self.workers.key = None;
+            self.update_worker(cx);
+            return Ok(());
         }
         if clicked!(ids!(exp_preview)) {
             if self.preview.repetition == 0 {
@@ -1083,21 +1120,16 @@ impl ExperimentPane {
                 .controller
                 .as_ref()
                 .ok_or("Prepare a scene-bound controller")?;
-            let path = self.output(
-                self.command()?
-                    .arg("create")
-                    .arg(root().join("experiments"))
-                    .arg(config)
-                    .arg(controller)
-                    .arg("--controller-sha256")
-                    .arg(&self.controller_sha),
-            )?;
-            let folder = PathBuf::from(path);
-            self.supervise(&folder)?;
-            self.batch = Some(folder);
-            self.selected = 0;
-            self.archives(cx).map_err(|e| e.to_string())?;
-            self.note(cx, "Batch started");
+            let mut command = self.command()?;
+            command
+                .arg("create")
+                .arg(root().join("experiments"))
+                .arg(config)
+                .arg(controller)
+                .arg("--controller-sha256")
+                .arg(&self.controller_sha);
+            self.workers.start = Some(worker::background(command));
+            self.note(cx, "Preparing batch");
             return Ok(());
         }
         if clicked!(ids!(exp_prev)) || clicked!(ids!(exp_next)) {

@@ -33,13 +33,30 @@ def redact(value):
     return value
 
 
-def history(source, target, manifest, plan):
+def history(source, target, manifest, plan, retained=None):
     base = dict(
         run_id=manifest["run_id"],
         controller_sha256=manifest["controller_sha256"],
         provider=plan.get("provider"),
         model=plan.get("policy_model"),
     )
+    if retained is not None:
+        if (
+            not isinstance(retained, list)
+            or not retained
+            or any(
+                not isinstance(row, dict)
+                or any(row.get(k) != v for k, v in base.items())
+                for row in retained
+            )
+        ):
+            raise ValueError(
+                "Retained agent history belongs to a different run or controller"
+            )
+        with target.open("x") as stream:
+            for row in retained:
+                line(stream, redact(row))
+        return
 
     def event(stream, stage, kind, data, path=None):
         when = (

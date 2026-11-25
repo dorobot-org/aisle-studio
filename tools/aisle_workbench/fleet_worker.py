@@ -16,7 +16,7 @@ import sqlite3
 import subprocess
 import sys
 import time
-from uuid import UUID
+from uuid import UUID, uuid4
 import zlib
 
 from visual_profile import BUNDLE_SHA256, COMPACT, available, validate_profile
@@ -98,6 +98,16 @@ def job_id(value):
     return value
 
 
+def worker_identity(db):
+    db.execute("CREATE TABLE IF NOT EXISTS worker_identity (id TEXT PRIMARY KEY)")
+    row = db.execute("SELECT id FROM worker_identity").fetchone()
+    if row:
+        return row[0]
+    ident = str(uuid4())
+    db.execute("INSERT INTO worker_identity VALUES(?)", (ident,))
+    return ident
+
+
 def payload(request):
     source = base64.b64decode(request["controller"], validate=True)
     if (
@@ -114,6 +124,10 @@ def payload(request):
         raise ValueError("Simulation controller and worker robot differ")
     files = request.get("files", {})
     names = companion_names(plan)
+    if request.get("mode") == "experiment":
+        if "bound_task_sha256" not in plan:
+            raise ValueError("A fleet experiment requires a frozen scene task")
+        names.add("experiment.json")
     room_hash = request.get("room_sha256")
     if room_hash is not None:
         if "bound_task_sha256" in plan:
@@ -177,7 +191,7 @@ def payload(request):
     ):
         raise ValueError("Unknown simulation camera timing or target motion")
     if (
-        request.get("mode") not in ("stream", "observations")
+        request.get("mode") not in ("stream", "observations", "experiment")
         or type(request.get("seed")) is not int
         or not 0 <= request["seed"] < 2**32
         or request.get("fixture") not in ("standard", "compliant", "impact")
@@ -187,6 +201,49 @@ def payload(request):
         )
     if request["fixture"] == "impact" and control.get("kind") != "standing-inspection":
         raise ValueError("Impact requires a G1 standing controller")
+    if request["mode"] == "experiment":
+        from experiment import encode, recordings, sample, seeds, sha
+
+        envelope = json.loads(base64.b64decode(files["experiment.json"], validate=True))
+        manifest, cfg = envelope["manifest"], envelope["configuration"]
+        scheduled = seeds(cfg)
+        index = manifest["repetition"]
+        if type(index) is not int or not 1 <= index <= len(scheduled) or scheduled[index-1] != manifest["seed"]:
+            raise ValueError("The submitted seed differs from the scheduled repetition")
+        job_id(request["worker_id"])
+        if request.get("nexus") != version("dimforge-nexus3d") or request.get(
+            "worker_sha256"
+        ) != digest(HERE / "worker.py"):
+            raise ValueError(
+                "The registered worker runtime differs from the batch preflight"
+            )
+        if (
+            job_id(manifest["run_id"]) != request["id"]
+            or manifest["controller_sha256"] != request["controller_sha256"]
+            or manifest["task_sha256"] != plan["bound_task_sha256"]
+            or manifest["robot"] != plan["robot"]
+            or manifest["robot_model_sha256"] != profile["model_hash"]
+            or manifest["seed"] != request["seed"]
+            or manifest["recording"] != recordings(cfg, manifest["repetition"])
+            or type(cfg.get("record_cameras", True)) is not bool
+        ):
+            raise ValueError("Fleet experiment does not match the frozen repetition")
+        task = json.loads(base64.b64decode(files["bound-task.json"], validate=True))
+        realized = sample(task, cfg, manifest["seed"])
+        if (
+            request["fixture"] != "standard"
+            or request.get("rgb_timing", "normal") != "normal"
+            or request.get("target_motion", "stationary") != "stationary"
+            or request.get("visual_profile", "original")
+            != realized["controller"].get("visual_profile", "original")
+            or (
+                not manifest["recording"]["agent_history"]
+                and "retained_agent_history" in envelope
+            )
+        ):
+            raise ValueError("Fleet execution settings differ from the experiment")
+        if sha(encode(realized)) != manifest["sample_sha256"]:
+            raise ValueError("Worker cannot reproduce the scheduled sample")
     if files:
         source = (
             BUNDLE_PREFIX
@@ -198,12 +255,15 @@ def payload(request):
 def status(root, ident):
     with transaction(root) as db:
         record = db.execute(
-            "SELECT id,state,created,ended,stream,message FROM jobs WHERE id=?",
+            "SELECT id,state,created,ended,stream,message,request FROM jobs WHERE id=?",
             (ident,),
         ).fetchone()
     if record is None:
         raise ValueError("Unknown simulation lease")
     row = dict(record)
+    config = json.loads(row.pop("request"))
+    if config.get("worker_id"):
+        row["worker_id"] = config["worker_id"]
     trial = root / ident / "trial"
     for key, filename in (("progress", "progress.json"), ("result", "result.json")):
         if (trial / filename).is_file():
@@ -233,10 +293,16 @@ def submit(root, request):
         config["files_sha256"] = hashes
     if request.get("room_sha256"):
         config["room_sha256"] = request["room_sha256"]
+    if request["mode"] == "experiment":
+        config["worker_id"] = request["worker_id"]
+        config["nexus"] = request["nexus"]
+        config["worker_sha256"] = request["worker_sha256"]
     fingerprint = json.dumps(config, sort_keys=True)
     token = secrets.token_hex(24)
     now = time.time()
     with transaction(root) as db:
+        if config.get("worker_id") and worker_identity(db) != config["worker_id"]:
+            raise ValueError("The registered worker has changed since the batch was saved")
         old = db.execute("SELECT request FROM jobs WHERE id=?", (ident,)).fetchone()
         if old:
             if old[0] != fingerprint:
@@ -371,6 +437,28 @@ def supervise(root, ident, token):
             )
         if config["mode"] == "stream":
             args.append("--live-preview")
+        if config["mode"] == "experiment":
+            from experiment import sample
+
+            envelope = json.loads((directory / "experiment.json").read_bytes())
+            manifest, settings = envelope["manifest"], envelope["configuration"]
+            bound = json.loads((directory / "bound-task.json").read_bytes())
+            for name, value in [
+                ("manifest.json", manifest),
+                ("request.json", envelope),
+                ("sampled-layout.json", sample(bound, settings, manifest["seed"])),
+            ]:
+                (trial / name).write_text(json.dumps(value, indent=2, allow_nan=False))
+            args.extend(
+                [
+                    "--experiment-run",
+                    str(trial / "request.json"),
+                    "--controller-sha256",
+                    config["controller_sha256"],
+                ]
+            )
+            if not settings.get("record_cameras", True):
+                args.append("--observations-only")
         if config["mode"] == "observations":
             args.extend(
                 (
@@ -438,6 +526,7 @@ def dispatch(root, request):
         from aisle.sim import nexus_backend as nx
 
         with transaction(root) as db:
+            worker_id = worker_identity(db)
             slots = db.execute("SELECT slots FROM settings").fetchone()[0]
             active = db.execute(
                 "SELECT id,state,stream FROM jobs WHERE state IN (?,?,?)", ACTIVE
@@ -450,6 +539,8 @@ def dispatch(root, request):
                 continue
         return dict(
             protocol=1,
+            worker_id=worker_id,
+            experiment_protocol=1,
             foreground_rgb_protocol=1,
             foreground_rgb_encodings=["raw", "zlib"],
             background_rgb_periods_s=[1, 2, 5],

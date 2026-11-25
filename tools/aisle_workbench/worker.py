@@ -972,7 +972,8 @@ def simulate(args, meta):
             realized=sample(json.loads(path.read_bytes()),request["configuration"],args.seed)
             if sha(encode(realized))!=manifest["sample_sha256"]: raise ValueError("Realized parameters differ from the scheduled inputs")
             save(args.out/"sampled-layout.json",realized)
-            if manifest["recording"]["agent_history"]:history(args.controller.parent,args.out/"agent-history.jsonl",manifest,plan)
+            if manifest["recording"]["agent_history"]:
+                history(args.controller.parent, args.out/"agent-history.jsonl", manifest, plan, request.get("retained_agent_history"))
             if manifest["recording"]["robot_trace"]:trace_manifest=manifest
         bound = load(path, bound_sha,realized)
         if args.robot!=bound.document["robot"] or not matches_bound(bound,control):

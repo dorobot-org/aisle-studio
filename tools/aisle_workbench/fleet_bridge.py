@@ -141,6 +141,9 @@ def verify_wrist_fixture(folder, request, state):
     if plan.get("kind") != "table-transfer":
         return
     wants_clearance = plan.get("wrist_clearance", False)
+    if request.get("mode") == "experiment":
+        sampled = json.loads((folder / "sampled-layout.json").read_bytes())
+        wants_clearance = sampled["controller"].get("wrist_clearance", wants_clearance)
     if fixture == "normal" and not wants_clearance:
         return
     for name, field in [

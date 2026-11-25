@@ -54,7 +54,13 @@ def main():
     focused = parser.add_mutually_exclusive_group()
     focused.add_argument(
         "--suite",
-        choices=["pages", "photo-reviews", "g1-revision", "scene-ranges"],
+        choices=[
+            "pages",
+            "photo-reviews",
+            "g1-revision",
+            "scene-ranges",
+            "experiment-worker",
+        ],
         default="pages",
         help="Choose all pages or a focused native workflow",
     )
@@ -72,7 +78,17 @@ def main():
         dest="suite",
         help="Revise a failed authored-room G1 run using the selected authenticated provider",
     )
+    parser.add_argument(
+        "--worker", help="Registered worker for the experiment-worker suite"
+    )
+    parser.add_argument(
+        "--incompatible-worker", help="Earlier worker used for the admission check"
+    )
     args = parser.parse_args()
+    if args.suite == "experiment-worker" and not (
+        args.worker and args.incompatible_worker
+    ):
+        parser.error("The experiment-worker suite needs both worker aliases")
     if args.suite == "g1-revision" and args.provider == "reference":
         parser.error("--g1-revision requires --provider octos or codex")
     out = args.output.resolve()
@@ -135,6 +151,18 @@ def main():
             )
     elif args.suite == "g1-revision":
         run("g1-revision", "check_g1_revision.py", "--provider", args.provider)
+    elif args.suite == "experiment-worker":
+        for robot in ("G1", "Nano"):
+            run(
+                robot.lower(),
+                "check_scene_ranges.py",
+                "--robot",
+                robot,
+                "--worker",
+                args.worker,
+                "--incompatible-worker",
+                args.incompatible_worker,
+            )
     elif args.suite == "scene-ranges":
         run("ranges", "check_scene_ranges.py")
         run("nano-ranges", "check_scene_ranges.py", "--robot", "Nano")

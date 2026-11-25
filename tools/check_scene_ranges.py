@@ -1,10 +1,14 @@
 """Author named lighting, friction and pose ranges, then compare the previews with Nexus."""
 
 import argparse
+from contextlib import ExitStack
 import hashlib
 import json
 import math
+import os
 import re
+import signal
+import subprocess
 from pathlib import Path
 from check_experiment import experiment_fixture
 from studio_native import NativeStudio
@@ -20,6 +24,10 @@ def main():
         cli.add_argument("--" + name, type=Path, required=True)
     cli.add_argument("--backend", choices=["headless", "offscreen"], default="headless")
     cli.add_argument("--robot", choices=["G1", "Nano"], default="G1")
+    cli.add_argument("--worker", help="Registered experiment worker alias")
+    cli.add_argument(
+        "--incompatible-worker", help="Registered worker without the batch protocol"
+    )
     args = cli.parse_args()
     folder = args.session.resolve()
     folder.mkdir(parents=True, exist_ok=False)
@@ -64,7 +72,10 @@ def main():
         ("Chair position", 0, 3, -1.65, -1.05),
         ("Chair angle", 3, 3, -18, 18),
     ]
-    with app.launch():
+    active_lease = None
+    incompatible_rejected = False
+    with ExitStack() as application:
+        application.enter_context(app.launch())
         click("tabs.plugin_tab_aisle_scene")
         click("aisle_scene.composer_mode")
         click(editor + "open_scene")
@@ -123,6 +134,24 @@ def main():
         )
         click("tabs.plugin_tab_aisle_run")
         click("aisle_run.experiment_mode")
+        if args.worker:
+            aliases = [
+                "local",
+                *sorted(read(Path(os.environ["DOROBOT_AISLE_WORKERS"]))),
+            ]
+            if args.incompatible_worker:
+                choose(run + "worker", aliases.index(args.incompatible_worker), form)
+                show(run + "worker_info", "support frozen experiment batches")
+                app.wait(
+                    lambda s: s["controls"][run + "start"].get("enabled") is False,
+                    "incompatible worker rejected",
+                )
+                incompatible_rejected = True
+            choose(run + "worker", aliases.index(args.worker), form)
+            show(run + "worker_info", "slots occupied")
+            shot("worker-config")
+            click(run + "trace", form)
+            click(run + "history", form)
         field(run + "count", 2, form)
         click(run + "cameras", form)
         click(run + "preview")
@@ -153,6 +182,39 @@ def main():
         shot("range-preview")
         click(run + "start")
         show(run + "feedback", "Batch started")
+        if args.worker:
+
+            def active(_):
+                nonlocal active_lease
+                for manifest in (folder / "state/aisle/experiments").glob(
+                    "*/batch.json"
+                ):
+                    for row in read(manifest)["repetitions"]:
+                        if row.get("worker", {}).get("state") == "running":
+                            active_lease = row["run_id"]
+                            return True
+                return False
+
+            app.wait(active, "registered worker running")
+            manifest = next((folder / "state/aisle/experiments").glob("*/batch.json"))
+            processes = subprocess.check_output(
+                ["ps", "-axo", "pid=,ppid=,command="], text=True
+            )
+            owned = []
+            for line in processes.splitlines():
+                pid, parent, cmd = line.strip().split(None, 2)
+                if int(parent) == app.proc.pid and cmd.endswith(
+                    "experiment_job.py run " + str(manifest.parent)
+                ):
+                    owned.append(int(pid))
+            assert len(owned) == 1, "Expected the test Studio's own batch supervisor"
+            os.kill(owned[0], signal.SIGTERM)
+            application.close()
+            application.enter_context(app.launch())
+            click("aisle_task." + args.robot.lower())
+            click("tabs.plugin_tab_aisle_run")
+            click("aisle_run.experiment_mode")
+            show(run + "worker_info", "slots occupied")
         terminal = re.compile(
             r"\bSeed \d+\s+(completed|failed|cancelled|skipped)\s+Trace"
         )
@@ -181,6 +243,22 @@ def main():
         trial = manifest.parent / "trials" / r["run_id"]
         layout = read(trial / "sampled-layout.json")
         result = read(trial / "result.json")
+        if args.worker:
+            origin = read(trial / "worker-origin.json")
+            assert (
+                origin["node"] == args.worker
+                and origin["job"] == r["worker"]["lease_id"] == r["run_id"]
+            )
+            assert (
+                r["worker"]["id"]
+                == job["worker"]["worker_id"]
+                == read(saved)["worker_id"]
+            )
+            assert all(c["status"] == "complete" for c in r["channels"].values())
+            assert (trial / "robot-trace.jsonl").is_file() and (
+                trial / "agent-history.jsonl"
+            ).is_file()
+            assert not (trial / "recording.json").exists()
         values = layout["values"]
         measure = result["scene_execution"]
         assert (
@@ -237,6 +315,15 @@ def main():
                 physics_steps=result["physics_ticks"],
                 task_success=result["task_success"],
                 **robot_evidence,
+                **(
+                    {
+                        "lease_id": origin["job"],
+                        "archive_sha256": origin["sha256"],
+                        "channels": r["channels"],
+                    }
+                    if args.worker
+                    else {}
+                ),
                 values=values,
                 nexus_ambient_rgb=ambient,
                 table_collider_friction=colliders[0]["friction"],
@@ -248,6 +335,8 @@ def main():
         trials[0]["values"] != trials[1]["values"]
         and hashlib.sha256(frozen.read_bytes()).hexdigest() == task_hash
     )
+    if args.worker:
+        assert active_lease in [t["lease_id"] for t in trials]
     (folder / "verification.json").write_text(
         json.dumps(
             dict(
@@ -257,6 +346,20 @@ def main():
                 rules=scene["rules"],
                 trials=trials,
                 restored=True,
+                **(
+                    {
+                        "worker": args.worker,
+                        "worker_backend": job["worker"]["backend"],
+                        "nexus": job["worker"]["nexus"],
+                        "active_lease_before_restart": active_lease,
+                        "same_lease_imported": active_lease
+                        in [t["lease_id"] for t in trials],
+                        "local_supervisor_restarted": True,
+                        "incompatible_worker_rejected": incompatible_rejected,
+                    }
+                    if args.worker
+                    else {}
+                ),
             ),
             indent=2,
         )

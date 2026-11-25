@@ -105,6 +105,16 @@ def preview(config, source, expected, repetition):
 def create(root, config, source, expected=None, *, parent=None):
     plan, checksum, bound = selected_inputs(source, expected)
     job = schedule(config, bound.document, bound.sha256, checksum, plan["model_hash"])
+    alias = config.get("worker", "local")
+    if alias != "local":
+        from experiment_fleet import capabilities
+
+        job["worker"] = capabilities(root.parent, alias, plan)
+        if (
+            config.get("worker_id", job["worker"]["worker_id"])
+            != job["worker"]["worker_id"]
+        ):
+            raise ValueError("The saved configuration identifies a different worker")
     root.mkdir(parents=True, exist_ok=True)
     dest = root / job["batch_id"]
     with tempfile.TemporaryDirectory(dir=root, prefix=".new-") as tmp:
@@ -126,7 +136,7 @@ def create(root, config, source, expected=None, *, parent=None):
                 created=now(),
                 started=None,
                 ended=None,
-                nexus_version=version("dimforge-nexus3d"),
+                nexus_version=job["worker"]["nexus"] if "worker" in job else version("dimforge-nexus3d"),
                 asset_revisions=[
                     dict(id=a["id"], revision=a["revision"])
                     for a in bound.document["assets"]
@@ -197,6 +207,7 @@ def include_retries(folder, job):
             "sampled_values",
             "sample_sha256",
             "channels",
+            "worker",
         ):
             row.pop(k, None)
         row.update(
@@ -216,11 +227,16 @@ def include_retries(folder, job):
         publish(folder, job, row)
 
 
-def finish(folder, job, row, code):
+def finish(folder, job, row, code, *, failure_reason=None):
     path = trial_path(folder, row)
-    cancelled = (folder / "requests" / (row["run_id"] + ".cancel")).exists()
+    cancelled = (folder / "requests" / (row["run_id"] + ".cancel")).exists() or row.get(
+        "worker", {}
+    ).get("state") == "cancelled"
     measured = read(path / "result.json") if (path / "result.json").exists() else None
-    if measured is not None:
+    if failure_reason is not None:
+        status, reason = "failed", failure_reason
+        measured = None
+    elif measured is not None:
         row["outcome"] = dict(
             passed=bool(measured.get("task_success")),
             result_sha256=digest(path / "result.json"),
@@ -288,6 +304,16 @@ def alive(pid, path):
 
 
 def execute_row(folder, job, row):
+    if "worker" in job:
+        from experiment_fleet import execute
+        try:
+            execute(folder, job, row)
+        except (ValueError, KeyError, OSError, TypeError) as exc:
+            path = trial_path(folder, row)
+            write(path / "error.json", {"message": str(exc)})
+            # A partially imported verdict cannot supersede an integrity failure.
+            finish(folder, job, row, None, failure_reason=str(exc))
+        return
     path = trial_path(folder, row)
     request = folder / "requests" / (row["run_id"] + ".cancel")
     child = None
@@ -396,6 +422,10 @@ def run(folder):
 def main():
     cli = argparse.ArgumentParser(description=__doc__)
     opts = cli.add_subparsers(dest="operation", required=True)
+    probe = opts.add_parser("worker")
+    probe.add_argument("root", type=Path)
+    probe.add_argument("alias")
+    probe.add_argument("controller", type=Path)
     new = opts.add_parser("create")
     new.add_argument("root", type=Path)
     new.add_argument("config", type=Path)
@@ -411,7 +441,10 @@ def main():
         if name != "run":
             parser.add_argument("run_id")
     a = cli.parse_args()
-    if a.operation == "create":
+    if a.operation == "worker":
+        from experiment_fleet import capabilities
+        print(json.dumps(capabilities(a.root, a.alias, read(a.controller))))
+    elif a.operation == "create":
         print(
             create(
                 a.root.resolve(),
