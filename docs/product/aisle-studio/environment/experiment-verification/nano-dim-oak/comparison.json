@@ -1,0 +1,212 @@
+{
+  "robot": "Nano",
+  "backend": "Nexus",
+  "seed": 43,
+  "task_sha256": "e19f1e44536119346ac38ff97578f57515f6c04b30cf2eabae8827ae363696c5",
+  "sample_sha256": "f507c7296ddc8f5410c5a333ca96ffc5d06bfedff1c988b952ac1e6c150393df",
+  "baseline_devhub_job": "J7/L7",
+  "baseline_job_state": "cancelled after both physics verdicts",
+  "baseline_replay_matches_actions_motors_and_cube_metrics": true,
+  "baseline": {
+    "controller_sha256": "8078cb83e448057245aee75bedf4f3ac10076a25b1356d0bbdab10f8536a24a5",
+    "sampled_layout_file_sha256": "f605f22feeaf0a95d46bd54aaf506f5866ff46b4374b8124fdf1f925ccbb8cab",
+    "actions_sha256": "9fa88332c79c2c7acbb9543f825cc74416ab8fd1aa81882c8a8454097aae36da",
+    "task_success": false,
+    "physics_ticks": 6678,
+    "phase": "carry",
+    "error": "ValueError: Stereo table docking timed out",
+    "cubes": {
+      "red": {
+        "passed": false,
+        "opposing_finger_airborne_ticks": 2294,
+        "final_position_m": [
+          0.5940490365028381,
+          0.43412989377975464,
+          -0.014301070012152195
+        ],
+        "table_contact_tail_ticks": 0,
+        "detached": true,
+        "min_finger_clearance_tail_m": 0.5776999758401666,
+        "cube_center_over_table": false,
+        "nearest_table_edge_m": -0.16587010622024534,
+        "required_table_inset_m": 0.035001016151377545,
+        "settle_motion_m": 0.0
+      }
+    },
+    "root_pose_writes": 0,
+    "rejected_motor_writes": 0,
+    "actuator_audit": {
+      "format": "little-endian float64, initial targets then one row per physics tick",
+      "applied_rows": 6678,
+      "invalid_rows": 0,
+      "unmatched_ticks": 0,
+      "initial_targets_valid": true,
+      "sha256": "dbec391d33dd11149a81888f8d0c45ee615a8c02cbdd79312fce84f8cc71ed3a",
+      "passed": true
+    },
+    "robot_furniture_contacts": {},
+    "confirmed_dim_observations": 0,
+    "first_dim_observation_tick": null
+  },
+  "candidate": {
+    "controller_sha256": "b93b6f8a622dc1b7199406d74e1b6ed337f019fe96088cf07a74b91ef78a5f7e",
+    "sampled_layout_file_sha256": "f605f22feeaf0a95d46bd54aaf506f5866ff46b4374b8124fdf1f925ccbb8cab",
+    "actions_sha256": "a5140924d1194cac3a31000034c3afa14dd927155326d179b48fdc2f15662cb5",
+    "task_success": true,
+    "physics_ticks": 6908,
+    "phase": "back away",
+    "error": null,
+    "cubes": {
+      "red": {
+        "passed": true,
+        "opposing_finger_airborne_ticks": 3210,
+        "final_position_m": [
+          0.17669983208179474,
+          0.687265157699585,
+          0.5599988698959351
+        ],
+        "table_contact_tail_ticks": 100,
+        "detached": true,
+        "min_finger_clearance_tail_m": 0.2687966610676689,
+        "cube_center_over_table": true,
+        "nearest_table_edge_m": 0.08726515769958498,
+        "required_table_inset_m": 0.035001016151377545,
+        "settle_motion_m": 0.0
+      }
+    },
+    "root_pose_writes": 0,
+    "rejected_motor_writes": 0,
+    "actuator_audit": {
+      "format": "little-endian float64, initial targets then one row per physics tick",
+      "applied_rows": 6908,
+      "invalid_rows": 0,
+      "unmatched_ticks": 0,
+      "initial_targets_valid": true,
+      "sha256": "2f6cd701c382c7714d60047701f39565b47f6bcb289055e005c596e3fe44f7f7",
+      "passed": true
+    },
+    "robot_furniture_contacts": {},
+    "confirmed_dim_observations": 40,
+    "first_dim_observation_tick": 2998
+  },
+  "recorded_observation": {
+    "source": "baseline replay",
+    "frame_index": 238,
+    "tick": 4780,
+    "camera_pose_source": "URDF forward kinematics from recorded joint encoders",
+    "images": {
+      "head": {
+        "image": "head.png",
+        "sha256": "55a8dc5b3404551b99df17ebc7323c47c88c1f0416a33a529aa7e9803a18d284",
+        "K": [
+          [
+            257.0666412135806,
+            0.0,
+            240.0
+          ],
+          [
+            0.0,
+            257.0666412135806,
+            180.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "base_from_camera_gl": [
+          [
+            8.187268969103886e-07,
+            -0.19408499358995707,
+            -0.9809847171401378,
+            0.09933517510081984
+          ],
+          [
+            -0.9999999999996648,
+            -1.6679047826518938e-07,
+            -8.015979803412317e-07,
+            1.9339635783323436e-08
+          ],
+          [
+            -8.040771266394643e-09,
+            0.9809847171404651,
+            -0.1940849935900285,
+            0.4340230713988345
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "oak_hsv_window_pixels": 48051,
+        "oak_value_percentiles_10_50_90": [
+          78.0,
+          78.0,
+          78.0
+        ]
+      },
+      "right_wrist": {
+        "image": "right_wrist.png",
+        "sha256": "ca70e29edb1f3719957eb643e3349687d5da52711229c2d2482cdf72e2ff7a10",
+        "K": [
+          [
+            257.0666412135806,
+            0.0,
+            240.0
+          ],
+          [
+            0.0,
+            257.0666412135806,
+            180.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "base_from_camera_gl": [
+          [
+            0.44387114301715597,
+            -0.3546440612438268,
+            -0.8229252689163994,
+            0.1506057603378507
+          ],
+          [
+            -0.896090625100287,
+            -0.1756679727150998,
+            -0.40763016935642016,
+            -0.19207852238044051
+          ],
+          [
+            2.0050594975312697e-06,
+            0.9183508878346294,
+            -0.3957671623686432,
+            0.47232398752232013
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "oak_hsv_window_pixels": 30450,
+        "oak_value_percentiles_10_50_90": [
+          78.0,
+          78.0,
+          78.0
+        ]
+      }
+    },
+    "legacy_edge": null,
+    "candidate_edge": {
+      "height_m": 0.5411144180609113,
+      "distance_m": 0.4828193500572157,
+      "exposure_mode": "dim-oak"
+    }
+  }
+}

@@ -138,6 +138,8 @@ Score designs before implementation and actual UI separately. Each item is worth
 
 Studio owns pages and artifact navigation. AISLE owns execution and scoring. Robot adapters own units, calibration and physical stop behavior. An unmet hardware or qualification gate remains visible in the release record.
 
+The standalone release qualifies named scene ranges through the native Run page on both reference robots. On seeds 42 and 43, G1 must finish the standing reach with both feet loaded throughout, and Nano must pick up the red cube and leave it settled on the table. Each executed layout must match its preview digest. Studio must retain the failed low-light Nano controller alongside its correction so an evaluator can replay the same input and inspect the original camera evidence. DevHub J8 passed all four simulations. The dim-table correction has matched-seed evidence for this room. Broader lighting generalization remains unmeasured. [G1 and Nano receipts](environment/devhub/scene-ranges/verification.json) · [Matched Nano replay](environment/experiment-verification/nano-dim-oak/README.md)
+
 ### Remaining work for the standalone simulation release
 
 | Order | Owner and decision | Acceptance evidence |

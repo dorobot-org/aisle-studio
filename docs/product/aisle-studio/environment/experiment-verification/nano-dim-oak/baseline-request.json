@@ -1,0 +1,111 @@
+{
+  "configuration": {
+    "active_scene_rules": [
+      "Window light",
+      "Table grip",
+      "Chair position",
+      "Chair angle"
+    ],
+    "base_seed": 42,
+    "controller_sha256": "8078cb83e448057245aee75bedf4f3ac10076a25b1356d0bbdab10f8536a24a5",
+    "name": "Nano experiment",
+    "overrides": {},
+    "parameters": [],
+    "record_cameras": false,
+    "recording": {
+      "agent_history": false,
+      "robot_trace": false
+    },
+    "repeat_count": 2,
+    "scene": {
+      "id": "scene-living-room",
+      "revision": 2
+    },
+    "seed_mode": "sequence"
+  },
+  "manifest": {
+    "run_id": "9a149b55-3037-4cfc-9342-b591ee8823d6",
+    "batch_id": "1168192c-bb1a-4888-a270-4979f3d253cd",
+    "repetition": 2,
+    "scene": {
+      "id": "scene-living-room",
+      "revision": 2
+    },
+    "task_sha256": "e19f1e44536119346ac38ff97578f57515f6c04b30cf2eabae8827ae363696c5",
+    "controller_sha256": "8078cb83e448057245aee75bedf4f3ac10076a25b1356d0bbdab10f8536a24a5",
+    "robot": "Nano",
+    "robot_model_sha256": "a03319b78dcf338cbd64bed7bdc2062066af6f8a189cdb2cb67f9ba1e9b6b627",
+    "seed": 43,
+    "recording": {
+      "agent_history": false,
+      "robot_trace": false
+    },
+    "status": "running",
+    "parent_run_id": null,
+    "created": "2026-11-25T06:19:48.310339+00:00",
+    "started": "2026-11-25T06:20:51.959750+00:00",
+    "ended": null,
+    "nexus_version": "0.2.1",
+    "asset_revisions": [
+      {
+        "id": "asset-blue",
+        "revision": 1
+      },
+      {
+        "id": "asset-oak",
+        "revision": 1
+      },
+      {
+        "id": "asset-red",
+        "revision": 1
+      },
+      {
+        "id": "fixture-chair",
+        "revision": 1
+      }
+    ],
+    "sample_sha256": "f507c7296ddc8f5410c5a333ca96ffc5d06bfedff1c988b952ac1e6c150393df",
+    "sampled_values": {
+      "Window light": {
+        "value": 0.2613375923392122,
+        "type": "number",
+        "unit": "1",
+        "binding": {
+          "kind": "ambient"
+        },
+        "source": "scene_rule"
+      },
+      "Table grip": {
+        "value": 0.3213736091381465,
+        "type": "number",
+        "unit": "1",
+        "binding": {
+          "kind": "friction",
+          "instance": "object-oak"
+        },
+        "source": "scene_rule"
+      },
+      "Chair position": {
+        "value": -1.5873178468488263,
+        "type": "number",
+        "unit": "m",
+        "binding": {
+          "kind": "position",
+          "axis": "x",
+          "instance": "chair-left"
+        },
+        "source": "scene_rule"
+      },
+      "Chair angle": {
+        "value": -2.5088358648980407,
+        "type": "number",
+        "unit": "deg",
+        "binding": {
+          "kind": "yaw",
+          "instance": "chair-left"
+        },
+        "source": "scene_rule"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "table-transfer",
+  "color_order": "red",
+  "table_perception": "oak-rgb-exposure-v2",
+  "bound_task_sha256": "e19f1e44536119346ac38ff97578f57515f6c04b30cf2eabae8827ae363696c5",
+  "bound_scene": {
+    "id": "scene-living-room",
+    "revision": 2,
+    "name": "Surveyed living room"
+  },
+  "robot": "Nano",
+  "task": "Pick up the cube and put it on the coffee table.",
+  "provider": "reference",
+  "model_hash": "a03319b78dcf338cbd64bed7bdc2062066af6f8a189cdb2cb67f9ba1e9b6b627"
+}

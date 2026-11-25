@@ -1,0 +1,18 @@
+{
+  "studio_commit": "a5c6ce4acd8d164a7e85bb34ec2ed7707be132a2",
+  "studio_binary_sha256": "608507d5ed35f1673982db11ffe5d63f43af93817cd6bbb2e7dbcaf0f61fde5a",
+  "backend": "headless",
+  "checks": {
+    "ranges": {
+      "receipt": "ranges/verification.json",
+      "sha256": "6a25187c3b8b3ee9d9348ee3a88536d0f4ead3c21343d891ee91d75aa74c1f1f",
+      "wall_seconds": 59.83
+    },
+    "nano-ranges": {
+      "receipt": "nano-ranges/verification.json",
+      "sha256": "642b3c1c5b7fb9dbd74fcfa9824a84fab9f5a4ddd735c6efe5174651fa615154",
+      "wall_seconds": 148.49
+    }
+  },
+  "binary_verified_after_checks": true
+}

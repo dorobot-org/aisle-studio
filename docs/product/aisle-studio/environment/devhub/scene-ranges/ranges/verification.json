@@ -1,0 +1,158 @@
+{
+  "backend": "headless",
+  "robot": "G1",
+  "task_sha256": "1c248393ef2b8cd48dbf6ccc22e9fd197edb99bbe208d999d1c8eba25e3b3e17",
+  "rules": [
+    {
+      "name": "Window light",
+      "property": "ambient",
+      "instance": null,
+      "range": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "name": "Table grip",
+      "property": "friction",
+      "instance": "object-oak",
+      "range": [
+        0.3,
+        0.8
+      ]
+    },
+    {
+      "name": "Chair position",
+      "property": "x",
+      "instance": "chair-left",
+      "range": [
+        -1.65,
+        -1.05
+      ]
+    },
+    {
+      "name": "Chair angle",
+      "property": "yaw",
+      "instance": "chair-left",
+      "range": [
+        -18.0,
+        18.0
+      ]
+    }
+  ],
+  "trials": [
+    {
+      "seed": 42,
+      "sample_sha256": "d2863213ddbf0763866fbfa5690ba4b6e2ce809178392e4bb002774321cae041",
+      "physics_steps": 2000,
+      "task_success": true,
+      "values": {
+        "Window light": {
+          "value": 0.3736982445106015,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "ambient"
+          },
+          "source": "scene_rule"
+        },
+        "Table grip": {
+          "value": 0.7564512401174353,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "friction",
+            "instance": "object-oak"
+          },
+          "source": "scene_rule"
+        },
+        "Chair position": {
+          "value": -1.5739567102741796,
+          "type": "number",
+          "unit": "m",
+          "binding": {
+            "kind": "position",
+            "axis": "x",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        },
+        "Chair angle": {
+          "value": 6.964561373358009,
+          "type": "number",
+          "unit": "deg",
+          "binding": {
+            "kind": "yaw",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        }
+      },
+      "nexus_ambient_rgb": [
+        0.3736982445106015,
+        0.3736982445106015,
+        0.3736982445106015
+      ],
+      "table_collider_friction": 0.7564512401174353,
+      "measured_chair_x_m": -1.5739567279815674,
+      "measured_chair_yaw_deg": 6.964561329479022
+    },
+    {
+      "seed": 43,
+      "sample_sha256": "f507c7296ddc8f5410c5a333ca96ffc5d06bfedff1c988b952ac1e6c150393df",
+      "physics_steps": 2000,
+      "task_success": true,
+      "values": {
+        "Window light": {
+          "value": 0.2613375923392122,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "ambient"
+          },
+          "source": "scene_rule"
+        },
+        "Table grip": {
+          "value": 0.3213736091381465,
+          "type": "number",
+          "unit": "1",
+          "binding": {
+            "kind": "friction",
+            "instance": "object-oak"
+          },
+          "source": "scene_rule"
+        },
+        "Chair position": {
+          "value": -1.5873178468488263,
+          "type": "number",
+          "unit": "m",
+          "binding": {
+            "kind": "position",
+            "axis": "x",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        },
+        "Chair angle": {
+          "value": -2.5088358648980407,
+          "type": "number",
+          "unit": "deg",
+          "binding": {
+            "kind": "yaw",
+            "instance": "chair-left"
+          },
+          "source": "scene_rule"
+        }
+      },
+      "nexus_ambient_rgb": [
+        0.2613375923392122,
+        0.2613375923392122,
+        0.2613375923392122
+      ],
+      "table_collider_friction": 0.3213736091381465,
+      "measured_chair_x_m": -1.5873178243637085,
+      "measured_chair_yaw_deg": -2.5088358757138454
+    }
+  ],
+  "restored": true
+}

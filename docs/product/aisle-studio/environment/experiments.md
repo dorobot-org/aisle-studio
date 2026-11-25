@@ -27,6 +27,8 @@ Bind the new scene revision on **Task** and prepare a controller. In **Run → R
 
 In the offscreen G1 run, seeds 42 and 43 placed the left chair at −1.574 m and −1.587 m on the X axis, with measured yaw of +6.965° and −2.509°. Nexus used ambient RGB levels of 0.374 and 0.261. The saved collider configuration applied friction coefficients of 0.756 and 0.321 to all five table colliders. Each G1 trial completed 2,000 steps. [Native Scene editor](experiment-verification/scene-ranges.png) · [Run preview](experiment-verification/scene-range-preview.png) · [Offscreen receipt](experiment-verification/scene-ranges-offscreen.json)
 
+Nano also exercised the same four ranges. In the dimmer scene, its original controller lifted the red cube and timed out while looking for the table rim. The recorded exposure and frozen pair are available for replay. The revised controller confirmed the rim in its head and wrist images and placed the cube with 100 consecutive ticks of table contact. [Reproduce the failure and correction](experiment-verification/nano-dim-oak/README.md)
+
 ## Measured runs
 
 Each native test selected the two chairs and configured five repetitions. The first four placed the selected red cube on the named tabletop. The operator cancelled the fifth before execution and reopened Studio during the batch. Every recorded robot row was checked for its simulation timestamp, 17 joint values, commands and wheel support. Each retained history was checked against the frozen controller and run ID.
@@ -51,4 +53,8 @@ python3 tools/check_experiment.py --studio target/debug/aisle-studio \
   --remote "$(command -v makepad-remote)" --session /tmp/nano-repeat-octos --backend offscreen --provider octos
 python3 tools/check_start_areas.py --studio target/debug/aisle-studio \
   --remote "$(command -v makepad-remote)" --session /tmp/g1-start-areas --backend headless
+python3 tools/check_scene_ranges.py --studio target/debug/aisle-studio \
+  --remote "$(command -v makepad-remote)" --session /tmp/nano-scene-ranges --robot Nano --backend headless
 ```
+
+To include the archived comparison tests, set `DOROBOT_VALIDATION_ARCHIVES` to the `docs/product/aisle-studio/validation` directory in the companion Dorobot Studio checkout. To exercise the Dora guard graph, set `NANO_DORA_GRAPH_TESTS=1` and point `DORA_BIN` to the Dora 1.0.1 executable. Run `"$DOROBOT_AISLE_PYTHON" -m unittest discover -s tools/aisle-validation` from the AISLE Studio root. [Companion validation archives](https://github.com/dorobot-org/dorobot-studio/tree/9bc37162c7548287659fbed48acb79648d90bd9d/docs/product/aisle-studio/validation)
