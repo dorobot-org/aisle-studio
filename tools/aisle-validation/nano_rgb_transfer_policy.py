@@ -59,6 +59,7 @@ class Controller:
         if self.model.names != self.names:
             raise ValueError("Joint order differs from the URDF")
         self.colors = config["colors"]
+        self.table_appearance = config.get("table_appearance", "oak")
         self.servo = VisualServo(config | {"color": self.colors[0], "standoff_m": 0.45})
         self.max_forward_speed = config.get("max_forward_speed_m_s", 0.13)
         self.track_grasp = bool(config.get("track_grasp"))
@@ -264,7 +265,10 @@ class Controller:
         return views
 
     def table(self, data=None):
-        return table_edge(self.table_views(self.sense() if data is None else data))
+        return table_edge(
+            self.table_views(self.sense() if data is None else data),
+            self.table_appearance,
+        )
 
     def dock(self, color):
         self.last_rim_distance = None

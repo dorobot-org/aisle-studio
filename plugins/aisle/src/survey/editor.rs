@@ -123,6 +123,9 @@ impl SurveyPane {
         self.view
             .widget(cx, ids!(table_details))
             .set_visible(cx, a.physics.shape == Shape::FourLegTable);
+        self.view
+            .button(cx, ids!(appearance))
+            .set_text(cx, &format!("Appearance · {}", a.physics.appearance.value));
         self.view.button(cx, ids!(asset_shape)).set_text(
             cx,
             match a.physics.shape {
@@ -360,6 +363,18 @@ impl SurveyPane {
         }
         if clicked(ids!(rotate_geometry)) {
             self.editor.rotation = (self.editor.rotation + 1) % 4;
+            self.editor_labels(cx);
+            return;
+        }
+        if clicked(ids!(appearance)) {
+            let shades = ["neutral", "oak", "red", "green", "blue"];
+            let current = &mut self.editor.asset.physics.appearance;
+            let next = shades
+                .iter()
+                .position(|s| *s == current.value)
+                .map_or(0, |i| (i + 1) % shades.len());
+            current.edit(shades[next].to_string());
+            self.editor.dirty = true;
             self.editor_labels(cx);
             return;
         }

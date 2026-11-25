@@ -697,3 +697,17 @@ impl Widget for SceneEditorPane {
         self.view.draw_walk(cx, scope, walk)
     }
 }
+
+impl SceneEditorPaneRef {
+    pub fn task_scene(&self, cx: &mut Cx) -> Option<Revision> {
+        let w = self.borrow()?;
+        if w.baseline != w.editor.scene || w.editor.scene.revision == 0 || w.candidate.is_some() {
+            w.note(
+                cx,
+                "Apply your changes and save a scene revision before creating a task",
+            );
+            return None;
+        }
+        w.editor.scene.reference()
+    }
+}

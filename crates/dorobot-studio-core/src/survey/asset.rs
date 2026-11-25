@@ -108,6 +108,7 @@ pub enum Shape {
 #[serde(default)]
 pub struct PhysicalAsset {
     pub material: Property<String>,
+    pub appearance: Property<String>,
     pub friction: Property<f64>,
     pub restitution: Property<f64>,
     pub movable: Property<bool>,
@@ -122,6 +123,7 @@ impl Default for PhysicalAsset {
     fn default() -> Self {
         Self {
             material: Property::default_value("Unspecified".into()),
+            appearance: Property::default_value("neutral".into()),
             friction: Property::default_value(0.6),
             restitution: Property::default_value(0.),
             movable: Property::default_value(false),

@@ -16,7 +16,8 @@ use makepad_urdf_player::robot_view::RobotViewWidgetRefExt;
 use std::path::PathBuf;
 mod joint_inspector;
 mod survey;
-mod scene_editor;
+pub mod scene_editor;
+pub mod task_binding;
 
 pub struct AislePlugin;
 const PAGES: &[PanelDescriptor] = &[
@@ -53,6 +54,7 @@ impl StudioPlugin for AislePlugin {
     fn register(&self, vm: &mut ScriptVm) {
         survey::script_mod(vm);
         scene_editor::script_mod(vm);
+        task_binding::script_mod(vm);
         script_mod(vm);
     }
     fn create(&self, panel: &str, vm: &mut ScriptVm) -> Result<Box<dyn PluginPanel>, String> {
@@ -97,8 +99,10 @@ script_mod! {
     let Bar=View{width:Fill height:Fit flow:Right spacing:8.0 align:Align{y:0.5}}
     let Page=View{width:Fill height:Fill flow:Down padding:16.0 spacing:12.0}
     mod.widgets.AisleTask=Page{
-        Title{text:"Robot task"}
+        Bar{task_heading := Title{width:Fill text:"Robot task"} select_scene := mod.widgets.ux.ToolButton{text:"Select scene"}}
         context_label := Section{}
+        binding_status := Body{visible:false max_lines:2}
+        project_task := TaskBinding{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             editor := Card{width:Fill height:Fill
                 Section{text:"Robot profile"}
@@ -123,7 +127,7 @@ script_mod! {
     }
     mod.widgets.AisleScene=Page{
         scene_heading := Title{text:"Simulation scene"} context_label := Section{}
-        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"} composer_mode := mod.widgets.ux.ToolButton{text:"Scene editor"}}
+        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"} composer_mode := mod.widgets.ux.ToolButton{text:"Scene editor"} create_bound_task := mod.widgets.ux.ToolButton{visible:false text:"Create task"}}
         project_survey := SurveyPane{visible:false}
         composer := SceneEditorPane{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
@@ -829,6 +833,7 @@ impl PluginPanel for Panel {
             }
             "aisle_scene" => {
                 self.root.widget(cx, ids!(project_survey)).set_visible(cx, self.survey_open);
+                self.root.widget(cx,ids!(create_bound_task)).set_visible(cx,self.composer_open);
                 self.root.widget(cx, ids!(composer)).set_visible(cx, self.composer_open);
                 self.root.button(cx, ids!(composer_mode)).set_enabled(cx,!self.composer_open);
                 self.root.widget(cx, ids!(row)).set_visible(cx, !self.survey_open && !self.composer_open);
@@ -2063,7 +2068,8 @@ impl PluginPanel for Panel {
         if reference || revise || octos || self.root.button(cx, ids!(codex)).clicked(actions) {
             let input = self.root.text_input(cx, ids!(instruction));
             if reference {
-                input.set_text(cx, REFERENCE);
+                let text=active_nano_instruction(b).unwrap_or_else(||REFERENCE.to_string());
+                input.set_text(cx, &text);
             }
             b.dispatch(Intent::Aisle(Action::Prepare {
                 task: input.text(),
@@ -2080,4 +2086,14 @@ impl PluginPanel for Panel {
         }
         false
     }
+}
+
+
+fn active_nano_instruction(b:&dyn Backend)->Option<String> {
+    let w=b.aisle()?;
+    if w.robot!=Robot::Nano{return None;}
+    let store=dorobot_studio_core::survey::Survey::new(dorobot_studio_core::runtime::user_data().join("aisle/survey"));
+    let (_,path)=store.active_task().ok()??;
+    let t:dorobot_studio_core::survey::task::BoundTask=serde_json::from_slice(&std::fs::read(path).ok()?).ok()?;
+    Some(t.instruction)
 }

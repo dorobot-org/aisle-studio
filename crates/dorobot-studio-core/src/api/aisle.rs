@@ -1267,7 +1267,18 @@ impl Workbench {
                 }
             }
         }
-        if op == "room" || ((op == "run" || submitting) && mobile) || capture_onboard {
+        let active_bound=if self.robot==Robot::Nano && (op=="prepare" || op=="run" || submitting) {
+            crate::survey::Survey::new(self.root.join("survey")).active_task().map_err(io::Error::other)?
+        }else{None};
+        if let Some((sha,path))=&active_bound {
+            if op!="prepare" && self.plan["bound_task_sha256"].as_str()!=Some(sha.as_str()){
+                return Err(io::Error::other("Prepare a controller for the selected scene task first"));
+            }
+            cmd.arg("--bound-task").arg(path).arg("--bound-task-sha256").arg(sha);
+        }else if (op=="run"||submitting) && self.plan["bound_task_sha256"].is_string(){
+            return Err(io::Error::other("Select this controller’s scene task or prepare a controller for the built-in scene"));
+        }
+        if active_bound.is_none() && (op == "room" || ((op == "run" || submitting) && mobile) || capture_onboard) {
             if let Some(path) = &self.room_path {
                 cmd.arg("--room-revision").arg(path).arg("--room-hash").arg(
                     self.room_selection["sha256"]

@@ -1,4 +1,6 @@
-use dorobot_plugin_aisle::AislePlugin;
+use dorobot_plugin_aisle::{
+    scene_editor::SceneEditorPaneWidgetRefExt, task_binding::TaskBindingWidgetRefExt, AislePlugin,
+};
 use dorobot_studio_core::{
     api::{files::FileBackend, Backend, Intent, Screen},
     playback_controls::PlaybackAction,
@@ -62,9 +64,36 @@ struct App {
     replay: bool,
     #[rust]
     last_tick: Option<std::time::Instant>,
+    #[rust]
+    binding_open: bool,
+    #[rust]
+    bound_status: Option<(String, String)>,
 }
 
 impl App {
+    fn update_bound_status(&mut self) {
+        let p = dorobot_studio_core::survey::Survey::new(
+            dorobot_studio_core::runtime::user_data().join("aisle/survey"),
+        );
+        self.bound_status = match p.active_task() {
+            Ok(Some((_, f))) => std::fs::read(f)
+                .ok()
+                .and_then(|d| {
+                    serde_json::from_slice::<dorobot_studio_core::survey::task::BoundTask>(&d).ok()
+                })
+                .map(|t| {
+                    (
+                        format!(
+                            "{} · revision {} · {}",
+                            t.scene.name, t.scene.revision, t.instruction
+                        ),
+                        t.instruction,
+                    )
+                }),
+            Ok(None) => None,
+            Err(e) => Some((e.to_string(), String::new())),
+        };
+    }
     fn sync(&mut self, cx: &mut Cx) {
         self.ui
             .widget(cx, ids!(pages))
@@ -90,6 +119,60 @@ impl App {
                 },
             );
         }
+        if self.pages.selected() == Some("aisle_task") {
+            self.ui
+                .widget(cx, ids!(aisle_task.project_task))
+                .set_visible(cx, self.binding_open);
+            self.ui.label(cx, ids!(aisle_task.task_heading)).set_text(
+                cx,
+                if self.binding_open {
+                    "Bind scene task"
+                } else {
+                    "Robot task"
+                },
+            );
+            if self.binding_open {
+                self.ui.label(cx, ids!(aisle_task.context_label)).set_text(
+                    cx,
+                    "Adora Nano   /   AISLE · Nexus   /   Mobile manipulation",
+                );
+            }
+            self.ui
+                .widget(cx, ids!(aisle_task.row))
+                .set_visible(cx, !self.binding_open);
+            self.ui.button(cx, ids!(aisle_task.select_scene)).set_text(
+                cx,
+                if self.binding_open {
+                    "Return to task"
+                } else {
+                    "Select scene"
+                },
+            );
+            let nano = self
+                .backend
+                .aisle()
+                .is_some_and(|w| w.robot == dorobot_studio_core::api::aisle::Robot::Nano);
+            let active = self.bound_status.as_ref().filter(|_| nano);
+            self.ui
+                .widget(cx, ids!(aisle_task.binding_status))
+                .set_visible(cx, !self.binding_open && active.is_some());
+            self.ui
+                .button(cx, ids!(aisle_task.select_scene))
+                .set_enabled(cx, nano);
+            if let Some((label, _)) = active {
+                self.ui
+                    .label(cx, ids!(aisle_task.binding_status))
+                    .set_text(cx, label);
+            }
+            self.ui.button(cx, ids!(aisle_task.reference)).set_text(
+                cx,
+                if active.is_some() {
+                    "Use reference controller"
+                } else {
+                    "Use reference task"
+                },
+            );
+        }
         if std::env::var_os("DOROBOT_UX_REPORT").is_some() {
             if let Some(w) = self.backend.aisle() {
                 dorobot_studio_core::ux_probe::write(
@@ -103,9 +186,26 @@ impl App {
                         "tabs.plugin_tab_aisle_scene",
                         "tabs.plugin_tab_aisle_run",
                         "tabs.plugin_tab_aisle_evidence",
+                        "aisle_scene.create_bound_task",
+                        "aisle_task.binding_status",
+                        "aisle_task.select_scene",
+                        "aisle_task.project_task.library",
+                        "aisle_task.project_task.reload_library",
+                        "aisle_task.project_task.earlier_scene",
+                        "aisle_task.project_task.later_scene",
+                        "aisle_task.project_task.scene_label",
+                        "aisle_task.project_task.bound_instruction",
+                        "aisle_task.project_task.pickup",
+                        "aisle_task.project_task.placement",
+                        "aisle_task.project_task.selection",
+                        "aisle_task.project_task.viewport",
+                        "aisle_task.project_task.result",
+                        "aisle_task.project_task.activate",
+                        "aisle_task.project_task.clear",
                         "aisle_task.nano",
                         "aisle_task.g1",
                         "aisle_task.instruction",
+                        "aisle_task.onboard",
                         "aisle_task.codex",
                         "aisle_task.octos",
                         "aisle_task.reference",
@@ -184,6 +284,7 @@ impl App {
                         "aisle_scene.project_survey.friction",
                         "aisle_scene.project_survey.restitution",
                         "aisle_scene.project_survey.mass",
+                        "aisle_scene.project_survey.appearance",
                         "aisle_scene.project_survey.graspable",
                         "aisle_scene.project_survey.surface_name",
                         "aisle_scene.project_survey.top_thickness",
@@ -219,6 +320,7 @@ impl App {
 
 impl MatchEvent for App {
     fn handle_startup(&mut self, cx: &mut Cx) {
+        self.update_bound_status();
         frame::set_light_mode(1.0);
         self.pages
             .mount(cx, &self.ui.widget(cx, ids!(pages)))
@@ -251,7 +353,49 @@ impl MatchEvent for App {
     }
 
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
-        if let Some(page) = self.pages.tab_selection(actions) {
+        if self
+            .ui
+            .button(cx, ids!(aisle_scene.create_bound_task))
+            .clicked(actions)
+        {
+            if let Some(pin) = self
+                .ui
+                .scene_editor_pane(cx, ids!(aisle_scene.composer))
+                .task_scene(cx)
+            {
+                self.backend.dispatch(Intent::Aisle(
+                    dorobot_studio_core::api::aisle::Action::Select(
+                        dorobot_studio_core::api::aisle::Robot::Nano,
+                    ),
+                ));
+                self.pages.select("aisle_task").expect("Task page");
+                self.binding_open = true;
+                self.sync(cx);
+                self.ui
+                    .task_binding(cx, ids!(aisle_task.project_task))
+                    .browse(cx, Some(pin));
+            }
+        } else if self
+            .ui
+            .button(cx, ids!(aisle_task.select_scene))
+            .clicked(actions)
+        {
+            self.binding_open = !self.binding_open;
+            if self.binding_open {
+                self.ui
+                    .task_binding(cx, ids!(aisle_task.project_task))
+                    .browse(cx, None);
+            } else {
+                self.update_bound_status();
+                if let Some((_, task)) = &self.bound_status {
+                    self.ui
+                        .text_input(cx, ids!(aisle_task.instruction))
+                        .set_text(cx, task);
+                }
+            }
+        } else if let Some(page) = self.pages.tab_selection(actions) {
+            self.binding_open = false;
+            self.update_bound_status();
             self.replay = false;
             self.pages.select(page.id).expect("Registered page");
         } else if self.ui.button(cx, ids!(back)).clicked(actions) {

@@ -550,6 +550,19 @@ def room_for_mobile(args, meta):
 
 
 def prepare(args, meta):
+    bound = None
+    path = getattr(args, "bound_task", None)
+    if path is not None:
+        from authored_scene import load
+
+        if args.robot != "Nano" or getattr(args, "room_revision", None):
+            raise ValueError("Choose the Nano profile and one scene for this task")
+        bound = load(path, getattr(args, "bound_task_sha256", None))
+        args.task = bound.document["instruction"]
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != bound.sha256:
+            raise ValueError("Task changed during preparation")
+        (args.out / "bound-task.json").write_bytes(raw)
     observation = None
     feedback = (
         measured_feedback(args.feedback, meta, args.out) if args.feedback else None
@@ -558,11 +571,14 @@ def prepare(args, meta):
     required_tracking = None
     moving_color = None
     if args.provider == "reference":
-        if args.task.strip() != REFERENCE:
+        if bound:
+            plan = dict(kind="table-transfer", color_order=bound.color)
+        elif args.task.strip() != REFERENCE:
             raise ValueError(
                 "Choose an agent for custom instructions or restore the reference task"
             )
-        plan = dict(joint=meta["allowed_joints"][0], delta_rad=0.10)
+        else:
+            plan = dict(joint=meta["allowed_joints"][0], delta_rad=0.10)
     else:
         schema = dict(
             type="object",
@@ -585,7 +601,7 @@ def prepare(args, meta):
             + args.task
         )
         if args.robot == "Nano":
-            named = named_cube_transfer(args.task)
+            named = bound.color if bound else named_cube_transfer(args.task)
             moving_color = named_cube_transfer(args.task, moving=True)
             if moving_color:
                 named = moving_color
@@ -672,9 +688,10 @@ def prepare(args, meta):
                 args.out,
                 meta,
                 args.seed,
-                getattr(args, "room_hash", None),
+                bound.sha256 if bound else getattr(args, "room_hash", None),
                 obstacles,
                 settings,
+                **({"authored": bound} if bound else {}),
             )
             observation["author_input"] = author_input(args.out, observation, args.provider)
             calibration = json.loads((args.out / CALIBRATION).read_bytes())
@@ -728,6 +745,12 @@ def prepare(args, meta):
                 "is within 0.035 m of the unique left-wrist candidate. Both modes keep the other geometry "
                 "and actuator checks. Choose inherit to retain the measured rule, or for a different capability. "
                 "Explain your choice from the listed base-frame positions."
+            )
+        if bound:
+            prompt += (
+                "\nThe operator selected one "
+                + bound.color
+                + " cube and a tabletop in Studio. Use this visual cue in the controller. Use only onboard RGB and encoders during execution."
             )
         if feedback:
             prompt += "\nPrevious measured trial to revise: " + json.dumps(feedback)
@@ -791,6 +814,11 @@ def prepare(args, meta):
                 "Only a tracked Nano pickup can change its RGB association method"
             )
     validated = validate(plan | {"task": args.task}, meta)
+    if bound and (
+        validated.get("kind") != "table-transfer"
+        or validated.get("color_order") != bound.color
+    ):
+        raise ValueError("Controller does not target the selected scene object")
     if observation and validated.get("kind") in ("visual-approach", "table-transfer"):
         selected = (
             [validated["color"]]
@@ -801,6 +829,16 @@ def prepare(args, meta):
             raise ValueError("Onboard cameras could not localize each selected target")
     return dict(
         **validated,
+        **(
+            {
+                "bound_task_sha256": bound.sha256,
+                "bound_scene": {
+                    k: bound.document["scene"][k] for k in ("id", "revision", "name")
+                },
+            }
+            if bound
+            else {}
+        ),
         **({"scene_observation": observation} if observation else {}),
         **({"previous_trial": feedback} if feedback else {}),
         **({"pickup_revision": revision} if revision else {}),
@@ -830,6 +868,27 @@ def simulate(args, meta):
     if plan["model_hash"] != meta["model_hash"] or plan["robot"] != args.robot:
         raise ValueError("Controller and robot model differ")
     control = validate(plan, meta)
+    bound = None
+    bound_sha = plan.get("bound_task_sha256")
+    if getattr(args, "bound_task_sha256", None) and args.bound_task_sha256 != bound_sha:
+        raise ValueError("Prepare a controller for the selected scene task")
+    if bound_sha:
+        from authored_scene import load
+
+        if getattr(args, "room_revision", None):
+            raise ValueError("The controller is pinned to an authored scene")
+        path = args.controller.with_name("bound-task.json")
+        bound = load(path, bound_sha)
+        if (
+            args.robot != "Nano"
+            or control.get("kind") != "table-transfer"
+            or control.get("color_order") != bound.color
+        ):
+            raise ValueError("Saved controller and task bindings differ")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != bound_sha:
+            raise ValueError("Task changed during simulation setup")
+        (args.out / "bound-task.json").write_bytes(raw)
     if "pickup_revision" in plan:
         revision = plan["pickup_revision"]
         parent = plan.get("previous_trial") or {}
@@ -851,7 +910,7 @@ def simulate(args, meta):
             args.out,
             plan["scene_observation"],
             getattr(args, "seed", 0),
-            getattr(args, "room_hash", None),
+            bound_sha or getattr(args, "room_hash", None),
         )
     (args.out / "controller.json").write_bytes(original)
     from visual_profile import validate_profile
@@ -984,11 +1043,13 @@ def simulate(args, meta):
                 observation_period_s=getattr(args, "observation_period_s", 1),
                 observation_clock=getattr(args, "observation_clock", "simulation"),
                 room_objects=room_objects,
+                **({"authored": bound} if bound else {}),
                 room_settings=room_settings,
             )
             return result | dict(
                 robot=args.robot,
-                fixture="living-room",
+                fixture="authored-scene" if bound else "living-room",
+                **({"bound_task_sha256": bound.sha256} if bound else {}),
                 controller_hash=hashlib.sha256(original).hexdigest(),
                 model_hash=meta["model_hash"],
                 kind=control["kind"],
@@ -1199,6 +1260,8 @@ def main():
         choices=["stationary", "slide-positive", "slide-negative"],
         default="stationary",
     )
+    p.add_argument("--bound-task", type=Path)
+    p.add_argument("--bound-task-sha256")
     p.add_argument("--room-source", type=Path)
     p.add_argument("--room-revision", type=Path)
     p.add_argument("--room-hash")

@@ -40,8 +40,8 @@ class NativeStudio:
                 self.proc.terminate()
                 self.proc.wait(15)
 
-    def wait(self, predicate, label="UI update"):
-        until = time.monotonic() + 35
+    def wait(self, predicate, label="UI update", timeout=35):
+        until = time.monotonic() + timeout
         while time.monotonic() < until:
             if self.proc.poll() is not None:
                 raise RuntimeError(f"Studio exited with {self.proc.returncode}")

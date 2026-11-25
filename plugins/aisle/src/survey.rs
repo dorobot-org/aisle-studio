@@ -66,6 +66,7 @@ script_mod! {
                 physics_panel := View{visible:false width:Fill height:Fit flow:Down spacing:4
                     Line{asset_shape := Tool{text:"Shape · box"} movable := Tool{text:"Fixed"}}
                     graspable := Tool{text:"Enable grasping"}
+                    appearance := Tool{text:"Appearance · neutral"}
                     Line{Label{text:"Material"} material := Field{empty_text:"Material"}}
                     Line{Label{text:"Friction"} friction := Field{} Label{text:"Bounce"} restitution := Field{}}
                     mass_row := Line{Label{text:"Mass (kg)"} mass := Field{empty_text:"kg"}}

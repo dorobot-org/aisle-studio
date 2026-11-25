@@ -4,9 +4,16 @@ import cv2
 import numpy as np
 
 
-def rim_pixels(rgb):
+def rim_pixels(rgb, appearance="oak"):
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
-    mask = cv2.inRange(hsv, (9, 65, 88), (26, 180, 195))
+    if appearance == "oak":
+        mask = cv2.inRange(hsv, (9, 65, 88), (26, 180, 195))
+    elif appearance == "neutral":
+        mask = cv2.inRange(hsv, (0, 0, 55), (179, 45, 200))
+    else:
+        from nano_grasp_estimator import color_mask
+
+        mask = color_mask(hsv, appearance).astype(np.uint8) * 255
     height, width = mask.shape
     lines = []
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -58,12 +65,12 @@ def rays(pixels, pose, intrinsics):
     return (pose[:3, :3] @ local).T
 
 
-def table_edge(views):
+def table_edge(views, appearance="oak"):
     """Triangulate an edge in base_link. Views supply (RGB, encoder-derived pose, K)."""
     planes = []
     sight = []
     for rgb, pose, intrinsics in views:
-        pixels = rim_pixels(rgb)
+        pixels = rim_pixels(rgb, appearance)
         if pixels is None:
             return None
         a, b = rays(pixels, pose, intrinsics)

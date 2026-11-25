@@ -12,6 +12,7 @@ pub struct Camera {
     azimuth: f64,
     elevation: f64,
     scale: f64,
+    origin: [f64; 2],
 }
 
 impl Camera {
@@ -30,12 +31,61 @@ impl Camera {
             azimuth,
             elevation,
             scale,
+            origin: [0.; 2],
         }
     }
 
+    /// Frame the two bound objects, accounting for their measured extent and the tabletop height.
+    pub fn task_view(
+        scene: &Scene,
+        assets: &HashMap<Revision, Asset>,
+        pickup: Option<&str>,
+        support: Option<&str>,
+    ) -> Self {
+        let mut low = [f64::INFINITY; 2];
+        let mut high = [f64::NEG_INFINITY; 2];
+        let mut height: f64 = 0.;
+        for i in scene
+            .instances
+            .iter()
+            .filter(|i| Some(i.id.as_str()) == pickup || Some(i.id.as_str()) == support)
+        {
+            let Some(asset) = assets.get(&i.asset) else {
+                continue;
+            };
+            let (sin, cos) = i.yaw_deg.to_radians().sin_cos();
+            for b in &asset.geometry.colliders {
+                let x = i.position_m[0] + cos * b.center_m[0] - sin * b.center_m[1];
+                let y = i.position_m[1] + sin * b.center_m[0] + cos * b.center_m[1];
+                let ext = [
+                    (cos.abs() * b.size_m[0] + sin.abs() * b.size_m[1]) / 2.,
+                    (sin.abs() * b.size_m[0] + cos.abs() * b.size_m[1]) / 2.,
+                ];
+                for (k, n) in [x, y].into_iter().enumerate() {
+                    low[k] = low[k].min(n - ext[k]);
+                    high[k] = high[k].max(n + ext[k]);
+                }
+                height = height.max(i.position_m[2] + b.center_m[2] + b.size_m[2] / 2.);
+            }
+        }
+        if !low[0].is_finite() {
+            return Self::new(scene.room_m, false);
+        }
+        let size = [
+            (high[0] - low[0] + 0.65).max(1.5),
+            (high[1] - low[1] + 0.65 + height).max(1.5),
+        ];
+        let mut cam = Self::new(size, false);
+        cam.origin = [
+            (low[0] + high[0]) / 2.,
+            (low[1] + high[1]) / 2. + height * 0.33,
+        ];
+        cam
+    }
     fn project(&self, [x, y, z]: [f64; 3]) -> [f64; 3] {
         let (s, c) = self.azimuth.sin_cos();
         let (v, w) = self.elevation.sin_cos();
+        let (x, y) = (x - self.origin[0], y - self.origin[1]);
         let away = x * s + y * c;
         [
             400. + self.scale * (x * c - y * s),
@@ -49,7 +99,10 @@ impl Camera {
         let (v, w) = self.elevation.sin_cos();
         let right = (px - 400.) / self.scale;
         let away = ((247. - py) / self.scale - height * w) / v;
-        [right * c + away * s, -right * s + away * c]
+        [
+            right * c + away * s + self.origin[0],
+            -right * s + away * c + self.origin[1],
+        ]
     }
 }
 
@@ -71,6 +124,16 @@ impl Viewport {
         assets: &HashMap<Revision, Asset>,
         camera: Camera,
         selected: Option<&str>,
+    ) -> Self {
+        Self::render_bindings(scene, assets, camera, selected, None)
+    }
+
+    pub fn render_bindings(
+        scene: &Scene,
+        assets: &HashMap<Revision, Asset>,
+        camera: Camera,
+        selected: Option<&str>,
+        support: Option<&super::validation::Support>,
     ) -> Self {
         let mut image = RgbImage::from_pixel(WIDTH, HEIGHT, Rgb([238, 241, 244]));
         let mut ids = vec![None; (WIDTH * HEIGHT) as usize];
@@ -101,7 +164,11 @@ impl Viewport {
         for (index, item) in scene.instances.iter().enumerate() {
             let active = Some(item.id.as_str()) == selected;
             let base: [u8; 3] = if active {
-                [50, 148, 195]
+                if support.is_some() {
+                    [212, 105, 45]
+                } else {
+                    [50, 148, 195]
+                }
             } else {
                 [136, 158, 170]
             };
@@ -136,6 +203,20 @@ impl Viewport {
                 continue;
             };
             for body in &asset.geometry.colliders {
+                let bound_surface =
+                    support
+                        .filter(|link| link.instance == item.id)
+                        .and_then(|link| {
+                            asset.geometry.surfaces.iter().find(|surface| {
+                                surface.name == link.surface
+                                    && (surface.center_m[2]
+                                        - body.center_m[2]
+                                        - body.size_m[2] / 2.)
+                                        .abs()
+                                        < 1e-7
+                            })
+                        });
+
                 let points: [[f64; 3]; 8] = std::array::from_fn(|i| {
                     let [x, y, z]: [f64; 3] = std::array::from_fn(|k| {
                         body.center_m[k]
@@ -151,7 +232,12 @@ impl Viewport {
                     ([0, 2, 6, 4], 0.72),
                     ([1, 3, 7, 5], 0.81),
                 ] {
-                    let color = Rgb(base.map(|v| (v as f64 * shade).min(255.) as u8));
+                    let face_color = if bound_surface.is_some() && face == [4, 5, 7, 6] {
+                        [36u8, 155, 128]
+                    } else {
+                        base
+                    };
+                    let color = Rgb(face_color.map(|v| (v as f64 * shade).min(255.) as u8));
                     for tri in [[face[0], face[1], face[2]], [face[0], face[2], face[3]]] {
                         let [a, b, c] = tri.map(|i| points[i]);
                         let cross = |p: [f64; 3], q: [f64; 3], x: f64, y: f64| {
@@ -181,6 +267,25 @@ impl Viewport {
                                     ids[n] = Some(index);
                                     image.put_pixel(x, y, color);
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if support.is_some() {
+            if let Some(obj) = scene
+                .instances
+                .iter()
+                .find(|i| Some(i.id.as_str()) == selected)
+            {
+                let [x, y, _] = camera.project(obj.position_m);
+                for (sx, sy) in [(-1, -1), (-1, 1), (1, -1), (1, 1)] {
+                    for d in 4..=10 {
+                        for (dx, dy) in [(sx * 10, sy * d), (sx * d, sy * 10)] {
+                            let (cx, cy) = (x as i32 + dx, y as i32 + dy);
+                            if cx >= 0 && cy >= 0 && cx < WIDTH as i32 && cy < HEIGHT as i32 {
+                                image.put_pixel(cx as u32, cy as u32, Rgb([199, 88, 23]));
                             }
                         }
                     }
