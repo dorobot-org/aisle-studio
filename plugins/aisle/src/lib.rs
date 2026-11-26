@@ -107,7 +107,7 @@ script_mod! {
     let Title=Label{width:Fill text:"" draw_text +:{text_style:mod.widgets.ux.FONT_BOLD{font_size:22}}}
     let Section=Label{width:Fill text:"" draw_text +:{text_style:mod.widgets.ux.TEXT_META{}}}
     let Body=Label{width:Fill max_lines:12 text:""}
-    let Card=mod.widgets.ux.Card{padding:16.0 spacing:10.0 flow:Down draw_bg.border_radius:14.0}
+    let Card=mod.widgets.ux.Card{padding:16.0 spacing:10.0 flow:Down draw_bg +:{light:1.0 border_radius:14.0}}
     let Bar=View{width:Fill height:Fit flow:Right spacing:8.0 align:Align{y:0.5}}
     let Page=View{width:Fill height:Fill flow:Down padding:Inset{left:22 right:22 top:8 bottom:12} spacing:10.0}
     let FormTitle=Label{width:Fill draw_text +:{text_style:mod.widgets.ux.FONT_MEDIUM{font_size:14}}}
@@ -189,6 +189,7 @@ script_mod! {
             model_card := Card{width:Fill height:Fill Bar{preview_title := FormTitle{} review_controller := FormButton{text:"Review changes"}}
                 author_inputs := Body{max_lines:2}
                 diff_scroll := ScrollYView{width:Fill height:Fill flow:Down controller_changes := Body{max_lines:0}}
+                model_loading := Body{visible:false}
                 robot := PreviewRobot{} onboard_photo := VideoPlayer{width:Fill height:Fill}}
         }
         status := Body{}
@@ -199,7 +200,7 @@ script_mod! {
         project_survey := SurveyPane{visible:false}
         composer := SceneEditorPane{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
-            model_card := Card{width:Fill height:Fill Section{text:"URDF model"} robot := PreviewRobot{tint_selected_links:true}}
+            model_card := Card{width:Fill height:Fill Section{text:"URDF model"} model_loading := Body{visible:false} robot := PreviewRobot{tint_selected_links:true}}
             photo_card := Card{width:Fill height:Fill photo_label := Section{text:"Floor footprint"} photo := VideoPlayer{width:Fill height:Fill}}
             joint_card := Card{width:300 height:Fill
                 Section{text:"Find a joint"}
@@ -456,15 +457,22 @@ impl Panel {
             .request(Some((p.clone(), p.parent().unwrap().into())))
         {
             viewer.clear_robot(cx);
+            self.label(cx, ids!(model_loading), "Loading robot model…");
+            self.root.widget(cx, ids!(model_loading)).set_visible(cx, true);
         }
         if let Some(result) = self.model.take_ready() {
             match result {
                 Ok(robot) => {
+                    self.root.widget(cx, ids!(model_loading)).set_visible(cx, false);
                     if let Some(mut v) = viewer.borrow_mut() {
                         v.set_robot(cx, robot);
+                        if self.page == "aisle_task" && w.robot == Robot::Nano {
+                            let distance = v.view_distance() * 0.77;
+                            v.set_view_distance(cx, distance);
+                        }
                     }
                 }
-                Err(error) => self.label(cx, ids!(status), &error),
+                Err(error) => self.label(cx, ids!(model_loading), &error),
             }
         }
     }

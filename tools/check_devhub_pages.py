@@ -121,21 +121,19 @@ def main():
         studio,
         "--remote",
         args.remote.resolve(),
-        "--backend",
-        "headless",
     ]
     tools = ROOT / "tools"
     report = dict(
         studio_commit=head,
         studio_binary_sha256=hashlib.sha256(studio.read_bytes()).hexdigest(),
-        backend="headless",
+        backend="headless and offscreen" if args.suite == "navigation" else "headless",
         checks={},
     )
 
-    def run(name, script, *extra, receipt="verification.json", python=sys.executable):
+    def run(name, script, *extra, receipt="verification.json", python=sys.executable, backend="headless"):
         started = time.monotonic()
         subprocess.run(
-            [python, tools / script, *flags, "--session", out / name, *extra],
+            [python, tools / script, *flags, "--backend", backend, "--session", out / name, *extra],
             cwd=ROOT,
             check=True,
         )
@@ -158,6 +156,8 @@ def main():
         )
     if args.suite == "navigation":
         run("navigation", "check_navigation.py")
+        run("navigation-offscreen", "check_navigation.py", backend="offscreen",
+            python=os.environ.get("DOROBOT_AISLE_PYTHON", sys.executable))
     elif args.suite == "photo-reviews":
         for provider in ["codex", "octos-deepseek"]:
             run(
