@@ -58,8 +58,9 @@ script_mod! {
         margin: 0.0
         align: Align{x: 0.5 y: 0.5}
         padding: Inset{left: 10. right: 10. top: 0. bottom: 0.}
-        draw_text +: {text_style: mod.widgets.ux.TEXT_BODY{}}
+        draw_text +: {light: instance(1.0) text_style: mod.widgets.ux.TEXT_BODY{}}
         draw_bg +: {
+            light: instance(1.0)
             pixel: fn() {
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
                 let base = mix(#x242428, #xFFFFFF, self.light)
@@ -67,7 +68,7 @@ script_mod! {
                 let fill = mix(base, tint, max(self.on, self.hover * 0.5))
                 let pressed = mix(#x34404E, #xD5E5F9, self.light)
                 let edge = mix(#x48484A, #xD1D1D6, self.light)
-                sdf.box(0.5, 0.5, self.rect_size.x-1.0, self.rect_size.y-1.0, 4.0)
+                sdf.box(0.5, 0.5, self.rect_size.x-1.0, self.rect_size.y-1.0, 9.0)
                 sdf.fill_keep(mix(fill, pressed, self.down))
                 sdf.stroke(mix(edge, mix(#x64B5FF, #x0060CC, self.light), self.focus), 1.0)
                 return sdf.result
@@ -101,20 +102,40 @@ script_mod! {
         }
     }
     mod.widgets.ux.WorkspaceTab = mod.widgets.ux.QuietButton{
-        width: Fit height: 38 min_height: 38
-        padding: Inset{left: 16. right: 16. top: 0. bottom: 0.}
-        draw_text +: {text_style: mod.widgets.ux.TEXT_NAV{}}
+        width: Fit height: 44 min_height: 44
+        padding: Inset{left: 40 right: 17 top: 0 bottom: 0}
+        draw_text +: {
+            text_style: mod.widgets.ux.FONT_MEDIUM{font_size: 13}
+            get_color: fn() {return mix(#x404753, #x0758B6, self.on)}
+        }
         draw_bg +: {
+            symbol: instance(0.0)
             pixel: fn() {
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                sdf.box(0.0, 0.0, self.rect_size.x, self.rect_size.y, 0.0)
-                let base = mix(#x1C1C1E, #xF2F2F7, self.light)
-                let selected = mix(#x20364E, #xE5F0FF, self.light)
-                sdf.fill(mix(base, selected, max(self.on * 0.6, self.hover * 0.3)))
-                sdf.box(10.0, self.rect_size.y - 2.0, self.rect_size.x - 20.0, 2.0, 1.0)
-                sdf.fill(mix(#x00000000, mix(#x64B5FF, #x0060CC, self.light), self.on))
-                sdf.box(1.0, 1.0, self.rect_size.x - 2.0, self.rect_size.y - 2.0, 4.0)
-                sdf.stroke(mix(#x00000000, #x0A84FF, self.focus), 1.0)
+                sdf.box(0.5, 0.5, self.rect_size.x-1.0, self.rect_size.y-1.0, 21.0)
+                let idle = mix(#xFFFFFF, #xF1F3F6, self.hover)
+                sdf.fill_keep(mix(mix(idle, #xDEECFF, self.on), #xCFDFF4, self.down))
+                sdf.stroke(mix(#x00000000, #x1769C4, self.focus), 1.6)
+                let ink = mix(#x454C58, #x0758B6, self.on)
+                if self.symbol < 0.5 {
+                    sdf.box(17.0, 14.0, 15.0, 16.0, 3.0)
+                    sdf.stroke(ink, 1.7)
+                    sdf.move_to(20.0, 22.0) sdf.line_to(23.0, 25.0) sdf.line_to(29.0, 18.0)
+                } else if self.symbol < 1.5 {
+                    sdf.move_to(16.0, 18.0) sdf.line_to(24.0, 13.5) sdf.line_to(32.0, 18.0)
+                    sdf.line_to(32.0, 26.0) sdf.line_to(24.0, 30.5) sdf.line_to(16.0, 26.0) sdf.close_path()
+                    sdf.stroke(ink, 1.6)
+                    sdf.move_to(16.0, 18.0) sdf.line_to(24.0, 22.0) sdf.line_to(32.0, 18.0)
+                    sdf.stroke(ink, 1.5)
+                    sdf.move_to(24.0, 22.0) sdf.line_to(24.0, 30.0)
+                } else if self.symbol < 2.5 {
+                    sdf.move_to(19.0, 14.0) sdf.line_to(32.0, 22.0) sdf.line_to(19.0, 30.0) sdf.close_path()
+                } else {
+                    sdf.move_to(17.0, 29.0) sdf.line_to(17.0, 23.0) sdf.stroke(ink, 2.4)
+                    sdf.move_to(24.0, 29.0) sdf.line_to(24.0, 18.0) sdf.stroke(ink, 2.4)
+                    sdf.move_to(31.0, 29.0) sdf.line_to(31.0, 13.0)
+                }
+                sdf.stroke(ink, 1.8)
                 return sdf.result
             }
         }
@@ -122,9 +143,10 @@ script_mod! {
     mod.widgets.ux.PrimaryButton = mod.widgets.ux.ToolButton{
         draw_bg +: {
             danger: instance(0.0)
+            border_radius: 8.0
             pixel: fn() {
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                sdf.box(0.5, 0.5, self.rect_size.x-1.0, self.rect_size.y-1.0, 4.0)
+                sdf.box(0.5, 0.5, self.rect_size.x-1.0, self.rect_size.y-1.0, self.border_radius)
                 let base = mix(#x0878EE, #xD72F3D, self.danger)
                 let press = mix(#x0055B8, #xA31E2B, self.danger)
                 let fill = mix(base, press, max(self.down, self.hover * 0.35))

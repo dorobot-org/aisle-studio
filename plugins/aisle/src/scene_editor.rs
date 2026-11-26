@@ -45,7 +45,7 @@ script_mod! {
                 Row{Label{text:"W"} room_w := Field{} Label{text:"D"} room_d := Field{} apply_room := Tool{text:"Set"}}
                 Caption{text:"Asset palette"}
                 Row{palette := DropDown{width:Fill} reload := Tool{text:"Refresh"}}
-                palette_tile := View{width:Fill height:36 align:Align{x:0.5 y:0.5} show_bg:true draw_bg:{color:#d5e4ec} Label{text:"Drag selected asset into room"}}
+                palette_tile := View{width:Fill height:36 align:Align{x:0.5 y:0.5} show_bg:true draw_bg.color:#d5e4ec Label{text:"Drag selected asset into room"}}
                 add := Tool{text:"Place at centre"}
                 Caption{text:"Scene objects"}
                 objects := DropDown{width:Fill}

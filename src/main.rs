@@ -24,12 +24,19 @@ script_mod! {
                 body +: {
                     flow: Down
                     header := View{
-                        width: Fill height: 56 flow: Right align: Align{y: 0.5}
-                        padding: Inset{left: 20 right: 20} spacing: 22
-                        Label{text: "AISLE Studio" draw_text +: {text_style: mod.widgets.ux.TEXT_TITLE{}}}
-                        tabs := View{width: Fit height: 44 flow: Right align: Align{y: 0.5} spacing: 4}
-                        Filler{}
-                        back := mod.widgets.ux.ToolButton{text: "Back to evidence" visible: false}
+                        width: Fill height: 66 flow: Right align: Align{y: 0.5}
+                        padding: Inset{left: 24 right: 24}
+                        View{width:Fill height:Fill align:Align{y:0.5}
+                            Label{text:"AISLE Studio" draw_text +:{text_style:mod.widgets.ux.FONT_BOLD{font_size:15}}}
+                        }
+                        tabs := RoundedView{
+                            width: Fit height: 52 flow: Right spacing: 1 padding: 4
+                            align: Align{y:0.5}
+                            draw_bg.color: #xFFFFFF draw_bg.border_radius: 26
+                        }
+                        View{width:Fill height:Fill align:Align{x:1.0 y:0.5}
+                            back := mod.widgets.ux.ToolButton{text:"Back to evidence" visible:false}
+                        }
                     }
                     pages := View{width: Fill height: Fill flow: Overlay}
                     page_play := PlayScreen{width: Fill height: Fill visible: false}
@@ -98,6 +105,12 @@ impl App {
             Err(e) => Some((e.to_string(), String::new())),
         };
     }
+    fn navigate(&mut self, page: &str) {
+        self.update_bound_status();
+        self.replay = false;
+        self.pages.select(page).expect("Registered page");
+    }
+
     fn sync(&mut self, cx: &mut Cx) {
         self.ui
             .widget(cx, ids!(pages))
@@ -506,6 +519,21 @@ impl App {
                         "aisle_evidence.verdict",
                         "aisle_evidence.export",
                         "aisle_evidence.replay",
+                        "aisle_evidence.trial_mode",
+                        "aisle_evidence.evaluation_mode",
+                        "aisle_evidence.prepare_evidence",
+                        "aisle_run.prepare_run",
+                        "aisle_task.form_scroll",
+                        "aisle_task.controller_section",
+                        "aisle_task.revision_history",
+                        "aisle_task.task_heading",
+                        "aisle_task.preview_title",
+                        "aisle_run.local_run",
+                        "aisle_scene.robot_mode",
+                        "aisle_run.workers",
+                        "aisle_evidence.ev_heading",
+                        "aisle_scene.scene_heading",
+                        "aisle_run.run_heading",
                         "back",
                     ],
                 );
@@ -524,6 +552,15 @@ impl MatchEvent for App {
         self.pages
             .mount_tabs(cx, &self.ui.widget(cx, ids!(tabs)))
             .expect("Mount navigation");
+        for (id, symbol) in [
+            (ids!(tabs.plugin_tab_aisle_task) as &[LiveId], 0.0),
+            (ids!(tabs.plugin_tab_aisle_scene), 1.0),
+            (ids!(tabs.plugin_tab_aisle_run), 2.0),
+            (ids!(tabs.plugin_tab_aisle_evidence), 3.0),
+        ] {
+            let mut tab = self.ui.widget(cx, id);
+            script_apply_eval!(cx, tab, {draw_bg +: {symbol: #(symbol)}});
+        }
         self.timer = cx.start_interval(1.0 / 30.0);
         self.sync(cx);
     }
@@ -549,7 +586,13 @@ impl MatchEvent for App {
     }
 
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
-        if self
+        if self.ui.button(cx, ids!(aisle_run.prepare_run)).clicked(actions) {
+            self.binding_open = false;
+            self.navigate("aisle_task");
+        } else if self.ui.button(cx, ids!(aisle_evidence.prepare_evidence)).clicked(actions) {
+            let ready = self.backend.aisle().is_some_and(|w| w.prepared.is_some());
+            self.navigate(if ready { "aisle_run" } else { "aisle_task" });
+        } else if self
             .ui
             .button(cx, ids!(aisle_scene.create_bound_task))
             .clicked(actions)
@@ -585,10 +628,7 @@ impl MatchEvent for App {
                 }
             }
         } else if let Some(page) = self.pages.tab_selection(actions) {
-            self.binding_open = false;
-            self.update_bound_status();
-            self.replay = false;
-            self.pages.select(page.id).expect("Registered page");
+            self.navigate(page.id);
         } else if self.ui.button(cx, ids!(back)).clicked(actions) {
             self.replay = false;
             self.pages.select("aisle_evidence").expect("Evidence page");
@@ -642,6 +682,22 @@ impl AppMain for App {
         self::script_mod(vm)
     }
     fn handle_event(&mut self, cx: &mut Cx, event: &Event) {
+        if let Event::KeyDown(key) = event {
+            if key.modifiers.logo && !key.modifiers.shift && !key.modifiers.alt && !key.modifiers.control {
+                let page = match key.key_code {
+                    KeyCode::Key1 => Some("aisle_task"),
+                    KeyCode::Key2 => Some("aisle_scene"),
+                    KeyCode::Key3 => Some("aisle_run"),
+                    KeyCode::Key4 => Some("aisle_evidence"),
+                    _ => None,
+                };
+                if let Some(page) = page {
+                    self.navigate(page);
+                    self.sync(cx);
+                    return;
+                }
+            }
+        }
         self.match_event(cx, event);
         self.ui.handle_event(cx, event, &mut Scope::empty());
     }

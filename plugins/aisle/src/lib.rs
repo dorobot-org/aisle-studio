@@ -104,14 +104,52 @@ impl StudioPlugin for AislePlugin {
 script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
-    let Title=Label{width:Fill text:"" draw_text +:{text_style:mod.widgets.ux.TEXT_TITLE{}}}
+    let Title=Label{width:Fill text:"" draw_text +:{text_style:mod.widgets.ux.FONT_BOLD{font_size:22}}}
     let Section=Label{width:Fill text:"" draw_text +:{text_style:mod.widgets.ux.TEXT_META{}}}
     let Body=Label{width:Fill max_lines:12 text:""}
-    let Card=mod.widgets.ux.Card{padding:16.0 spacing:10.0 flow:Down}
+    let Card=mod.widgets.ux.Card{padding:16.0 spacing:10.0 flow:Down draw_bg.border_radius:14.0}
     let Bar=View{width:Fill height:Fit flow:Right spacing:8.0 align:Align{y:0.5}}
-    let Page=View{width:Fill height:Fill flow:Down padding:16.0 spacing:12.0}
+    let Page=View{width:Fill height:Fill flow:Down padding:Inset{left:22 right:22 top:8 bottom:12} spacing:10.0}
+    let FormTitle=Label{width:Fill draw_text +:{text_style:mod.widgets.ux.FONT_MEDIUM{font_size:14}}}
+    let FormButton=mod.widgets.ux.ToolButton{
+        height:44 draw_text +:{text_style:mod.widgets.ux.FONT_MEDIUM{font_size:12.5}}
+    }
+    let Segment=FormButton{
+        width:Fill
+        draw_bg +:{pixel:fn(){
+            let sdf=Sdf2d.viewport(self.pos*self.rect_size)
+            sdf.box(1.0,1.0,self.rect_size.x-2.0,self.rect_size.y-2.0,10.0)
+            sdf.fill_keep(mix(mix(#xEEF0F4,#xE5E9EF,self.hover),#xFFFFFF,self.on))
+            sdf.stroke(mix(mix(#xEEF0F4,#xD0D5DC,self.on),#x0A66CF,self.focus),1.0)
+            return sdf.result
+        }}
+        draw_text +:{get_color:fn(){return mix(#x555D6A,#x125DB7,self.on)}}
+    }
+    let ModeBar=RoundedView{width:Fit height:48 flow:Right padding:2 draw_bg.color:#xE9ECF1 draw_bg.border_radius:12}
+    let Mode=Segment{width:Fit padding:Inset{left:13 right:13}}
+    let SwitchRow=FormButton{
+        width:Fill align:Align{x:0.0 y:0.5} padding:Inset{left:12 right:68}
+        draw_bg +:{pixel:fn(){
+            let sdf=Sdf2d.viewport(self.pos*self.rect_size)
+            sdf.box(0.5,0.5,self.rect_size.x-1.0,self.rect_size.y-1.0,10.0)
+            sdf.fill_keep(mix(#xF4F5F8,#xEDF0F5,self.hover))
+            sdf.stroke(mix(#x00000000,#x0A66CF,self.focus),1.5)
+            let sx=self.rect_size.x-53.0
+            sdf.box(sx,10.0,42.0,24.0,12.0)
+            sdf.fill(mix(#x939AA5,#x13774B,self.on))
+            sdf.circle(sx+12.0+18.0*self.on,22.0,9.5)
+            sdf.fill(#xFFFFFF)
+            return sdf.result
+        }}
+        draw_text +:{get_color:fn(){return #x28303D}}
+    }
+    let PreviewRobot=RobotView{
+        width:Fill height:Fill keyboard_controls:false
+        sky_zenith:#xE1E8F2 sky_horizon:#xF5F7FA
+        ground_color:#xE5E9EF ground2_color:#xE5E9EF grid_color:#x9FAABD
+    }
     mod.widgets.AisleTask=Page{
-        Bar{task_heading := Title{width:Fill text:"Robot task"} select_scene := mod.widgets.ux.ToolButton{text:"Select scene"} skill_mode := mod.widgets.ux.ToolButton{text:"Skill library"}}
+        Bar{task_heading := Title{width:Fill text:"Robot task"} select_scene := FormButton{text:"Select scene"} skill_mode := FormButton{text:"Skill library"}}
         context_label := Section{}
         binding_status := Body{visible:false max_lines:2}
         skill_panel := View{visible:false width:Fill height:Fit flow:Down spacing:4
@@ -120,34 +158,48 @@ script_mod! {
         skill_applied := Body{visible:false max_lines:1}
         project_task := TaskBinding{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
-            editor := Card{width:Fill height:Fill
-                Section{text:"Robot profile"}
-                Bar{nano := mod.widgets.ux.ToolButton{text:"Adora Nano"} g1 := mod.widgets.ux.ToolButton{text:"Unitree G1"}}
-                Section{text:"Task instruction"}
-                instruction := TextInput{width:Fill height:64 is_multiline:true empty_text:"Inspect a shoulder or approach a colored cube with Nano"}
-                Bar{reference := mod.widgets.ux.ToolButton{text:"Use reference task"} onboard := mod.widgets.ux.ToolButton{text:"Onboard RGB off"} turned_stance := mod.widgets.ux.ToolButton{visible:false text:"30° left stance"}}
-                Bar{octos := mod.widgets.ux.PrimaryButton{text:"DeepSeek via Octos"} codex := mod.widgets.ux.ToolButton{text:"Ask Codex"}}
-                Section{text:"Prepared controller"}
-                controller_scroll := ScrollYView{width:Fill height:Fill flow:Down
-                    detail := Body{max_lines:0}
+            editor := Card{width:394 height:Fill padding:0
+                form_scroll := ScrollYView{width:Fill height:Fill flow:Down padding:18 spacing:12
+                    FormTitle{text:"Robot profile"}
+                    RoundedView{width:Fill height:48 flow:Right padding:2 draw_bg.color:#xEEF0F4 draw_bg.border_radius:12
+                        nano := Segment{text:"Adora Nano"} g1 := Segment{text:"Unitree G1"}}
+                    FormTitle{text:"Task instruction" margin:Inset{top:4}}
+                    instruction := TextInput{width:Fill height:85 is_multiline:true
+                        padding:12 draw_text.text_style.font_size:14
+                        draw_bg +:{pixel:fn(){
+                            let sdf=Sdf2d.viewport(self.pos*self.rect_size)
+                            sdf.box(1.0,1.0,self.rect_size.x-2.0,self.rect_size.y-2.0,9.0)
+                            sdf.fill_keep(#xF9FAFC) sdf.stroke(mix(#xC7CCD4,#x0877E4,self.focus),1.3)
+                            return sdf.result
+                        }}
+                        empty_text:"Describe the robot task"}
+                    onboard := SwitchRow{text:"Onboard RGB off"}
+                    turned_stance := FormButton{width:Fill visible:false text:"30° left stance"}
+                    octos := mod.widgets.ux.PrimaryButton{width:Fill height:44 text:"Prepare with DeepSeek" draw_bg.border_radius:10
+                        draw_text.text_style:mod.widgets.ux.FONT_MEDIUM{font_size:14}}
+                    Bar{reference := FormButton{width:Fill text:"Use reference task"} codex := FormButton{width:Fill text:"Ask Codex"}}
+                    controller_section := View{width:Fill height:Fit flow:Down spacing:8
+                        FormTitle{text:"Prepared controller"}
+                        detail := Body{max_lines:0}
+                        revision_history := Bar{older := FormButton{width:Fill text:"Earlier revision"} newer := FormButton{width:Fill text:"Later revision"}}
+                        revision_actions := Bar{revise := mod.widgets.ux.ToolButton{text:"Revise with DeepSeek"} revise_codex := mod.widgets.ux.ToolButton{text:"Revise with Codex"}}
+                    }
                 }
-                Bar{older := mod.widgets.ux.ToolButton{text:"Earlier revision"} newer := mod.widgets.ux.ToolButton{text:"Later revision"}}
-                revision_actions := Bar{revise := mod.widgets.ux.ToolButton{text:"Revise with DeepSeek"} revise_codex := mod.widgets.ux.ToolButton{text:"Revise with Codex"}}
             }
-            model_card := Card{width:Fill height:Fill Bar{preview_title := Section{text:"Robot preview"} review_controller := mod.widgets.ux.ToolButton{text:"Review changes"}}
+            model_card := Card{width:Fill height:Fill Bar{preview_title := FormTitle{} review_controller := FormButton{text:"Review changes"}}
                 author_inputs := Body{max_lines:2}
                 diff_scroll := ScrollYView{width:Fill height:Fill flow:Down controller_changes := Body{max_lines:0}}
-                robot := RobotView{width:Fill height:Fill keyboard_controls:false} onboard_photo := VideoPlayer{width:Fill height:Fill}}
+                robot := PreviewRobot{} onboard_photo := VideoPlayer{width:Fill height:Fill}}
         }
         status := Body{}
     }
     mod.widgets.AisleScene=Page{
         scene_heading := Title{text:"Simulation scene"} context_label := Section{}
-        scene_modes := Bar{robot_mode := mod.widgets.ux.ToolButton{text:"Robot model"} joint_mode := mod.widgets.ux.ToolButton{text:"Joint limits"} room_mode := mod.widgets.ux.ToolButton{text:"Room survey"} asset_mode := mod.widgets.ux.ToolButton{text:"Survey & assets"} composer_mode := mod.widgets.ux.ToolButton{text:"Scene editor"} create_bound_task := mod.widgets.ux.ToolButton{visible:false text:"Create task"}}
+        scene_modes := Bar{ModeBar{robot_mode := Mode{text:"Robot model"} joint_mode := Mode{text:"Joint limits"} room_mode := Mode{text:"Room survey"} asset_mode := Mode{text:"Survey & assets"} composer_mode := Mode{text:"Scene editor"}} Filler{} create_bound_task := FormButton{visible:false text:"Create task"}}
         project_survey := SurveyPane{visible:false}
         composer := SceneEditorPane{visible:false}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
-            model_card := Card{width:Fill height:Fill Section{text:"URDF model"} robot := RobotView{width:Fill height:Fill keyboard_controls:false tint_selected_links:true}}
+            model_card := Card{width:Fill height:Fill Section{text:"URDF model"} robot := PreviewRobot{tint_selected_links:true}}
             photo_card := Card{width:Fill height:Fill photo_label := Section{text:"Floor footprint"} photo := VideoPlayer{width:Fill height:Fill}}
             joint_card := Card{width:300 height:Fill
                 Section{text:"Find a joint"}
@@ -207,10 +259,15 @@ script_mod! {
         status := Body{}
     }
     mod.widgets.AisleRun=Page{
-        Bar{run_heading := Title{width:Fill text:"Live simulation"} experiment_mode := mod.widgets.ux.ToolButton{text:"Repeat experiment"}} context_label := Section{}
+        Bar{run_heading := Title{width:Fill text:"Live simulation"}
+            ModeBar{local_run := Mode{text:"Simulation"} experiment_mode := Mode{text:"Repeat experiment"} workers := Mode{text:"Workers"}}}
+        context_label := Section{}
         experiment_pane := ExperimentPane{visible:false}
         normal_run := View{width:Fill height:Fill flow:Down spacing:10
-        Bar{local_run := mod.widgets.ux.ToolButton{text:"Simulation"} workers := mod.widgets.ux.ToolButton{text:"Workers"}}
+        empty_run := Card{visible:false width:Fill height:Fit spacing:12
+            FormTitle{text:"Prepare a controller"}
+            Body{text:"Choose a robot and prepare its task to start a Nexus simulation."}
+            prepare_run := mod.widgets.ux.PrimaryButton{height:44 text:"Open Task"}}
         row := View{width:Fill height:Fill flow:Right spacing:12.0
             viewport := Card{width:Fill height:Fill camera_label := Section{} camera := VideoPlayer{width:Fill height:Fill}}
             fleet_controls := Card{width:310 height:Fill padding:0
@@ -234,7 +291,9 @@ script_mod! {
     }
     }
     mod.widgets.AisleEvidence=Page{
-        Bar{ev_heading := Title{width:Fill text:"Run evidence"} ev_mode := mod.widgets.ux.ToolButton{text:"Experiment trials"} qa_mode := mod.widgets.ux.ToolButton{text:"Skill qualification"}}
+        ev_heading := Title{text:"Run evidence"}
+        ModeBar{trial_mode := Mode{text:"Run evidence"} ev_mode := Mode{text:"Experiment trials"}
+            evaluation_mode := Mode{text:"Batch evaluation"} qa_mode := Mode{text:"Skill qualification"} device_mode := Mode{text:"Device preflight"}}
         qa_panel := ScrollYView{width:Fill height:Fill flow:Down spacing:10 visible:false
             qa_cohort_card := Card{width:Fill height:Fit spacing:7
                 Bar{Title{width:Fill text:"Registered simulation cohort"} qa_refresh := mod.widgets.ux.ToolButton{text:"Refresh"}}
@@ -272,7 +331,7 @@ script_mod! {
         ev_catalog := TrialEvidence{visible:false}
         standard_evidence := View{width:Fill height:Fill flow:Down spacing:6
         context_label := Section{}
-        Bar{trial_mode := mod.widgets.ux.ToolButton{text:"Trial"} evaluation_mode := mod.widgets.ux.ToolButton{text:"Batch evaluation"} device_mode := mod.widgets.ux.ToolButton{text:"Device preflight"} room_baseline := mod.widgets.ux.ToolButton{text:"Use as room baseline"} room_details := mod.widgets.ux.ToolButton{text:"Trial details"}}
+        room_actions := Bar{room_baseline := mod.widgets.ux.ToolButton{text:"Use as room baseline"} room_details := mod.widgets.ux.ToolButton{text:"Trial details"}}
         device := Card{width:Fill height:Fill
             device_title := Title{}
             device_info := Body{}
@@ -289,7 +348,8 @@ script_mod! {
             failure_bar := Bar{earlier_failure := mod.widgets.ux.ToolButton{text:"Previous failure"} later_failure := mod.widgets.ux.ToolButton{text:"Next failure"}}
             ScrollYView{width:Fill height:Fill flow:Down failure_detail := Body{max_lines:64}}
         }
-        summary := Card{width:Fill height:Fit summary_title := Section{text:"Task outcome"} verdict := Title{} detail := Body{}}
+        summary := Card{width:Fill height:Fit summary_title := Section{text:"Task outcome"} verdict := Title{} detail := Body{}
+            prepare_evidence := mod.widgets.ux.PrimaryButton{visible:false height:44 text:"Open Task"}}
         plot := Card{width:Fill height:Fill trace_label := Section{} trace := Spark{width:Fill height:Fill} scale := Section{}}
         decision_card := Card{width:Fill height:Fill
             decision_title := Title{}
@@ -540,8 +600,16 @@ impl Panel {
     fn run(&mut self, cx: &mut Cx, w: &Workbench) {
         self.root.widget(cx,ids!(normal_run)).set_visible(cx,!self.experiment_open);
         self.root.widget(cx,ids!(experiment_pane)).set_visible(cx,self.experiment_open);
-        self.root.button(cx,ids!(experiment_mode)).set_text(cx,if self.experiment_open {"Live simulation"}else{"Repeat experiment"});
-        self.label(cx,ids!(run_heading),if self.experiment_open {"Repeat experiment"}else{"Live simulation"});
+        for (id, selected) in [
+            (ids!(local_run) as &[LiveId], !self.experiment_open && !w.workers_open),
+            (ids!(experiment_mode), self.experiment_open),
+            (ids!(workers), !self.experiment_open && w.workers_open),
+        ] {
+            frame::sync_nav_button(cx, &self.root.widget(cx, id), selected, frame::light_mode());
+        }
+        self.root.button(cx, ids!(workers)).set_enabled(cx, !w.busy());
+        self.root.button(cx, ids!(local_run)).set_enabled(cx, !w.busy());
+        self.label(cx, ids!(run_heading), if self.experiment_open {"Repeat experiment"} else if w.workers_open {"Workers"} else {"Live simulation"});
         if self.experiment_open {
             self.label(cx,ids!(context_label),"AISLE · Nexus   /   Experiments");
             self.root.experiment_pane(cx,ids!(experiment_pane)).update(cx,w);
@@ -549,17 +617,14 @@ impl Panel {
         }
 
         self.root
-            .button(cx, ids!(workers))
-            .set_enabled(cx, !w.busy() && !w.workers_open);
-        self.root
-            .button(cx, ids!(local_run))
-            .set_enabled(cx, !w.busy() && w.workers_open);
-        self.root
             .widget(cx, ids!(fleet_controls))
             .set_visible(cx, w.workers_open);
         self.root
             .widget(cx, ids!(inspector))
             .set_visible(cx, !w.workers_open);
+        let needs_controller = !w.workers_open && w.prepared.is_none() && !w.busy() && w.progress.is_null();
+        self.root.widget(cx, ids!(row)).set_visible(cx, !needs_controller);
+        self.root.widget(cx, ids!(empty_run)).set_visible(cx, needs_controller);
         if w.workers_open {
             self.fleet(cx, w);
             return;
@@ -684,7 +749,7 @@ impl PluginPanel for Panel {
                     (ids!(decision_card), Themed::Bg),
                     (ids!(survey_card), Themed::Bg),
                     (ids!(joint_card), Themed::Bg),
-                    (ids!(summary), Themed::Bg),
+                    (ids!(standard_evidence.summary), Themed::Bg),
                     (ids!(plot), Themed::Bg),
                 ],
                 light,
@@ -692,12 +757,23 @@ impl PluginPanel for Panel {
             self.light = Some(light);
         }
         if self.page=="aisle_evidence" {
+            let standard = !self.trial_catalog_open && !self.qualification.open;
+            for (id, selected) in [
+                (ids!(trial_mode) as &[LiveId], standard && !w.show_evaluation && !w.show_device),
+                (ids!(evaluation_mode), standard && w.show_evaluation),
+                (ids!(device_mode), standard && w.show_device),
+                (ids!(ev_mode), self.trial_catalog_open),
+                (ids!(qa_mode), self.qualification.open),
+            ] {
+                frame::sync_nav_button(cx, &self.root.widget(cx, id), selected, light);
+            }
+            for id in [ids!(trial_mode) as &[LiveId], ids!(evaluation_mode), ids!(device_mode)] {
+                self.root.button(cx, id).set_enabled(cx, !w.busy());
+            }
             self.root.widget(cx,ids!(qa_panel)).set_visible(cx,self.qualification.open);
             self.root.widget(cx,ids!(standard_evidence)).set_visible(cx,!self.trial_catalog_open && !self.qualification.open);
             self.root.widget(cx,ids!(ev_catalog)).set_visible(cx,self.trial_catalog_open);
-            self.root.button(cx,ids!(ev_mode)).set_text(cx,if self.trial_catalog_open {"Run evidence"}else{"Experiment trials"});
-            self.label(cx,ids!(ev_heading),if self.trial_catalog_open {"Experiment trials"}else{"Run evidence"});
-            self.root.button(cx,ids!(qa_mode)).set_text(cx,if self.qualification.open {"Run evidence"}else{"Skill qualification"});
+            self.label(cx,ids!(ev_heading),if self.trial_catalog_open {"Experiment trials"} else if w.show_evaluation {"Batch evaluation"} else if w.show_device {"Device preflight"} else {"Run evidence"});
             if self.qualification.open {
                 self.label(cx,ids!(ev_heading),"Skill qualification");
                 self.qualification_sync(cx,w);
@@ -738,12 +814,23 @@ impl PluginPanel for Panel {
         match self.page.as_str() {
             "aisle_task" => {
                 self.skill_sync(cx,w);
+                for (id, selected) in [
+                    (ids!(nano) as &[LiveId], w.robot == Robot::Nano),
+                    (ids!(g1), w.robot == Robot::G1),
+                    (ids!(onboard), w.onboard_context),
+                ] {
+                    frame::sync_nav_button(cx, &self.root.widget(cx, id), selected, light);
+                }
+                self.root.widget(cx, ids!(controller_section)).set_visible(cx, w.prepared.is_some());
+                self.root.widget(cx, ids!(revision_history)).set_visible(cx, w.revisions.len() > 1);
+
                 let stance = self.root.button(cx, ids!(turned_stance));
                 stance.set_visible(cx, w.robot == Robot::G1);
                 stance.set_enabled(cx, !w.busy());
                 let capture = w.plan["scene_observation"]["files"]["onboard-head.rgb"].is_string();
                 let reviewing = w.controller_diff.is_some();
                 let review = self.root.button(cx, ids!(review_controller));
+                review.set_visible(cx, w.prepared.is_some());
                 review.set_enabled(cx, w.prepared.is_some() && !w.busy());
                 review.set_text(cx, if reviewing { "Close review" } else { "Review changes" });
                 self.root.widget(cx, ids!(diff_scroll)).set_visible(cx, reviewing);
@@ -938,6 +1025,22 @@ impl PluginPanel for Panel {
                 }
             }
             "aisle_scene" => {
+                if self.joint_robot != Some(w.robot) {
+                    self.joint_robot = None;
+                }
+                let joints = self.joint_robot.is_some();
+                let editing = !joints && mobile && w.room_editor;
+                self.root.widget(cx, ids!(room_mode)).set_visible(cx, mobile);
+                let model_mode = !self.survey_open && !self.composer_open;
+                for (id, selected) in [
+                    (ids!(asset_mode) as &[LiveId], self.survey_open),
+                    (ids!(composer_mode), self.composer_open),
+                    (ids!(joint_mode), model_mode && joints),
+                    (ids!(room_mode), model_mode && editing),
+                    (ids!(robot_mode), model_mode && !editing && !joints),
+                ] {
+                    frame::sync_nav_button(cx, &self.root.widget(cx, id), selected, light);
+                }
                 self.root.widget(cx, ids!(project_survey)).set_visible(cx, self.survey_open);
                 self.root.widget(cx,ids!(create_bound_task)).set_visible(cx,self.composer_open);
                 self.root.widget(cx, ids!(composer)).set_visible(cx, self.composer_open);
@@ -953,12 +1056,6 @@ impl PluginPanel for Panel {
                     }
                     return;
                 }
-                if self.joint_robot != Some(w.robot) {
-                    self.joint_robot = None;
-                }
-                let joints = self.joint_robot.is_some();
-                let editing = !joints && mobile && w.room_editor;
-                self.root.widget(cx, ids!(room_mode)).set_visible(cx, mobile);
                 self.root.button(cx, ids!(joint_mode)).set_enabled(cx, !joints && !w.busy());
                 self.root
                     .button(cx, ids!(room_mode))
@@ -1229,27 +1326,21 @@ impl PluginPanel for Panel {
                         && !w.show_device
                         && !w.show_evaluation,
                 );
-                for id in [ids!(summary), ids!(plot), ids!(trial_bar)] {
-                    self.root
-                        .widget(cx, id)
-                        .set_visible(cx, !decision && !w.show_evaluation && !w.show_device);
+                let trial = !decision && !w.show_evaluation && !w.show_device;
+                self.root.widget(cx, ids!(summary)).set_visible(cx, trial);
+                self.root.widget(cx, ids!(prepare_evidence)).set_visible(cx, trial && w.selected.is_none());
+                self.root.button(cx, ids!(prepare_evidence)).set_text(cx, if w.prepared.is_some() {"Open Run"} else {"Open Task"});
+                self.root.widget(cx, ids!(context_label)).set_visible(cx, !trial || w.selected.is_some());
+                self.root.widget(cx, ids!(room_actions)).set_visible(cx, show_baseline);
+                for id in [ids!(plot), ids!(trial_bar)] {
+                    self.root.widget(cx, id).set_visible(cx, trial && w.selected.is_some());
                 }
                 self.root
                     .widget(cx, ids!(cohort))
                     .set_visible(cx, w.show_evaluation);
-                self.root.button(cx, ids!(trial_mode)).set_enabled(
-                    cx,
-                    !w.busy() && (decision || w.show_evaluation || w.show_device),
-                );
-                self.root
-                    .button(cx, ids!(evaluation_mode))
-                    .set_enabled(cx, !w.busy() && !w.show_evaluation);
                 self.root
                     .widget(cx, ids!(device))
                     .set_visible(cx, w.show_device);
-                self.root
-                    .button(cx, ids!(device_mode))
-                    .set_enabled(cx, !w.busy() && !w.show_device);
                 if let Some((dir, receipt)) = &w.decision {
                     self.root.button(cx, ids!(trial_mode)).set_enabled(cx, true);
                     self.label(
@@ -1977,8 +2068,28 @@ impl PluginPanel for Panel {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, b: &mut dyn Backend) -> bool {
         if self.page=="aisle_task" && b.aisle().is_some_and(|w|self.skill_actions(cx,actions,w)){return true;}
         if self.page=="aisle_evidence" && b.aisle().is_some_and(|w|self.qualification_actions(cx,actions,w)){return true;}
-        if self.page=="aisle_evidence" && self.root.button(cx,ids!(ev_mode)).clicked(actions){self.qualification.open=false;self.trial_catalog_open=!self.trial_catalog_open;return true;}
-        if self.page=="aisle_run" && self.root.button(cx,ids!(experiment_mode)).clicked(actions){self.experiment_open=!self.experiment_open;return true;}
+        if self.page == "aisle_evidence" {
+            let trials = self.root.button(cx, ids!(ev_mode)).clicked(actions);
+            if trials {
+                self.qualification.open = false;
+                self.trial_catalog_open = true;
+                return true;
+            }
+            if [ids!(trial_mode) as &[LiveId], ids!(evaluation_mode), ids!(device_mode)].iter()
+                .any(|id| self.root.button(cx, id).clicked(actions)) {
+                self.qualification.open = false;
+                self.trial_catalog_open = false;
+            }
+        }
+        if self.page == "aisle_run" {
+            if self.root.button(cx, ids!(experiment_mode)).clicked(actions) {
+                self.experiment_open = true;
+                return true;
+            }
+            if [ids!(local_run) as &[LiveId], ids!(workers)].iter().any(|id| self.root.button(cx, id).clicked(actions)) {
+                self.experiment_open = false;
+            }
+        }
         if self.page == "aisle_scene" {
             if self.root.button(cx, ids!(composer_mode)).clicked(actions) {
                 self.composer_open = true;

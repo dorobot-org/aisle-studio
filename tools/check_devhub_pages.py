@@ -56,6 +56,7 @@ def main():
         "--suite",
         choices=[
             "pages",
+            "navigation",
             "photo-reviews",
             "g1-revision",
             "scene-ranges",
@@ -155,7 +156,9 @@ def main():
         subprocess.run(
             [sys.executable, tools / "fetch_robot_meshes.py", "g1"], check=True
         )
-    if args.suite == "photo-reviews":
+    if args.suite == "navigation":
+        run("navigation", "check_navigation.py")
+    elif args.suite == "photo-reviews":
         for provider in ["codex", "octos-deepseek"]:
             run(
                 provider,

@@ -1,6 +1,6 @@
 # AISLE Studio product requirements
 
-Version 1.9 · 2026-11-25 · Proposed product specification for standalone AISLE Studio
+Version 2.0 · 2026-11-25 · Proposed product specification for standalone AISLE Studio
 
 ## Purpose and users
 
@@ -124,9 +124,9 @@ Exercise the workflow through native Makepad input against the AISLE/Nexus backe
 
 ## Design and release gates
 
-Keep Task, Scene, Run and Evidence in the standalone app’s top navigation. Use the Scene page’s side panels for the asset library and selected object. Show a single primary next action per stage. Use text for robot, source, running state and verdict. Use a readable layout at 1024 by 768 and 1440 by 900. Keep errors close to the action and preserve draft input after errors.
+Keep Task, Scene, Run and Evidence in a persistent, centered, labeled tab bar with a symbol per destination. Keep local modes together and give each a stable name. Primary tabs and first-launch Task actions must have at least 44 × 44 logical points of hit area. Support Command–1 through Command–4 and restore the operator’s position when they return to a tab. Use the Scene page’s side panels for the asset library and selected object. Show a single primary next action per stage. Use text for robot, source, running state and verdict. Use a readable layout at 1024 by 768 and 1440 by 900. Keep errors close to the action and preserve draft input after errors.
 
-Score designs before implementation and actual UI separately. Each item is worth ten points: consistency with the shell, page identity, next-action clarity, robot identity, simulation context, state visibility, task-result separation, readable typography, grouping and spacing, artifact discoverability. Record each deduction and the reviewed image. Pass requires at least 90/100. Functional evidence is separate: instrument actual native page selection, robot switching, authoring, execution, cancellation, recovery and opening results. Headless event evidence and offscreen raster evidence answer different questions.
+Score designs before implementation and actual UI separately. Each item is worth ten points: consistency with the shell, page identity, next-action clarity, robot identity, simulation context, state visibility, task-result separation, readable typography, grouping and spacing, artifact discoverability. Record each deduction and the reviewed image. The iOS-style navigation revision requires at least 95/100 on the implemented desktop UI. Include the first-launch Task page and populated operator workflows in the review. Functional evidence is separate: instrument actual native page selection, robot switching, authoring, execution, cancellation, recovery and opening results. Headless event evidence and offscreen raster evidence answer different questions.
 
 **Makepad DevHub qualification.** Submit the committed Studio revision to a signed worker, build it with its locked dependencies, retain a job-private executable for every page launch and verify its digest again when the run finishes. Preserve the lease ID, backend, controller identity and per-workflow receipts. A focused qualification exercises both authenticated survey providers. [Reproduction and measured leases](environment/devhub/README.md)
 

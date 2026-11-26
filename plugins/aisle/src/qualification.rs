@@ -590,7 +590,8 @@ impl Panel {
         w: &Workbench,
     ) -> bool {
         if self.root.button(cx, ids!(qa_mode)).clicked(actions) {
-            self.qualification.open = !self.qualification.open;
+            if self.qualification.open { return true; }
+            self.qualification.open = true;
             self.trial_catalog_open = false;
             if self.qualification.open && self.qualification.pending.is_none() {
                 self.qualification.robot = None;
