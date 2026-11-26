@@ -1,0 +1,18 @@
+{
+  "studio_commit": "71e55feda18c6b6a1ab5e9ac26e2a1b705e7b98e",
+  "studio_binary_sha256": "04e62dd045f02a6aa18fdd57ddd27de8fdeb7072ce0bdc01a9531ad6a6694033",
+  "backend": "headless and offscreen",
+  "checks": {
+    "navigation": {
+      "receipt": "navigation/verification.json",
+      "sha256": "ad2b0c3cb8444999c7e7305bc79f9537e16b8c66f6a51000b66b05e123095867",
+      "wall_seconds": 15.93
+    },
+    "navigation-offscreen": {
+      "receipt": "navigation-offscreen/verification.json",
+      "sha256": "627a98446f06bde972d7faf615d2c87a2b64e8380626df70cb0c448b18946345",
+      "wall_seconds": 16.63
+    }
+  },
+  "binary_verified_after_checks": true
+}

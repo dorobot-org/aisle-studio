@@ -58,8 +58,10 @@ The recorder captures the complete app window with no desktop window visible. Ma
 
 ## Product and provenance
 
+The iPadOS-style navigation earned **95/100** in the internal review of the native Mac app. See the window captures, measured tab targets and individual deductions. [Current UX scorecard](docs/product/aisle-studio/environment/ios-navigation/README.md) · [Running app](docs/product/aisle-studio/environment/ios-navigation/desktop.png)
+
 The native executable, navigation and session storage belong to this repository. The four robotics pages, Nexus worker, model assets and shared UI libraries were extracted from [the validated source revision](https://github.com/dorobot-org/dorobot-studio/tree/e490c9f73ce2a6d63416880e33305cfbdcc50a2b). The asset directories retain their provenance records. The original integration PR is independent of this repository.
 
-[Product requirements](docs/product/aisle-studio/PRD.md) · [Generated environment design](docs/product/aisle-studio/environment/design-review.md) · [Native UX review and screenshots](docs/product/aisle-studio/environment/native-design/README.md) · [Nano and G1 qualification results](docs/product/aisle-studio/environment/skill-qualification/README.md)
+[Product requirements](docs/product/aisle-studio/PRD.md) · [Generated environment design](docs/product/aisle-studio/environment/design-review.md) · [Earlier environment UX review](docs/product/aisle-studio/environment/native-design/README.md) · [Nano and G1 qualification results](docs/product/aisle-studio/environment/skill-qualification/README.md)
 
 [Original inspection workbench design](docs/product/aisle-studio/design-review.md) · [AISLE runtime](https://github.com/moxin-org/AISLE)
