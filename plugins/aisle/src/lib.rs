@@ -868,7 +868,6 @@ impl PluginPanel for Panel {
         match self.page.as_str() {
             "aisle_task" => {
                 self.skill_sync(cx,w);
-                self.root.widget(cx, ids!(next_run)).set_visible(cx, w.prepared.is_some());
                 frame::sync_nav_button(cx, &self.root.widget(cx, ids!(onboard)), w.onboard_context, light);
                 self.root.widget(cx, ids!(controller_section)).set_visible(cx, w.prepared.is_some());
                 self.root.widget(cx, ids!(revision_history)).set_visible(cx, w.revisions.len() > 1);

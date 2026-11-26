@@ -77,6 +77,8 @@ struct App {
     bound_robot: Option<Robot>,
     #[rust]
     bound_status: Option<(String, String)>,
+    #[rust]
+    bound_digest: Option<String>,
 }
 
 impl App {
@@ -86,7 +88,9 @@ impl App {
         );
         let robot = self.backend.aisle().map_or(Robot::Nano, |w| w.robot);
         self.bound_robot = Some(robot);
-        self.bound_status = match p.active_task_for(robot.name()) {
+        let active = p.active_task_for(robot.name());
+        self.bound_digest = active.as_ref().ok().and_then(|value| value.as_ref()).map(|(digest, _)| digest.clone());
+        self.bound_status = match active {
             Ok(Some((_, f))) => std::fs::read(f)
                 .ok()
                 .and_then(|d| {
@@ -145,6 +149,9 @@ impl App {
             self.update_bound_status();
         }
         if self.pages.selected() == Some("aisle_task") {
+            let controller_matches = self.backend.aisle().is_some_and(|w| w.prepared.is_some()
+                && w.plan["bound_task_sha256"].as_str() == self.bound_digest.as_deref());
+            self.ui.widget(cx, ids!(aisle_task.next_run)).set_visible(cx, !self.binding_open && controller_matches);
             self.ui
                 .widget(cx, ids!(aisle_task.project_task))
                 .set_visible(cx, self.binding_open);

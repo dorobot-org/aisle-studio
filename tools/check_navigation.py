@@ -241,6 +241,9 @@ def main():
             lambda s: bool(s["state"]["controller"]) and not s["state"]["busy"],
             "prepared reference",
         )
+        app.click("aisle_task.select_scene")
+        app.wait(lambda s: not s["controls"]["aisle_task.next_run"]["visible"], "finish binding before opening Run")
+        app.click("aisle_task.select_scene")
         app.click("aisle_task.next_run")
         wait_page(app, "run")
         app.click(tab("evidence"))
