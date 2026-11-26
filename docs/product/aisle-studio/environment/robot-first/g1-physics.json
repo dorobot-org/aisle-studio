@@ -1,0 +1,41 @@
+{
+  "robot": "G1",
+  "task_success": true,
+  "registered_scene": {
+    "robot_xy_yaw": [
+      0.004,
+      -0.003,
+      0.2
+    ],
+    "fixed_cameras": {
+      "ceiling": [
+        0.1,
+        1,
+        2.4,
+        0,
+        90,
+        0
+      ]
+    }
+  },
+  "physics_frame": "robot start \u00b7 X forward, Z up",
+  "measured_floor_xyz_m": [
+    -0.0039895037189126015,
+    0.0030139442533254623,
+    -0.8438637256622314
+  ],
+  "measured_floor_quat_wxyz": [
+    0.9999985694885254,
+    0.0,
+    0.0,
+    -0.00174532865639776
+  ],
+  "measured_bodies": 14,
+  "task_sha256": "1d5918c1e694c364f14e6af816d7936a7f40635fbab77da34b02cb192180cd26",
+  "controller_sha256": "4e0f91d5fc4a0e9c3f2a4a9342cf98dc193bdd8bb9bc837d4572fdbc5bef5d20",
+  "result_sha256": "b0e83fb459194642e736ce8345602cc0692eaabf7e77801bb382efd900279999",
+  "kind": "standing-inspection",
+  "fixture": "standing-impact-development",
+  "within_limits": true,
+  "steps": 2000
+}

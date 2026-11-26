@@ -1,0 +1,31 @@
+{
+  "robot": "Nano",
+  "source": "Measured magenta target in Nano onboard Nexus RGB; simulated camera calibration fixture.",
+  "camera_mount_checks": {
+    "head": {
+      "check_points": 5,
+      "fit_points": 9,
+      "max_check_px": 0.37641898182466893,
+      "max_fit_px": 0.2936802483881638
+    },
+    "left_wrist": {
+      "check_points": 5,
+      "fit_points": 9,
+      "max_check_px": 0.285383169100122,
+      "max_fit_px": 0.27990769193047954
+    },
+    "right_wrist": {
+      "check_points": 5,
+      "fit_points": 9,
+      "max_check_px": 0.6974317073564487,
+      "max_fit_px": 0.18144559459284038
+    }
+  },
+  "captured_cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "optics_match_robot_profile": true,
+  "calibration_sha256": "7ce2119e0b73da3d6f2bec958e880520897a0ab3650b7993f888726321665e9d"
+}
