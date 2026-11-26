@@ -47,7 +47,7 @@ def main():
         (
             "task",
             args.experiment_session,
-            ["aisle_task.select_scene"],
+            ["tabs.plugin_tab_aisle_task", "aisle_task.select_scene"],
             ["aisle_task.project_task.activate", "aisle_task.project_task.viewport"],
         ),
         (

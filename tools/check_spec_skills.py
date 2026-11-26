@@ -77,7 +77,9 @@ def main():
         text("aisle_task.skill_status", "observation contract")
 
     with app.launch():
-        app.click("aisle_task." + args.robot.lower())
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot." + args.robot.lower())
+        app.click("tabs.plugin_tab_aisle_task")
         library()
         assert (
             app.control("aisle_task.skill_sources")["selected_label"]
@@ -103,7 +105,9 @@ def main():
             app.act("grab", "w=0", "out=" + str(folder / "package-selection.png"))
     with app.launch():
         if args.robot == "G1":
-            app.click("aisle_task.g1")
+            app.click("tabs.plugin_tab_aisle_robot")
+            app.click("aisle_robot.g1")
+            app.click("tabs.plugin_tab_aisle_task")
         library()
         app.wait(
             lambda s: "Reviewed build"

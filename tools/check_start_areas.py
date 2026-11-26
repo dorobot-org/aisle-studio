@@ -101,7 +101,9 @@ def main():
     assert areas["object-red"]["support"] is None
     assert scene["instances"][0]["yaw_deg"] == 20
     with app.launch():
-        click("aisle_task.g1")
+        click("tabs.plugin_tab_aisle_robot")
+        click("aisle_robot.g1")
+        click("tabs.plugin_tab_aisle_task")
         click("aisle_task.select_scene")
         click("aisle_task.project_task.activate")
         show("aisle_task.project_task.result", "saved")
@@ -160,7 +162,8 @@ def main():
         )
         show(run + "detail", "Blue cube on Landing area")
     with app.launch():
-        click("aisle_task.g1")
+        click("tabs.plugin_tab_aisle_robot")
+        click("aisle_robot.g1")
         click("tabs.plugin_tab_aisle_run")
         click("aisle_run.experiment_mode")
         show(run + "detail", "Red cube on floor")

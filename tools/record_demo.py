@@ -108,10 +108,11 @@ def main():
 
         recorder = threading.Thread(target=capture)
         try:
-            wait(lambda d: d["state"]["page"] == "aisle_task")
+            wait(lambda d: bool(d["state"]["page"]))
             time.sleep(1)
             recorder.start()
             time.sleep(2)
+            click("tabs.plugin_tab_aisle_task")
             click("aisle_task.instruction")
             native(
                 "key",
@@ -130,9 +131,9 @@ def main():
                 plan["provider"] == "codex" and plan["color_order"] == "red,green,blue"
             ), plan
             print("Codex prepared the three-cube controller", flush=True)
-            click("tabs.plugin_tab_aisle_scene")
+            click("tabs.plugin_tab_aisle_robot")
             time.sleep(1)
-            click("aisle_scene.compact_visuals")
+            click("aisle_robot.compact_visuals")
             time.sleep(2)
             click("tabs.plugin_tab_aisle_run")
             time.sleep(1)

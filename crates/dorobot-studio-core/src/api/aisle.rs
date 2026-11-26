@@ -125,6 +125,8 @@ pub enum Action {
     TargetMotion(TargetMotion),
     ToggleOnboardContext,
     EditRoom(bool),
+    ImportCalibration(PathBuf),
+    ClearCalibration,
     ImportRoom {
         source: String,
         edit: String,
@@ -594,6 +596,8 @@ pub struct Workbench {
     pub target_motion: TargetMotion,
     pub onboard_context: bool,
     pub room_editor: bool,
+    pub robot_calibration: Value,
+    calibration_request: Option<PathBuf>,
     pub show_evaluation: bool,
     pub evaluation: Value,
     pub show_device: bool,
@@ -670,6 +674,8 @@ impl Workbench {
             target_motion: TargetMotion::Stationary,
             onboard_context: false,
             room_editor: false,
+            robot_calibration: read(&root, "nano-camera-profile.json").unwrap_or_default(),
+            calibration_request: None,
             show_evaluation: false,
             evaluation: Value::Null,
             show_device: false,
@@ -770,6 +776,12 @@ impl Workbench {
     }
 }
 impl Workbench {
+    pub fn last_page(&self) -> Option<String> {
+        read(&self.root, "last-page.json")?.as_str().map(str::to_owned)
+    }
+    pub fn remember_page(&self, page: &str) -> io::Result<()> {
+        save_selection(&self.root, "last-page.json", &Value::from(page))
+    }
     pub fn worker_pid(&self) -> Option<u32> {
         self.job.as_ref().map(|j| j.child.id())
     }
@@ -818,7 +830,24 @@ impl Workbench {
         self.select_room(selection);
         Ok(())
     }
+    fn setup_file(&self) -> String { format!("{}-setup.json", self.robot.name()) }
+    fn store_setup(&mut self, key: &str, value: bool) -> io::Result<()> {
+        let mut setup = serde_json::json!({"compliant": self.compliant, "impact": self.impact,
+            "compact_visuals": self.compact_visuals, "onboard_context": self.onboard_context});
+        setup[key] = Value::Bool(value);
+        save_selection(&self.root, &self.setup_file(), &setup)?;
+        self.apply_setup(&setup);
+        Ok(())
+    }
+    fn apply_setup(&mut self, setup: &Value) {
+        self.compliant = setup["compliant"].as_bool().unwrap_or(false);
+        self.impact = setup["impact"].as_bool().unwrap_or(false);
+        self.compact_visuals = setup["compact_visuals"].as_bool().unwrap_or(false);
+        self.onboard_context = setup["onboard_context"].as_bool().unwrap_or(false);
+    }
     fn restore_profile(&mut self) {
+        let setup = read(&self.root, &self.setup_file()).unwrap_or_default();
+        self.apply_setup(&setup);
         self.controller_diff = None;
         let suffix = format!("-{}-prepare", self.robot.name());
         let trained_suffix = match self.robot {
@@ -1156,6 +1185,12 @@ impl Workbench {
             .arg(&dir)
             .arg("--robot")
             .arg(robot_name);
+        if op == "calibrate" {
+            cmd.arg("--camera-survey").arg(self.calibration_request.take().ok_or_else(|| io::Error::other("Choose a camera survey"))?);
+        }
+        if op == "prepare" && self.robot == Robot::Nano && !self.robot_calibration.is_null() {
+            cmd.arg("--camera-profile").arg(self.root.join("nano-camera-profile.json"));
+        }
         if let Some(run) = feedback.as_ref().filter(|_| op != "export") {
             cmd.arg("--feedback").arg(run);
         }
@@ -1492,6 +1527,18 @@ impl Workbench {
                 self.evaluation_baseline = baseline;
                 self.launch("evaluate", Planner::Reference, None)
             }
+            Action::ImportCalibration(path) if self.robot == Robot::Nano && !path.as_os_str().is_empty() => {
+                self.calibration_request = Some(path);
+                self.launch("calibrate", Planner::Reference, None)
+            }
+            Action::ImportCalibration(_) => Err(io::Error::other("Choose Nano and enter a camera survey JSON path.")),
+            Action::ClearCalibration if self.robot == Robot::Nano => {
+                save_selection(&self.root, "nano-camera-profile.json", &Value::Null).map(|()| {
+                    self.robot_calibration = Value::Null;
+                    self.status = "Robot camera override cleared".into();
+                })
+            }
+            Action::ClearCalibration => Err(io::Error::other("Select Nano to change its camera calibration.")),
             Action::EditRoom(value) => {
                 self.room_editor = value;
                 Ok(())
@@ -1516,30 +1563,18 @@ impl Workbench {
                 self.room_request = Some(RoomRequest::Environment { ambient, friction });
                 self.launch("room", Planner::Reference, None)
             }
-            Action::ToggleOnboardContext => {
-                self.onboard_context = !self.onboard_context;
-                Ok(())
-            }
+            Action::ToggleOnboardContext => self.store_setup("onboard_context", !self.onboard_context),
             Action::TargetMotion(value) => {
                 self.target_motion = value;
                 Ok(())
             }
-            Action::CompactVisuals(value) => {
-                self.compact_visuals = value;
-                Ok(())
-            }
+            Action::CompactVisuals(value) => self.store_setup("compact_visuals", value),
             Action::RgbTiming(value) => {
                 self.rgb_timing = value;
                 Ok(())
             }
-            Action::Impact(value) => {
-                self.impact = value;
-                Ok(())
-            }
-            Action::Fixture(value) => {
-                self.compliant = value;
-                Ok(())
-            }
+            Action::Impact(value) => self.store_setup("impact", value),
+            Action::Fixture(value) => self.store_setup("compliant", value),
             Action::Layout(seed) => self.save_layout(seed),
             Action::CustomLayout(text) => text
                 .trim()
@@ -1780,6 +1815,17 @@ impl Workbench {
             if job.op == "evaluate" {
                 self.evaluation = read(&job.dir, artifact).unwrap_or_default();
                 self.failure_index = 0;
+            }
+            if job.op == "calibrate" {
+                let Some(profile) = read(&job.dir, "camera-profile.json").filter(|v| v["cameras"].is_object()) else {
+                    self.status = "Camera worker returned no usable profile".into();
+                    return;
+                };
+                if let Err(error) = save_selection(&self.root, "nano-camera-profile.json", &profile) {
+                    self.status = error.to_string();
+                    return;
+                }
+                self.robot_calibration = profile;
             }
             if job.op == "room-draft" {
                 self.room_draft_path = Some(job.dir.join("room.json"));

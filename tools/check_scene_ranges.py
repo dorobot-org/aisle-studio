@@ -109,7 +109,9 @@ def main():
     ]
     with ExitStack() as application:
         application.enter_context(app.launch())
-        click("aisle_task." + args.robot.lower())
+        click("tabs.plugin_tab_aisle_robot")
+        click("aisle_robot." + args.robot.lower())
+        click("tabs.plugin_tab_aisle_task")
         click("aisle_task.select_scene")
         if args.robot == "Nano":
             choose(
@@ -216,7 +218,8 @@ def main():
             )
             application.enter_context(app.launch())
             assert app.proc.pid != initial_app.pid
-            click("aisle_task." + args.robot.lower())
+            click("tabs.plugin_tab_aisle_robot")
+            click("aisle_robot." + args.robot.lower())
             click("tabs.plugin_tab_aisle_run")
             click("aisle_run.experiment_mode")
             show(run + "worker_info", "slots occupied")
@@ -231,7 +234,8 @@ def main():
         rows = states["controls"][run + "rows"]["text"]
         assert terminal.findall(rows) == ["completed", "completed"], rows
     with app.launch():
-        click("aisle_task." + args.robot.lower())
+        click("tabs.plugin_tab_aisle_robot")
+        click("aisle_robot." + args.robot.lower())
         click("tabs.plugin_tab_aisle_run")
         click("aisle_run.experiment_mode")
         choose(run + "rule", 1, form)

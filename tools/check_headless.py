@@ -80,7 +80,10 @@ def main():
                 raise RuntimeError(line)
 
     with launch() as pid:
-        click(pid, "aisle_task.g1")
+        click(pid, "tabs.plugin_tab_aisle_robot")
+        click(pid, "aisle_robot.g1")
+        click(pid, "aisle_robot.next_scene")
+        click(pid, "aisle_scene.next_task")
         click(pid, "aisle_task.reference")
         wait(
             lambda d: d["state"]["controller"].get("robot") == "G1"
@@ -112,7 +115,6 @@ def main():
             and not d["state"]["replay"]
         )
     with launch() as pid:
-        click(pid, "tabs.plugin_tab_aisle_evidence")
         restored = wait(
             lambda d: d["state"]["page"] == "aisle_evidence"
             and (d["state"]["result"] or {}).get("task_success")
@@ -122,7 +124,7 @@ def main():
             and restored["result"]["controller_hash"] == result["controller_hash"]
         )
     print(
-        "G1 reference, four pages, scored simulation, episode export, replay and restart passed."
+        "G1 reference, five pages, scored simulation, episode export, replay and restart passed."
     )
 
 

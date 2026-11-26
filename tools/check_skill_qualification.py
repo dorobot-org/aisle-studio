@@ -87,7 +87,8 @@ def main():
         )
 
     def open_page():
-        app.click("aisle_task." + args.robot.lower())
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot." + args.robot.lower())
         app.click("tabs.plugin_tab_aisle_evidence")
         app.click(prefix + "mode")
         app.control(prefix + "register")

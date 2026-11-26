@@ -125,8 +125,9 @@ def main():
         show("summary", "Preview")
         click("cancel")
         show("header", "Saved")
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot.g1")
         app.click("tabs.plugin_tab_aisle_task")
-        app.click("aisle_task.g1")
         app.click("aisle_task.select_scene")
         app.click("aisle_task.project_task.activate")
         app.wait(

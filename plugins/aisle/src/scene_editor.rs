@@ -5,7 +5,7 @@ use dorobot_studio_core::{
         scene::{
             validation::Support,
             viewport::{Camera, Viewport, HEIGHT, WIDTH},
-            Revision, Scene, SceneEditor, StartArea,
+            Registration, Revision, Scene, SceneEditor, StartArea,
         },
         Survey,
     },
@@ -43,6 +43,14 @@ script_mod! {
             inspector := ScrollYView{width:283 height:Fill flow:Down spacing:6
                 Caption{text:"Room size in metres"}
                 Row{Label{text:"W"} room_w := Field{} Label{text:"D"} room_d := Field{} apply_room := Tool{text:"Set"}}
+                registration_mode := Tool{text:"Room registration"}
+                registration_panel := View{visible:false width:Fill height:Fit flow:Down spacing:6
+                    Caption{text:"Robot start · X Y (m), heading (°)"}
+                    robot_start := Field{height:44 empty_text:"0 0 0"}
+                    Caption{text:"Fixed cameras · one per line: name X Y Z (m) roll pitch yaw (°)"}
+                    camera_poses := TextInput{width:Fill height:76 is_multiline:true empty_text:"e.g. ceiling 0 1 2.4 0 90 0"}
+                    apply_registration := mod.widgets.ux.ToolButton{height:44 text:"Apply registration"}
+                }
                 Caption{text:"Asset palette"}
                 Row{palette := DropDown{width:Fill} reload := Tool{text:"Refresh"}}
                 palette_tile := View{width:Fill height:36 align:Align{x:0.5 y:0.5} show_bg:true draw_bg.color:#d5e4ec Label{text:"Drag selected asset into room"}}
@@ -99,6 +107,8 @@ pub struct SceneEditorPane {
     rule_selected: Option<String>,
     #[rust]
     top: bool,
+    #[rust]
+    registration_open: bool,
     #[rust]
     frame: Option<Viewport>,
     #[rust]
@@ -318,9 +328,9 @@ impl SceneEditorPane {
         self.view.label(cx, ids!(viewpoint)).set_text(
             cx,
             if self.top {
-                "Plan · 0.5 m grid · X red, Y green"
+                "Plan · 0.5 m grid · triangle marks robot start"
             } else {
-                "3D · 0.5 m grid · X red, Y green"
+                "3D · 0.5 m grid · triangle marks robot start"
             },
         );
         self.view
@@ -331,6 +341,9 @@ impl SceneEditorPane {
             (ids!(scene_name) as &[LiveId], s.name.clone()),
             (ids!(room_w), s.room_m[0].to_string()),
             (ids!(room_d), s.room_m[1].to_string()),
+            (ids!(robot_start), s.registration.robot_xy_yaw.map(|v| v.to_string()).join(" ")),
+            (ids!(camera_poses), s.registration.fixed_cameras.iter().map(|(name, pose)|
+                format!("{name} {}", pose.map(|v| v.to_string()).join(" "))).collect::<Vec<_>>().join("\n")),
             (
                 ids!(selected_name),
                 item.map(|v| v.name.clone()).unwrap_or_default(),
@@ -361,6 +374,7 @@ impl SceneEditorPane {
             })
             .unwrap_or_default();
         self.view.label(cx, ids!(pin)).set_text(cx, &pin);
+        self.view.widget(cx, ids!(registration_panel)).set_visible(cx, self.registration_open);
         let pending = self.review_active();
         self.view
             .widget(cx, ids!(proposal_row))
@@ -372,6 +386,7 @@ impl SceneEditorPane {
             ids!(undo),
             ids!(redo),
             ids!(apply_room),
+            ids!(apply_registration),
             ids!(snap),
             ids!(reload),
             ids!(propose),
@@ -722,6 +737,30 @@ impl SceneEditorPane {
             return self.place(cx, [0., 0.]);
         }
         let mut s = self.editor.scene.clone();
+        if click(ids!(registration_mode)) {
+            self.registration_open = !self.registration_open;
+            self.sync(cx);
+            return Ok(());
+        }
+        if click(ids!(apply_registration)) {
+            fn numbers<const N: usize>(input: &str) -> Result<[f64; N], String> {
+                input.split_whitespace().map(|part| part.parse::<f64>().ok().filter(|v| v.is_finite())
+                    .ok_or_else(|| "Pose coordinates must be finite numbers".to_string()))
+                    .collect::<Result<Vec<_>, _>>()?.try_into().map_err(|_| format!("Enter {N} pose coordinates"))
+            }
+            let mut reg = Registration { robot_xy_yaw: numbers(&self.text(cx, ids!(robot_start)))?, ..Default::default() };
+            for line in self.text(cx, ids!(camera_poses)).lines().filter(|line| !line.trim().is_empty()) {
+                let (name, values) = line.trim().split_once(char::is_whitespace).ok_or("Enter a camera name and six pose coordinates")?;
+                if reg.fixed_cameras.insert(name.into(), numbers(values)?).is_some() {
+                    return Err(format!("Duplicate fixed camera name {name}"));
+                }
+            }
+            reg.check(s.room_m).map_err(|e| e.to_string())?;
+            s.registration = reg;
+            self.commit(cx, s);
+            self.note(cx, "Registration applied. Save a scene revision to use it in a task.");
+            return Ok(());
+        }
         if click(ids!(apply_room)) {
             s.room_m = [
                 self.number(cx, ids!(room_w), "room width")?,
@@ -891,13 +930,9 @@ impl Widget for SceneEditorPane {
 }
 
 impl SceneEditorPaneRef {
-    pub fn task_scene(&self, cx: &mut Cx) -> Option<Revision> {
+    pub fn task_scene(&self) -> Option<Revision> {
         let w = self.borrow()?;
         if w.baseline != w.editor.scene || w.editor.scene.revision == 0 || w.review_active() {
-            w.note(
-                cx,
-                "Apply your changes and save a scene revision before creating a task",
-            );
             return None;
         }
         w.editor.scene.reference()

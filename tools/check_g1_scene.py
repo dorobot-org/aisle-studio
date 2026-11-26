@@ -49,7 +49,9 @@ def main():
             app.act("grab", "w=0", "out=" + str(folder / (name + ".png")))
 
     with app.launch():
-        app.click("aisle_task.g1")
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot.g1")
+        app.click("tabs.plugin_tab_aisle_task")
         app.click("aisle_task.select_scene")
         show(p + "selection", "foot support")
         field(p + "g1_mass", "0.35")
@@ -133,7 +135,8 @@ def main():
         root_pose_writes=r["root_pose_writes"],
     )
     with app.launch():
-        app.click("aisle_task.g1")
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot.g1")
         app.click("tabs.plugin_tab_aisle_run")
         app.click("aisle_run.experiment_mode")
         ep = "aisle_run.experiment_pane.exp_"
@@ -184,12 +187,16 @@ def main():
             measured_verdict=row["outcome"],
         )
     with app.launch():
-        app.click("aisle_task.g1")
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot.g1")
+        app.click("tabs.plugin_tab_aisle_task")
         app.click("aisle_task.select_scene")
         show(p + "selection", "foot support")
         show(p + "g1_mass", "0.23")
         app.click("aisle_task.select_scene")
-        app.click("aisle_task.nano")
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot.nano")
+        app.click("tabs.plugin_tab_aisle_task")
         app.click("aisle_task.select_scene")
         show(p + "result", "Multiple graspable")
         assert (survey / "active-task-g1").read_text() == sha and not (

@@ -102,7 +102,8 @@ def main():
         wait_text("case_summary", f"Case {index} ·")
 
     with app.launch():
-        app.click("aisle_task." + robot.lower())
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot." + robot.lower())
         app.click("tabs.plugin_tab_aisle_evidence")
         app.click(key + "mode")
         app.click(key + "inspect")

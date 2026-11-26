@@ -22,7 +22,9 @@ def first_preparation(args, folder, survey, sha):
     shutil.copytree(survey, state / "survey")
     app = NativeStudio(args, folder)
     with app.launch():
-        app.click("aisle_task.g1")
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot.g1")
+        app.click("tabs.plugin_tab_aisle_task")
         app.click("aisle_task.turned_stance")
         app.click("aisle_task." + args.provider)
         prepared = app.wait(

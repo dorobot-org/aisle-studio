@@ -2,7 +2,7 @@
 use super::{asset::Asset, Survey};
 use anyhow::{bail, ensure, Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, fs, io::Write};
+use std::{collections::{BTreeMap, HashSet}, fs, io::Write};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Revision {
@@ -120,6 +120,32 @@ impl SceneRule {
     }
 }
 
+/// Poses are expressed in the room frame, with translations in metres and angles in degrees.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Registration {
+    /// X, Y and counterclockwise heading of the robot on the floor.
+    pub robot_xy_yaw: [f64; 3],
+    /// Room-from-camera X, Y, Z, roll, pitch and yaw (extrinsic XYZ).
+    pub fixed_cameras: BTreeMap<String, [f64; 6]>,
+}
+
+impl Registration {
+    fn is_default(&self) -> bool { self == &Self::default() }
+
+    pub fn check(&self, room: [f64; 2]) -> Result<()> {
+        let [x, y, yaw] = self.robot_xy_yaw;
+        ensure!(x.is_finite() && y.is_finite() && yaw.is_finite()
+            && x.abs() < room[0] / 2. && y.abs() < room[1] / 2., "Set the robot start inside the room");
+        for (name, pose) in &self.fixed_cameras {
+            ensure!(!name.trim().is_empty() && !name.chars().any(char::is_whitespace)
+                && pose.iter().all(|v| v.is_finite()) && pose[2] >= 0.,
+                "Each fixed camera needs a name, finite coordinates and a height above the floor");
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scene {
     pub id: String,
@@ -127,6 +153,8 @@ pub struct Scene {
     pub parent: Option<Revision>,
     pub name: String,
     pub room_m: [f64; 2],
+    #[serde(default, skip_serializing_if = "Registration::is_default")]
+    pub registration: Registration,
     pub instances: Vec<Instance>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub rules: Vec<SceneRule>,
@@ -142,6 +170,7 @@ impl Default for Scene {
             parent: None,
             name: "Untitled room".into(),
             room_m: [6., 4.],
+            registration: Registration::default(),
             instances: vec![],
             rules: vec![],
             edit_history: vec![],
@@ -189,6 +218,7 @@ impl Scene {
             self.room_m.iter().all(|n| n.is_finite() && *n > 0.),
             "Room dimensions must be positive and finite"
         );
+        self.registration.check(self.room_m)?;
         let mut ids = HashSet::new();
         for item in &self.instances {
             ensure!(

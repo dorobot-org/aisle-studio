@@ -49,7 +49,7 @@ script_mod! {
 fn registry() -> PluginRegistry {
     let mut pages = PluginRegistry::default();
     pages.register(Box::new(AislePlugin)).expect("AISLE pages");
-    pages.select("aisle_task").expect("Task page");
+    pages.select("aisle_robot").expect("Robot page");
     pages
 }
 
@@ -108,7 +108,12 @@ impl App {
     fn navigate(&mut self, page: &str) {
         self.update_bound_status();
         self.replay = false;
-        self.pages.select(page).expect("Registered page");
+        if self.pages.selected() != Some(page) {
+            self.pages.select(page).expect("Registered page");
+            if let Some(w) = self.backend.aisle() {
+                if let Err(error) = w.remember_page(page) { log!("Could not save last Studio page: {}", error); }
+            }
+        }
     }
 
     fn sync(&mut self, cx: &mut Cx) {
@@ -202,6 +207,30 @@ impl App {
                         "busy":w.busy(),"status":w.status,"controller":w.plan,"result":w.evidence,
                         "selected":w.selected,"progress":w.progress}),
                     &[
+                        "tabs.plugin_tab_aisle_robot",
+                        "aisle_robot.next_scene",
+                        "aisle_task.next_run",
+                        "aisle_robot.run_preflight_trial",
+                        "aisle_robot.robot_heading",
+                        "aisle_robot.joint_mode",
+                        "aisle_robot.joint_count",
+                        "aisle_robot.calibration_detail",
+                        "aisle_robot.calibration_path",
+                        "aisle_robot.import_calibration",
+                        "aisle_robot.clear_calibration",
+                        "aisle_robot.cameras_mode",
+                        "aisle_robot.hardware_mode",
+                        "aisle_robot.device_title",
+                        "aisle_robot.device_replay",
+                        "aisle_robot.device_result",
+                        "aisle_robot.device_listen",
+                        "aisle_robot.device_endpoint",
+                        "aisle_robot.inspector",
+                        "aisle_scene.conditions_mode",
+                        "aisle_scene.room_mode",
+                        "aisle_scene.next_task",
+                        "aisle_run.check_robot",
+                        "aisle_run.check_scene",
                         "tabs.plugin_tab_aisle_task",
                         "tabs.plugin_tab_aisle_scene",
                         "tabs.plugin_tab_aisle_run",
@@ -236,8 +265,8 @@ impl App {
                         "aisle_task.project_task.result",
                         "aisle_task.project_task.activate",
                         "aisle_task.project_task.clear",
-                        "aisle_task.nano",
-                        "aisle_task.g1",
+                        "aisle_robot.nano",
+                        "aisle_robot.g1",
                         "aisle_task.instruction",
                         "aisle_task.onboard",
                         "aisle_task.codex",
@@ -303,7 +332,7 @@ impl App {
                         "aisle_run.experiment_pane.exp_rule",
                         "aisle_run.experiment_pane.exp_rule_info",
                         "aisle_run.experiment_pane.exp_rule_toggle",
-                        "aisle_scene.inspect",
+                        "aisle_robot.inspect",
                         "aisle_scene.asset_mode",
                         "aisle_scene.composer_mode",
                         "aisle_scene.composer.library",
@@ -332,6 +361,10 @@ impl App {
                         "aisle_scene.composer.room_w",
                         "aisle_scene.composer.room_d",
                         "aisle_scene.composer.apply_room",
+                        "aisle_scene.composer.registration_mode",
+                        "aisle_scene.composer.robot_start",
+                        "aisle_scene.composer.camera_poses",
+                        "aisle_scene.composer.apply_registration",
                         "aisle_scene.composer.palette",
                         "aisle_scene.composer.reload",
                         "aisle_scene.composer.palette_tile",
@@ -435,7 +468,7 @@ impl App {
                         "aisle_scene.project_survey.import_result",
                         "aisle_scene.project_survey.previous_photo",
                         "aisle_scene.project_survey.next_photo",
-                        "aisle_scene.compact_visuals",
+                        "aisle_robot.compact_visuals",
                         "aisle_evidence.ev_mode",
                         "aisle_evidence.qa_mode",
                         "aisle_evidence.qa_panel",
@@ -526,14 +559,14 @@ impl App {
                         "aisle_run.empty_run",
                         "aisle_scene.row.inspector",
                         "aisle_task.row.model_card.robot",
-                        "aisle_scene.row.model_card.robot",
+                        "aisle_robot.row.model_card.robot",
                         "aisle_task.form_scroll",
                         "aisle_task.controller_section",
                         "aisle_task.revision_history",
                         "aisle_task.task_heading",
                         "aisle_task.preview_title",
                         "aisle_run.local_run",
-                        "aisle_scene.robot_mode",
+                        "aisle_robot.robot_mode",
                         "aisle_run.workers",
                         "aisle_evidence.ev_heading",
                         "aisle_scene.scene_heading",
@@ -548,6 +581,9 @@ impl App {
 
 impl MatchEvent for App {
     fn handle_startup(&mut self, cx: &mut Cx) {
+        if let Some(page) = self.backend.aisle().and_then(|w| w.last_page()) {
+            let _ = self.pages.select(&page);
+        }
         self.update_bound_status();
         frame::set_light_mode(1.0);
         self.pages
@@ -557,7 +593,8 @@ impl MatchEvent for App {
             .mount_tabs(cx, &self.ui.widget(cx, ids!(tabs)))
             .expect("Mount navigation");
         for (id, symbol) in [
-            (ids!(tabs.plugin_tab_aisle_task) as &[LiveId], 0.0),
+            (ids!(tabs.plugin_tab_aisle_robot) as &[LiveId], 4.0),
+            (ids!(tabs.plugin_tab_aisle_task), 0.0),
             (ids!(tabs.plugin_tab_aisle_scene), 1.0),
             (ids!(tabs.plugin_tab_aisle_run), 2.0),
             (ids!(tabs.plugin_tab_aisle_evidence), 3.0),
@@ -590,7 +627,16 @@ impl MatchEvent for App {
     }
 
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
-        if self.ui.button(cx, ids!(aisle_run.prepare_run)).clicked(actions) {
+        if self.ui.button(cx, ids!(aisle_task.next_run)).clicked(actions)
+            || self.ui.button(cx, ids!(aisle_robot.run_preflight_trial)).clicked(actions) {
+            self.navigate("aisle_run");
+        } else if self.ui.button(cx, ids!(aisle_robot.next_scene)).clicked(actions)
+            || self.ui.button(cx, ids!(aisle_run.check_scene)).clicked(actions) {
+            self.navigate("aisle_scene");
+        } else if self.ui.button(cx, ids!(aisle_run.check_robot)).clicked(actions) {
+            self.navigate("aisle_robot");
+        } else if self.ui.button(cx, ids!(aisle_run.prepare_run)).clicked(actions)
+            || self.ui.button(cx, ids!(aisle_scene.next_task)).clicked(actions) {
             self.binding_open = false;
             self.navigate("aisle_task");
         } else if self.ui.button(cx, ids!(aisle_evidence.prepare_evidence)).clicked(actions) {
@@ -604,9 +650,9 @@ impl MatchEvent for App {
             if let Some(pin) = self
                 .ui
                 .scene_editor_pane(cx, ids!(aisle_scene.composer))
-                .task_scene(cx)
+                .task_scene()
             {
-                self.pages.select("aisle_task").expect("Task page");
+                self.navigate("aisle_task");
                 self.binding_open = true;
                 self.sync(cx);
                 self.ui
@@ -635,7 +681,7 @@ impl MatchEvent for App {
             self.navigate(page.id);
         } else if self.ui.button(cx, ids!(back)).clicked(actions) {
             self.replay = false;
-            self.pages.select("aisle_evidence").expect("Evidence page");
+            self.navigate("aisle_evidence");
         } else if self.replay {
             for action in actions.iter().filter_map(|a| a.as_widget_action()) {
                 let intent = match action.cast::<TimelineAction>() {
@@ -689,10 +735,11 @@ impl AppMain for App {
         if let Event::KeyDown(key) = event {
             if key.modifiers.logo && !key.modifiers.shift && !key.modifiers.alt && !key.modifiers.control {
                 let page = match key.key_code {
-                    KeyCode::Key1 => Some("aisle_task"),
+                    KeyCode::Key1 => Some("aisle_robot"),
                     KeyCode::Key2 => Some("aisle_scene"),
-                    KeyCode::Key3 => Some("aisle_run"),
-                    KeyCode::Key4 => Some("aisle_evidence"),
+                    KeyCode::Key3 => Some("aisle_task"),
+                    KeyCode::Key4 => Some("aisle_run"),
+                    KeyCode::Key5 => Some("aisle_evidence"),
                     _ => None,
                 };
                 if let Some(page) = page {

@@ -32,6 +32,8 @@ class Compiled:
         return {
             "task_sha256": self.sha256,
             "scene": {k: self.document["scene"][k] for k in ("id", "revision", "name")},
+            **({"registration": self.document["scene"]["registration"],
+                "physics_frame": "robot start · X forward, Z up"} if "registration" in self.document["scene"] else {}),
             **({"ambient_rgb": list(scene.ambient)} if self.document["scene"].get("rules") else {}),
             **(
                 dict(
@@ -131,6 +133,18 @@ def load(path, expected=None, sampled=None):
     room = vec(scene["room_m"], 2)
     if min(room) <= 0:
         raise ValueError("Invalid room dimensions")
+    registration = scene.get("registration", {})
+    start = vec(registration.get("robot_xy_yaw", [0, 0, 0]), 3)
+    heading = math.radians(start[2])
+    if np.any(abs(start[:2]) >= room / 2):
+        raise ValueError("Robot start lies outside the authored room")
+    for name, camera in registration.get("fixed_cameras", {}).items():
+        if not name or any(c.isspace() for c in name) or vec(camera, 6)[2] < 0:
+            raise ValueError("Invalid fixed camera registration")
+
+    def in_robot_frame(position):
+        return rotate_xy(np.asarray(position) - [start[0], start[1], 0], -heading)
+
     assets = {(a["id"], a["revision"]): a for a in doc["assets"]}
     active = {}
     specs = []
@@ -146,7 +160,8 @@ def load(path, expected=None, sampled=None):
             dict(
                 name=name,
                 size=size,
-                position=position,
+                position=in_robot_frame(position).tolist(),
+                **({"quat": [math.cos(heading / 2), 0., 0., -math.sin(heading / 2)]} if heading else {}),
                 fixed=True,
                 friction=0.7,
                 restitution=0.0,
@@ -240,10 +255,14 @@ def load(path, expected=None, sampled=None):
                 raise ValueError(
                     f"{item['name']} is outside the room or below the floor"
                 )
-            # Conservative parked Nano footprint shared with the room-survey importer.
+            center = in_robot_frame(center)
+            relative_yaw = yaw - heading
+            ex = abs(math.cos(relative_yaw)) * size[0] + abs(math.sin(relative_yaw)) * size[1]
+            ey = abs(math.sin(relative_yaw)) * size[0] + abs(math.cos(relative_yaw)) * size[1]
+            # Conservative footprint measured in the parked robot's own frame.
             if (
-                abs(center[0]) < ext[0] / 2 + 0.29
-                and abs(center[1]) < ext[1] / 2 + 0.31
+                abs(center[0]) < ex / 2 + 0.29
+                and abs(center[1]) < ey / 2 + 0.31
                 and center[2] - size[2] / 2 < FLOOR_Z + (1.55 if standing else 0.40)
             ):
                 raise ValueError(
@@ -257,7 +276,7 @@ def load(path, expected=None, sampled=None):
                     collider=box["name"],
                     size=size.tolist(),
                     position=center.tolist(),
-                    quat=[math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2)],
+                    quat=[math.cos(relative_yaw / 2), 0.0, 0.0, math.sin(relative_yaw / 2)],
                     fixed=not movable,
                     friction=friction,
                     restitution=bounce,

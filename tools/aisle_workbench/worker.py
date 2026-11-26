@@ -571,17 +571,24 @@ def request_controller(provider, prompt, schema, output, *, camera_input=None, s
     return plan, model_name
 
 
-def room_for_mobile(args, meta):
+def room_for_mobile(args, meta, camera_profile=None):
     room_path = getattr(args, "room_revision", None)
-    if room_path is None:
-        return [], None
-    from room_revision import load_revision
-    from run_rgb_approach import scene_recipe
+    obstacles, settings = [], {}
+    if room_path is not None:
+        from room_revision import load_revision
+        from run_rgb_approach import scene_recipe
 
-    revision = load_revision(
-        room_path, args.room_hash, scene_recipe(args.seed), meta["model_hash"]
-    )
-    return revision["obstacles"], revision.get("settings")
+        revision = load_revision(room_path, args.room_hash, scene_recipe(args.seed), meta["model_hash"])
+        obstacles = revision["obstacles"]
+        settings = dict(revision.get("settings") or {})
+    if camera_profile:
+        if camera_profile["model_hash"] != meta["model_hash"]:
+            raise ValueError("Camera profile belongs to a different robot model")
+        for key in ("cameras", "calibration_source", "camera_mount_checks"):
+            settings.pop(key, None)
+            if key in camera_profile:
+                settings[key] = camera_profile[key]
+    return obstacles, settings or None
 
 
 def matches_bound(bound, plan):
@@ -592,6 +599,10 @@ def matches_bound(bound, plan):
 
 
 def prepare(args, meta):
+    path = getattr(args, "camera_profile", None)
+    camera_profile = json.loads(path.read_bytes()) if path else None
+    if camera_profile and (args.robot != "Nano" or camera_profile["model_hash"] != meta["model_hash"]):
+        raise ValueError("Camera calibration belongs to a different model")
     bound = None
     controller_instruction = None
     path = getattr(args, "bound_task", None)
@@ -736,7 +747,7 @@ def prepare(args, meta):
             sys.path.insert(0, str(ROOT / "tools/aisle-validation"))
             from onboard_scene import CALIBRATION, author_input, capture
 
-            obstacles, settings = room_for_mobile(args, meta)
+            obstacles, settings = room_for_mobile(args, meta, camera_profile)
             public, observation = capture(
                 args.out,
                 meta,
@@ -917,6 +928,7 @@ def prepare(args, meta):
             else {}
         ),
         **({"scene_observation": observation} if observation else {}),
+        **({"robot_camera_profile": camera_profile} if camera_profile else {}),
         **({"previous_trial": feedback} if feedback else {}),
         **({"revision_instruction" if feedback else "preparation_instruction": controller_instruction}
            if controller_instruction else {}),
@@ -1107,7 +1119,7 @@ def simulate(args, meta):
         )
     if mobile:
         sys.path.insert(0, str(ROOT / "tools/aisle-validation"))
-        room_objects, room_settings = room_for_mobile(args, meta)
+        room_objects, room_settings = room_for_mobile(args, meta, plan.get("robot_camera_profile"))
         if realized:
             room_settings=(room_settings or {}) | realized["environment"]
 
@@ -1304,6 +1316,7 @@ def main():
         "operation",
         choices=[
             "scene",
+            "calibrate",
             "prepare",
             "run",
             "export",
@@ -1364,6 +1377,8 @@ def main():
     p.add_argument("--experiment-run", type=Path)
     p.add_argument("--bound-task", type=Path)
     p.add_argument("--bound-task-sha256")
+    p.add_argument("--camera-survey", type=Path)
+    p.add_argument("--camera-profile", type=Path)
     p.add_argument("--room-source", type=Path)
     p.add_argument("--room-revision", type=Path)
     p.add_argument("--room-hash")
@@ -1586,6 +1601,19 @@ def main():
             return
         meta = describe(args.robot)
         save(args.out / "scene.json", meta)
+        if args.operation == "calibrate":
+            if args.robot != "Nano" or not args.camera_survey:
+                raise ValueError("Choose a Nano camera survey JSON file")
+            sys.path.insert(0, str(ROOT / "tools/aisle-validation"))
+            from room_revision import sensor_settings
+
+            source = args.camera_survey
+            data = json.loads(source.read_bytes())
+            sheet = {"camera_calibration": data.get("camera_calibration", data)}
+            settings = sensor_settings(sheet, source, meta["model_hash"])
+            save(args.out / "camera-survey.json", sheet["camera_calibration"])
+            save(args.out / "camera-profile.json", settings | {"model_hash": meta["model_hash"]})
+            return
         if args.operation == "prepare":
             plan = prepare(args, meta)
             from spec_catalog import selected

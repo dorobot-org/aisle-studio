@@ -52,7 +52,8 @@ def main():
         )
 
     def open_case():
-        app.click("aisle_task.nano")
+        app.click("tabs.plugin_tab_aisle_robot")
+        app.click("aisle_robot.nano")
         app.click("tabs.plugin_tab_aisle_evidence")
         app.click(prefix + "mode")
         app.control(prefix + "replay_case")

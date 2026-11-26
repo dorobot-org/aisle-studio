@@ -36,6 +36,17 @@ class AuthoredSceneTests(unittest.TestCase):
         self.path.write_text(json.dumps(self.doc))
         return load(self.path)
 
+    def test_room_registration_projects_bodies_into_robot_start_frame(self):
+        original = self.compile()
+        self.doc["scene"]["registration"] = dict(robot_xy_yaw=[-0.6, -0.5, 90], fixed_cameras={"wall": [0,0,2,0,90,0]})
+        registered = self.compile()
+        for before, after in zip(original.specs, registered.specs, strict=True):
+            self.assertAlmostEqual(after["position"][0], before["position"][1] + 0.5)
+            self.assertAlmostEqual(after["position"][1], -(before["position"][0] + 0.6))
+        self.doc["scene"]["registration"]["robot_xy_yaw"][0] = 500
+        with self.assertRaisesRegex(ValueError, "outside"):
+            self.compile()
+
     def test_rotated_table_and_renamed_target_use_pinned_body_ids(self):
         self.doc["scene"]["instances"][0].update(yaw_deg=90.0, position_m=[0, 2, 0])
         self.doc["scene"]["instances"][1]["name"] = "Package seven"

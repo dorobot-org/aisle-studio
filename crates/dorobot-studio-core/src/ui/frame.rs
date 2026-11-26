@@ -130,10 +130,16 @@ script_mod! {
                     sdf.move_to(24.0, 22.0) sdf.line_to(24.0, 30.0)
                 } else if self.symbol < 2.5 {
                     sdf.move_to(19.0, 14.0) sdf.line_to(32.0, 22.0) sdf.line_to(19.0, 30.0) sdf.close_path()
-                } else {
+                } else if self.symbol < 3.5 {
                     sdf.move_to(17.0, 29.0) sdf.line_to(17.0, 23.0) sdf.stroke(ink, 2.4)
                     sdf.move_to(24.0, 29.0) sdf.line_to(24.0, 18.0) sdf.stroke(ink, 2.4)
                     sdf.move_to(31.0, 29.0) sdf.line_to(31.0, 13.0)
+                } else {
+                    sdf.box(16.0, 17.0, 16.0, 12.0, 3.0) sdf.stroke(ink, 1.7)
+                    sdf.move_to(24.0, 14.0) sdf.line_to(24.0, 17.0) sdf.stroke(ink, 1.7)
+                    sdf.circle(20.5, 22.5, 1.4) sdf.fill(ink)
+                    sdf.circle(27.5, 22.5, 1.4) sdf.fill(ink)
+                    sdf.move_to(22.0, 26.0) sdf.line_to(26.0, 26.0)
                 }
                 sdf.stroke(ink, 1.8)
                 return sdf.result

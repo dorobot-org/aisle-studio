@@ -147,7 +147,18 @@ impl Viewport {
         camera: Camera,
         selected: Option<&str>,
     ) -> Self {
-        Self::render_bindings(scene, assets, camera, selected, None)
+        let mut view = Self::render_bindings(scene, assets, camera, selected, None);
+        let [x, y, yaw] = scene.registration.robot_xy_yaw;
+        let (sin, cos) = yaw.to_radians().sin_cos();
+        let tip = [x + 0.32 * cos, y + 0.32 * sin, 0.01];
+        let left = [x - 0.13 * cos - 0.16 * sin, y - 0.13 * sin + 0.16 * cos, 0.01];
+        let right = [x - 0.13 * cos + 0.16 * sin, y - 0.13 * sin - 0.16 * cos, 0.01];
+        view.outline(camera, [tip, left, right, tip]);
+        for pose in scene.registration.fixed_cameras.values() {
+            let [x, y, z, ..] = *pose;
+            view.outline(camera, [[x-0.08,y-0.08,z],[x+0.08,y-0.08,z],[x+0.08,y+0.08,z],[x-0.08,y+0.08,z]]);
+        }
+        view
     }
 
     pub fn render_bindings(

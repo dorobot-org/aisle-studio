@@ -234,6 +234,7 @@ def main():
             app.act("grab", "w=0", "out=" + str(folder / (name + ".png")))
 
     with app.launch():
+        app.click("tabs.plugin_tab_aisle_task")
         app.click("aisle_task.select_scene")
         bind = "aisle_task.project_task."
         show(bind + "result", "Multiple graspable objects")

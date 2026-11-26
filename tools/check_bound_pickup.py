@@ -316,6 +316,7 @@ def main():
         show(task + "result", "saved")
         assert (root / "active-task").read_text() == digest
     with app.launch():
+        app.click("tabs.plugin_tab_aisle_task")
         app.click("aisle_task.select_scene")
         show(task + "selection", "Red cube")
         show(task + "scene_label", "revision 1")
