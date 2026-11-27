@@ -1,6 +1,7 @@
 """Exercise the standalone G1 reference task with real Makepad input, then reopen it."""
 
 import argparse
+import hashlib
 from contextlib import contextmanager
 import json
 import os
@@ -16,6 +17,12 @@ def main():
     parser.add_argument("--studio", type=Path, required=True)
     parser.add_argument("--remote", type=Path, required=True)
     parser.add_argument("--session", required=True, type=Path)
+    parser.add_argument(
+        "--installed",
+        action="store_true",
+        help="Exercise a relocated macOS app offline with developer resources denied",
+    )
+    parser.add_argument("--robot", choices=("G1", "Nano"), default="G1")
     args = parser.parse_args()
     folder = args.session.resolve()
     folder.mkdir(parents=True, exist_ok=False)
@@ -27,13 +34,59 @@ def main():
         DOROBOT_STUDIO_SOURCE_ROOT=str(ROOT),
     )
 
+    command = [str(args.studio.resolve()), "--remote"]
+    cwd = ROOT
+    if args.installed:
+        contents = args.studio.resolve().parents[1]
+        release = json.loads((contents / "Resources/release.json").read_bytes())
+        cwd = folder
+        env = {
+            k: v
+            for k, v in env.items()
+            if k
+            in (
+                "HOME",
+                "TMPDIR",
+                "USER",
+                "LOGNAME",
+                "LANG",
+                "MAKEPAD_HAL_BACKEND",
+                "DOROBOT_UX_REPORT",
+                "DOROBOT_STUDIO_STATE_DIR",
+            )
+        }
+        env["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin"
+        denied = [
+            ROOT,
+            ROOT.parent / "AISLE-studio-runtime",
+            ROOT.parent / "AISLE",
+            Path("/opt/homebrew"),
+            Path.home() / ".cargo",
+            Path.home() / ".local/share/uv",
+        ]
+        rules = " ".join(
+            "(subpath " + json.dumps(str(path.resolve())) + ")" for path in denied
+        )
+        sandbox = folder / "installed.sb"
+        sandbox.write_text(
+            "(version 1)\n(allow default)\n(deny network-outbound)\n"
+            '(allow network-outbound (remote ip "localhost:*") (subpath "/private/tmp") (subpath "/tmp"))\n'
+            + "(deny file-read* "
+            + rules
+            + ")\n"
+            + "(deny file-write* (subpath "
+            + json.dumps(str(contents))
+            + "))\n"
+        )
+        command = ["/usr/bin/sandbox-exec", "-f", str(sandbox), *command]
+
     @contextmanager
     def launch():
         report.unlink(missing_ok=True)
         with (folder / "app.log").open("a") as log:
             process = subprocess.Popen(
-                [args.studio.resolve(), "--remote"],
-                cwd=ROOT,
+                command,
+                cwd=cwd,
                 env=env,
                 stdout=log,
                 stderr=subprocess.STDOUT,
@@ -81,12 +134,12 @@ def main():
 
     with launch() as pid:
         click(pid, "tabs.plugin_tab_aisle_robot")
-        click(pid, "aisle_robot.g1")
+        click(pid, "aisle_robot." + args.robot.lower())
         click(pid, "aisle_robot.next_scene")
         click(pid, "aisle_scene.next_task")
         click(pid, "aisle_task.reference")
         wait(
-            lambda d: d["state"]["controller"].get("robot") == "G1"
+            lambda d: d["state"]["controller"].get("robot") == args.robot
             if isinstance(d["state"]["controller"], dict)
             else False
         )
@@ -95,7 +148,7 @@ def main():
         click(pid, "tabs.plugin_tab_aisle_run")
         click(pid, "aisle_run.start_run")
         row = wait(
-            lambda d: (d["state"]["result"] or {}).get("robot") == "G1"
+            lambda d: (d["state"]["result"] or {}).get("robot") == args.robot
             and not d["state"]["busy"]
         )
         selected = row["selected"]
@@ -123,8 +176,21 @@ def main():
             restored["selected"] == selected
             and restored["result"]["controller_hash"] == result["controller_hash"]
         )
+    if args.installed:
+        source = json.loads(
+            next((folder / "state/aisle").glob("*/source.json")).read_bytes()
+        )
+        adapter = contents / "Resources/AISLE/src/aisle/sim/nexus_backend.py"
+        assert source["aisle_revision"] == release["aisle_revision"]
+        assert (
+            source["adapter_hash"] == hashlib.sha256(adapter.read_bytes()).hexdigest()
+        )
+        assert source["backend"] == "metal" and source["nexus"] == release["nexus"]
+        print(
+            f"Verified packaged AISLE {source['aisle_revision']} and Nexus {source['nexus']} on Metal."
+        )
     print(
-        "G1 reference, five pages, scored simulation, episode export, replay and restart passed."
+        f"{args.robot} reference, five pages, scored simulation, episode export, replay and restart passed."
     )
 
 

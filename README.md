@@ -6,7 +6,15 @@ AISLE Studio is a standalone Makepad application for developing robot tasks with
 
 [Watch the standalone app at 3× speed](media/nano-three-cubes-3x.mp4). Codex prepared the red, green, blue transfer and Nexus verified all three cubes settled on the coffee table. The 1 min 55 s recording shows the full app from Task through Evidence. [Run measurements](media/nano-three-cubes.json)
 
-## Run locally
+## Install the macOS release candidate
+
+Open `AISLE-Studio-0.1.0-rc.1-macOS-arm64.dmg`, drag **AISLE Studio** into **Applications**, then open it. The Apple Silicon app includes AISLE, Nexus on Metal, Python, FFmpeg, and the Adora Nano and Unitree G1 models with meshes. The reference tasks run offline. Codex and DeepSeek authoring use your separately configured provider.
+
+For a first run, choose **Robot → Unitree G1**, continue through **Scene → Task**, select **Use reference task**, then **Run → Start run**. Open **Evidence** to export and replay the episode. The RC uses ad-hoc signing. If macOS blocks the downloaded app, use **System Settings → Privacy & Security → Open Anyway** after the first launch attempt.
+
+[Build and verify the installer](tools/release/README.md)
+
+## Run from source
 
 The tested setup uses an Apple Silicon Mac, Rust, Python 3.13, uv, FFmpeg with development headers, and a GPU supported by Nexus. From this repository:
 

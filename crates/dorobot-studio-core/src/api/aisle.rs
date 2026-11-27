@@ -12,36 +12,36 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-pub fn python_command(studio:&Path)->io::Result<Command>{
-        let python = std::env::var_os("DOROBOT_AISLE_PYTHON")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| {
-                let local = studio.join(".venv-aisle/bin/python");
-                if local.is_file() {
-                    local
-                } else {
-                    PathBuf::from("python3")
-                }
-            });
-        let mut cmd = Command::new(python);
-        let repo = std::env::var_os("DOROBOT_AISLE_ROOT")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| studio.join("../AISLE"));
-        if repo.join("src/aisle").is_dir() {
-            let mut paths = vec![repo.join("src")];
-            paths.extend(std::env::split_paths(
-                &std::env::var_os("PYTHONPATH").unwrap_or_default(),
-            ));
-            cmd.env(
-                "PYTHONPATH",
-                std::env::join_paths(paths).map_err(io::Error::other)?,
-            );
-        } else if std::env::var_os("DOROBOT_AISLE_ROOT").is_some() {
-            return Err(io::Error::other(
-                "DOROBOT_AISLE_ROOT must point to an AISLE checkout containing src/aisle",
-            ));
+pub fn python_command(studio: &Path) -> io::Result<Command> {
+    let resources = crate::runtime::resources();
+    let python = std::env::var_os("DOROBOT_AISLE_PYTHON")
+        .map(PathBuf::from)
+        .or_else(|| resources.as_ref().map(|r| r.join("runtime/python/bin/python3")))
+        .unwrap_or_else(|| {
+            let local = studio.join(".venv-aisle/bin/python");
+            if local.is_file() { local } else { PathBuf::from("python3") }
+        });
+    let repo = std::env::var_os("DOROBOT_AISLE_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| studio.join("../AISLE"));
+    let mut cmd = Command::new(python);
+    crate::runtime::configure(&mut cmd);
+    if repo.join("src/aisle").is_dir() {
+        let mut paths = vec![repo.join("src")];
+        if resources.is_some() {
+            // Keep the installed worker independent of user packages and the app read-only.
+            cmd.env_remove("PYTHONHOME")
+                .env("PYTHONNOUSERSITE", "1")
+                .env("PYTHONDONTWRITEBYTECODE", "1")
+                .env("DOROBOT_AISLE_ROOT", &repo);
+        } else {
+            paths.extend(std::env::split_paths(&std::env::var_os("PYTHONPATH").unwrap_or_default()));
         }
-        Ok(cmd)
+        cmd.env("PYTHONPATH", std::env::join_paths(paths).map_err(io::Error::other)?);
+    } else if resources.is_some() || std::env::var_os("DOROBOT_AISLE_ROOT").is_some() {
+        return Err(io::Error::other(format!("Missing AISLE runtime at {}", repo.display())));
+    }
+    Ok(cmd)
 }
 
 pub const REFERENCE: &str = "Inspect the left shoulder with a small positive joint movement.";

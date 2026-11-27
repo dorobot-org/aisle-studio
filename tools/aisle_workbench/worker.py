@@ -1040,12 +1040,13 @@ def simulate(args, meta):
     if standing:
         fixture = "floating G1, gravity and loaded feet"
     repo = Path(nx.__file__).resolve().parents[3]
+    bundled_revision = repo / "REVISION"
     revision = (
         subprocess.check_output(
             ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
         ).strip()
         if (repo / ".git").exists()
-        else None
+        else bundled_revision.read_text().strip() if bundled_revision.is_file() else None
     )
     engine = nx._ensure_nexus()
     save(
