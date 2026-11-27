@@ -4,6 +4,7 @@ use dorobot_studio_core::{
     survey::{Photo, PhotoPixels, Survey},
     widgets::video_player::VideoPlayerWidgetRefExt,
 };
+use dorobot_studio_plugin::makepad_platform::file_dialogs::{FileDialog, FileDialogAction};
 use dorobot_studio_plugin::*;
 use editor::AssetEditor;
 use std::{
@@ -229,7 +230,7 @@ impl SurveyPane {
         }
     }
 
-    fn import(&mut self, paths: Option<Vec<PathBuf>>) {
+    fn import(&mut self, paths: Vec<PathBuf>) {
         let sender = self
             .queue
             .get_or_insert_with(|| {
@@ -239,13 +240,6 @@ impl SurveyPane {
             })
             .clone();
         std::thread::spawn(move || {
-            let Some(paths) = paths.or_else(|| {
-                rfd::FileDialog::new()
-                    .add_filter("Room and object photos", &["jpg", "jpeg", "png"])
-                    .pick_files()
-            }) else {
-                return;
-            };
             let store = project();
             let mut ok = Vec::new();
             let mut errors = Vec::new();
@@ -266,6 +260,16 @@ impl SurveyPane {
 
 impl Widget for SurveyPane {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        const PICK_PHOTOS: LiveId = live_id!(aisle_survey_import_photos);
+        if let Event::Actions(actions) = event {
+            for action in actions {
+                if let Some(FileDialogAction::FileSelected { id, paths }) = action.downcast_ref() {
+                    if *id == PICK_PHOTOS {
+                        self.import(paths.clone());
+                    }
+                }
+            }
+        }
         if !self.view.visible {
             return;
         }
@@ -327,13 +331,22 @@ impl Widget for SurveyPane {
                     })
                     .collect();
                 if !paths.is_empty() {
-                    self.import(Some(paths));
+                    self.import(paths);
                 }
             }
             _ => {}
         }
         if self.view.button(cx, ids!(pick)).clicked(&actions) {
-            self.import(None);
+            cx.open_select_file_dialog(
+                FileDialog::new()
+                    .set_id(PICK_PHOTOS)
+                    .set_multiple(true)
+                    .set_title("Import photos".into())
+                    .add_filter(
+                        "Room and object photos".into(),
+                        vec!["jpg".into(), "jpeg".into(), "png".into()],
+                    ),
+            );
         }
         if self.view.button(cx, ids!(previous_photo)).clicked(&actions) && self.index > 0 {
             self.index -= 1;

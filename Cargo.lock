@@ -896,7 +896,6 @@ dependencies = [
  "dorobot-studio-plugin",
  "dorobot-ux",
  "makepad-urdf-player",
- "rfd",
  "serde_json",
 ]
 
